@@ -1,0 +1,706 @@
+{
+  "cases": [
+    {
+      "cities": [
+        "Caerleon",
+        "Martlock"
+      ],
+      "language": "en",
+      "loadout": [
+        {
+          "slot": "main_hand",
+          "unique_name": "T6_MAIN_SWORD@0"
+        }
+      ],
+      "name": "single_slot",
+      "region": "americas"
+    },
+    {
+      "cities": [
+        "Caerleon",
+        "Martlock",
+        "Thetford"
+      ],
+      "language": "en",
+      "loadout": [
+        {
+          "slot": "main_hand",
+          "unique_name": "T6_MAIN_SWORD@0"
+        },
+        {
+          "slot": "head",
+          "unique_name": "T6_HEAD_LEATHER_SET2@0"
+        },
+        {
+          "slot": "cape",
+          "unique_name": "T5_CAPE@1"
+        }
+      ],
+      "name": "multi_slot",
+      "region": "americas"
+    },
+    {
+      "cities": [
+        "Caerleon"
+      ],
+      "language": "de",
+      "loadout": [
+        {
+          "slot": "food",
+          "unique_name": "T8_MEAL_STEW"
+        }
+      ],
+      "name": "localized",
+      "region": "europe"
+    },
+    {
+      "cities": [
+        "Caerleon"
+      ],
+      "language": "en",
+      "loadout": [
+        {
+          "slot": "main_hand",
+          "unique_name": "T6_NOT_A_REAL_TEMPLATE"
+        },
+        {
+          "slot": "head",
+          "unique_name": "T6_HEAD_LEATHER_SET2@0"
+        }
+      ],
+      "name": "unknown_template_skipped",
+      "region": "americas"
+    }
+  ],
+  "results": {
+    "localized": {
+      "cities": [
+        "Caerleon"
+      ],
+      "currency": "silver",
+      "language": "de",
+      "region": "europe",
+      "slots": [
+        {
+          "best": {
+            "api_url": "https://europe.albion-online-data.com/api/v2/stats/prices/T8_MEAL_STEW.json?locations=Caerleon&qualities=1",
+            "cheapest_city": "Caerleon",
+            "cheapest_price": 2233,
+            "cheapest_quality": 5,
+            "cheapest_quality_label": "Masterpiece",
+            "display_name": "Rindfleischeintopf",
+            "enchantment": 0,
+            "english_name": "Beef Stew",
+            "equivalent_level": 8,
+            "group": "MEAL",
+            "image_url": "https://render.albiononline.com/v1/item/T8_MEAL_STEW.png?quality=1&locale=en",
+            "market_search_alias": "Rindfleischeintopf 8.0",
+            "quality": 1,
+            "slot": "food",
+            "slot_label": "Essen",
+            "template": "MEAL_STEW",
+            "tier": 8,
+            "two_handed": false,
+            "unique_name": "T8_MEAL_STEW",
+            "updated_at": "2026-07-10T09:15:00"
+          },
+          "candidates": [
+            {
+              "api_url": "https://europe.albion-online-data.com/api/v2/stats/prices/T8_MEAL_STEW.json?locations=Caerleon&qualities=1",
+              "cheapest_city": "Caerleon",
+              "cheapest_price": 2233,
+              "cheapest_quality": 5,
+              "cheapest_quality_label": "Masterpiece",
+              "display_name": "Rindfleischeintopf",
+              "enchantment": 0,
+              "english_name": "Beef Stew",
+              "equivalent_level": 8,
+              "group": "MEAL",
+              "image_url": "https://render.albiononline.com/v1/item/T8_MEAL_STEW.png?quality=1&locale=en",
+              "market_search_alias": "Rindfleischeintopf 8.0",
+              "quality": 1,
+              "slot": "food",
+              "slot_label": "Essen",
+              "template": "MEAL_STEW",
+              "tier": 8,
+              "two_handed": false,
+              "unique_name": "T8_MEAL_STEW",
+              "updated_at": "2026-07-10T09:15:00"
+            }
+          ],
+          "selected": {
+            "display_name": "Rindfleischeintopf",
+            "enchantment": 0,
+            "english_name": "Beef Stew",
+            "equivalent_level": 8,
+            "group": "MEAL",
+            "image_url": "https://render.albiononline.com/v1/item/T8_MEAL_STEW.png?quality=1&locale=en",
+            "market_search_alias": "Rindfleischeintopf 8.0",
+            "quality": 1,
+            "slot": "food",
+            "slot_label": "Essen",
+            "template": "MEAL_STEW",
+            "tier": 8,
+            "two_handed": false,
+            "unique_name": "T8_MEAL_STEW"
+          }
+        }
+      ],
+      "total_cost": 2233
+    },
+    "multi_slot": {
+      "cities": [
+        "Caerleon",
+        "Martlock",
+        "Thetford"
+      ],
+      "currency": "silver",
+      "language": "en",
+      "region": "americas",
+      "slots": [
+        {
+          "best": {
+            "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_MAIN_SWORD%402.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+            "cheapest_city": "Caerleon",
+            "cheapest_price": 1274,
+            "cheapest_quality": 3,
+            "cheapest_quality_label": "Outstanding",
+            "display_name": "Broadsword",
+            "enchantment": 2,
+            "english_name": "Broadsword",
+            "equivalent_level": 6,
+            "group": "MAIN",
+            "image_url": "https://render.albiononline.com/v1/item/T4_MAIN_SWORD%402.png?quality=1&locale=en",
+            "market_search_alias": "Adept's Broadsword 4.2",
+            "quality": 1,
+            "slot": "main_hand",
+            "slot_label": "Main Hand",
+            "template": "MAIN_SWORD",
+            "tier": 4,
+            "two_handed": false,
+            "unique_name": "T4_MAIN_SWORD@2",
+            "updated_at": "2026-07-03T02:15:00"
+          },
+          "candidates": [
+            {
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_MAIN_SWORD%402.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "cheapest_city": "Caerleon",
+              "cheapest_price": 1274,
+              "cheapest_quality": 3,
+              "cheapest_quality_label": "Outstanding",
+              "display_name": "Broadsword",
+              "enchantment": 2,
+              "english_name": "Broadsword",
+              "equivalent_level": 6,
+              "group": "MAIN",
+              "image_url": "https://render.albiononline.com/v1/item/T4_MAIN_SWORD%402.png?quality=1&locale=en",
+              "market_search_alias": "Adept's Broadsword 4.2",
+              "quality": 1,
+              "slot": "main_hand",
+              "slot_label": "Main Hand",
+              "template": "MAIN_SWORD",
+              "tier": 4,
+              "two_handed": false,
+              "unique_name": "T4_MAIN_SWORD@2",
+              "updated_at": "2026-07-03T02:15:00"
+            },
+            {
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T5_MAIN_SWORD%401.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "cheapest_city": "Caerleon",
+              "cheapest_price": 1685,
+              "cheapest_quality": 1,
+              "cheapest_quality_label": "Normal",
+              "display_name": "Broadsword",
+              "enchantment": 1,
+              "english_name": "Broadsword",
+              "equivalent_level": 6,
+              "group": "MAIN",
+              "image_url": "https://render.albiononline.com/v1/item/T5_MAIN_SWORD%401.png?quality=1&locale=en",
+              "market_search_alias": "Expert's Broadsword 5.1",
+              "quality": 1,
+              "slot": "main_hand",
+              "slot_label": "Main Hand",
+              "template": "MAIN_SWORD",
+              "tier": 5,
+              "two_handed": false,
+              "unique_name": "T5_MAIN_SWORD@1",
+              "updated_at": "2026-07-06T05:15:00"
+            },
+            {
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T6_MAIN_SWORD.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "cheapest_city": "Caerleon",
+              "cheapest_price": 2096,
+              "cheapest_quality": 4,
+              "cheapest_quality_label": "Excellent",
+              "display_name": "Broadsword",
+              "enchantment": 0,
+              "english_name": "Broadsword",
+              "equivalent_level": 6,
+              "group": "MAIN",
+              "image_url": "https://render.albiononline.com/v1/item/T6_MAIN_SWORD.png?quality=1&locale=en",
+              "market_search_alias": "Master's Broadsword 6.0",
+              "quality": 1,
+              "slot": "main_hand",
+              "slot_label": "Main Hand",
+              "template": "MAIN_SWORD",
+              "tier": 6,
+              "two_handed": false,
+              "unique_name": "T6_MAIN_SWORD",
+              "updated_at": "2026-07-09T08:15:00"
+            }
+          ],
+          "selected": {
+            "display_name": "Broadsword",
+            "enchantment": 0,
+            "english_name": "Broadsword",
+            "equivalent_level": 6,
+            "group": "MAIN",
+            "image_url": "https://render.albiononline.com/v1/item/T6_MAIN_SWORD.png?quality=1&locale=en",
+            "market_search_alias": "Master's Broadsword 6.0",
+            "quality": 1,
+            "slot": "main_hand",
+            "slot_label": "Main Hand",
+            "template": "MAIN_SWORD",
+            "tier": 6,
+            "two_handed": false,
+            "unique_name": "T6_MAIN_SWORD"
+          }
+        },
+        {
+          "best": {
+            "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_HEAD_LEATHER_SET2%402.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+            "cheapest_city": "Caerleon",
+            "cheapest_price": 1137,
+            "cheapest_quality": 2,
+            "cheapest_quality_label": "Good",
+            "display_name": "Hunter Hood",
+            "enchantment": 2,
+            "english_name": "Hunter Hood",
+            "equivalent_level": 6,
+            "group": "HEAD",
+            "image_url": "https://render.albiononline.com/v1/item/T4_HEAD_LEATHER_SET2%402.png?quality=1&locale=en",
+            "market_search_alias": "Adept's Hunter Hood 4.2",
+            "quality": 1,
+            "slot": "head",
+            "slot_label": "Head",
+            "template": "HEAD_LEATHER_SET2",
+            "tier": 4,
+            "two_handed": false,
+            "unique_name": "T4_HEAD_LEATHER_SET2@2",
+            "updated_at": "2026-07-02T01:15:00"
+          },
+          "candidates": [
+            {
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_HEAD_LEATHER_SET2%402.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "cheapest_city": "Caerleon",
+              "cheapest_price": 1137,
+              "cheapest_quality": 2,
+              "cheapest_quality_label": "Good",
+              "display_name": "Hunter Hood",
+              "enchantment": 2,
+              "english_name": "Hunter Hood",
+              "equivalent_level": 6,
+              "group": "HEAD",
+              "image_url": "https://render.albiononline.com/v1/item/T4_HEAD_LEATHER_SET2%402.png?quality=1&locale=en",
+              "market_search_alias": "Adept's Hunter Hood 4.2",
+              "quality": 1,
+              "slot": "head",
+              "slot_label": "Head",
+              "template": "HEAD_LEATHER_SET2",
+              "tier": 4,
+              "two_handed": false,
+              "unique_name": "T4_HEAD_LEATHER_SET2@2",
+              "updated_at": "2026-07-02T01:15:00"
+            },
+            {
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T5_HEAD_LEATHER_SET2%401.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "cheapest_city": "Caerleon",
+              "cheapest_price": 1548,
+              "cheapest_quality": 5,
+              "cheapest_quality_label": "Masterpiece",
+              "display_name": "Hunter Hood",
+              "enchantment": 1,
+              "english_name": "Hunter Hood",
+              "equivalent_level": 6,
+              "group": "HEAD",
+              "image_url": "https://render.albiononline.com/v1/item/T5_HEAD_LEATHER_SET2%401.png?quality=1&locale=en",
+              "market_search_alias": "Expert's Hunter Hood 5.1",
+              "quality": 1,
+              "slot": "head",
+              "slot_label": "Head",
+              "template": "HEAD_LEATHER_SET2",
+              "tier": 5,
+              "two_handed": false,
+              "unique_name": "T5_HEAD_LEATHER_SET2@1",
+              "updated_at": "2026-07-05T04:15:00"
+            },
+            {
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T6_HEAD_LEATHER_SET2.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "cheapest_city": "Caerleon",
+              "cheapest_price": 1959,
+              "cheapest_quality": 3,
+              "cheapest_quality_label": "Outstanding",
+              "display_name": "Hunter Hood",
+              "enchantment": 0,
+              "english_name": "Hunter Hood",
+              "equivalent_level": 6,
+              "group": "HEAD",
+              "image_url": "https://render.albiononline.com/v1/item/T6_HEAD_LEATHER_SET2.png?quality=1&locale=en",
+              "market_search_alias": "Master's Hunter Hood 6.0",
+              "quality": 1,
+              "slot": "head",
+              "slot_label": "Head",
+              "template": "HEAD_LEATHER_SET2",
+              "tier": 6,
+              "two_handed": false,
+              "unique_name": "T6_HEAD_LEATHER_SET2",
+              "updated_at": "2026-07-08T07:15:00"
+            }
+          ],
+          "selected": {
+            "display_name": "Hunter Hood",
+            "enchantment": 0,
+            "english_name": "Hunter Hood",
+            "equivalent_level": 6,
+            "group": "HEAD",
+            "image_url": "https://render.albiononline.com/v1/item/T6_HEAD_LEATHER_SET2.png?quality=1&locale=en",
+            "market_search_alias": "Master's Hunter Hood 6.0",
+            "quality": 1,
+            "slot": "head",
+            "slot_label": "Head",
+            "template": "HEAD_LEATHER_SET2",
+            "tier": 6,
+            "two_handed": false,
+            "unique_name": "T6_HEAD_LEATHER_SET2"
+          }
+        },
+        {
+          "best": {
+            "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_CAPE%402.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+            "cheapest_city": "Caerleon",
+            "cheapest_price": 1000,
+            "cheapest_quality": 1,
+            "cheapest_quality_label": "Normal",
+            "display_name": "Cape",
+            "enchantment": 2,
+            "english_name": "Cape",
+            "equivalent_level": 6,
+            "group": "CAPE",
+            "image_url": "https://render.albiononline.com/v1/item/T4_CAPE%402.png?quality=1&locale=en",
+            "market_search_alias": "Adept's Cape 4.2",
+            "quality": 1,
+            "slot": "cape",
+            "slot_label": "Cape",
+            "template": "CAPE",
+            "tier": 4,
+            "two_handed": false,
+            "unique_name": "T4_CAPE@2",
+            "updated_at": "2026-07-01T00:15:00"
+          },
+          "candidates": [
+            {
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_CAPE%402.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "cheapest_city": "Caerleon",
+              "cheapest_price": 1000,
+              "cheapest_quality": 1,
+              "cheapest_quality_label": "Normal",
+              "display_name": "Cape",
+              "enchantment": 2,
+              "english_name": "Cape",
+              "equivalent_level": 6,
+              "group": "CAPE",
+              "image_url": "https://render.albiononline.com/v1/item/T4_CAPE%402.png?quality=1&locale=en",
+              "market_search_alias": "Adept's Cape 4.2",
+              "quality": 1,
+              "slot": "cape",
+              "slot_label": "Cape",
+              "template": "CAPE",
+              "tier": 4,
+              "two_handed": false,
+              "unique_name": "T4_CAPE@2",
+              "updated_at": "2026-07-01T00:15:00"
+            },
+            {
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T5_CAPE%401.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "cheapest_city": "Caerleon",
+              "cheapest_price": 1411,
+              "cheapest_quality": 4,
+              "cheapest_quality_label": "Excellent",
+              "display_name": "Cape",
+              "enchantment": 1,
+              "english_name": "Cape",
+              "equivalent_level": 6,
+              "group": "CAPE",
+              "image_url": "https://render.albiononline.com/v1/item/T5_CAPE%401.png?quality=1&locale=en",
+              "market_search_alias": "Expert's Cape 5.1",
+              "quality": 1,
+              "slot": "cape",
+              "slot_label": "Cape",
+              "template": "CAPE",
+              "tier": 5,
+              "two_handed": false,
+              "unique_name": "T5_CAPE@1",
+              "updated_at": "2026-07-04T03:15:00"
+            }
+          ],
+          "selected": {
+            "display_name": "Cape",
+            "enchantment": 1,
+            "english_name": "Cape",
+            "equivalent_level": 6,
+            "group": "CAPE",
+            "image_url": "https://render.albiononline.com/v1/item/T5_CAPE%401.png?quality=1&locale=en",
+            "market_search_alias": "Expert's Cape 5.1",
+            "quality": 1,
+            "slot": "cape",
+            "slot_label": "Cape",
+            "template": "CAPE",
+            "tier": 5,
+            "two_handed": false,
+            "unique_name": "T5_CAPE@1"
+          }
+        }
+      ],
+      "total_cost": 3411
+    },
+    "single_slot": {
+      "cities": [
+        "Caerleon",
+        "Martlock"
+      ],
+      "currency": "silver",
+      "language": "en",
+      "region": "americas",
+      "slots": [
+        {
+          "best": {
+            "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_MAIN_SWORD%402.json?locations=Caerleon,Martlock&qualities=1",
+            "cheapest_city": "Caerleon",
+            "cheapest_price": 1274,
+            "cheapest_quality": 3,
+            "cheapest_quality_label": "Outstanding",
+            "display_name": "Broadsword",
+            "enchantment": 2,
+            "english_name": "Broadsword",
+            "equivalent_level": 6,
+            "group": "MAIN",
+            "image_url": "https://render.albiononline.com/v1/item/T4_MAIN_SWORD%402.png?quality=1&locale=en",
+            "market_search_alias": "Adept's Broadsword 4.2",
+            "quality": 1,
+            "slot": "main_hand",
+            "slot_label": "Main Hand",
+            "template": "MAIN_SWORD",
+            "tier": 4,
+            "two_handed": false,
+            "unique_name": "T4_MAIN_SWORD@2",
+            "updated_at": "2026-07-03T02:15:00"
+          },
+          "candidates": [
+            {
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_MAIN_SWORD%402.json?locations=Caerleon,Martlock&qualities=1",
+              "cheapest_city": "Caerleon",
+              "cheapest_price": 1274,
+              "cheapest_quality": 3,
+              "cheapest_quality_label": "Outstanding",
+              "display_name": "Broadsword",
+              "enchantment": 2,
+              "english_name": "Broadsword",
+              "equivalent_level": 6,
+              "group": "MAIN",
+              "image_url": "https://render.albiononline.com/v1/item/T4_MAIN_SWORD%402.png?quality=1&locale=en",
+              "market_search_alias": "Adept's Broadsword 4.2",
+              "quality": 1,
+              "slot": "main_hand",
+              "slot_label": "Main Hand",
+              "template": "MAIN_SWORD",
+              "tier": 4,
+              "two_handed": false,
+              "unique_name": "T4_MAIN_SWORD@2",
+              "updated_at": "2026-07-03T02:15:00"
+            },
+            {
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T5_MAIN_SWORD%401.json?locations=Caerleon,Martlock&qualities=1",
+              "cheapest_city": "Caerleon",
+              "cheapest_price": 1685,
+              "cheapest_quality": 1,
+              "cheapest_quality_label": "Normal",
+              "display_name": "Broadsword",
+              "enchantment": 1,
+              "english_name": "Broadsword",
+              "equivalent_level": 6,
+              "group": "MAIN",
+              "image_url": "https://render.albiononline.com/v1/item/T5_MAIN_SWORD%401.png?quality=1&locale=en",
+              "market_search_alias": "Expert's Broadsword 5.1",
+              "quality": 1,
+              "slot": "main_hand",
+              "slot_label": "Main Hand",
+              "template": "MAIN_SWORD",
+              "tier": 5,
+              "two_handed": false,
+              "unique_name": "T5_MAIN_SWORD@1",
+              "updated_at": "2026-07-06T05:15:00"
+            },
+            {
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T6_MAIN_SWORD.json?locations=Caerleon,Martlock&qualities=1",
+              "cheapest_city": "Caerleon",
+              "cheapest_price": 2096,
+              "cheapest_quality": 4,
+              "cheapest_quality_label": "Excellent",
+              "display_name": "Broadsword",
+              "enchantment": 0,
+              "english_name": "Broadsword",
+              "equivalent_level": 6,
+              "group": "MAIN",
+              "image_url": "https://render.albiononline.com/v1/item/T6_MAIN_SWORD.png?quality=1&locale=en",
+              "market_search_alias": "Master's Broadsword 6.0",
+              "quality": 1,
+              "slot": "main_hand",
+              "slot_label": "Main Hand",
+              "template": "MAIN_SWORD",
+              "tier": 6,
+              "two_handed": false,
+              "unique_name": "T6_MAIN_SWORD",
+              "updated_at": "2026-07-09T08:15:00"
+            }
+          ],
+          "selected": {
+            "display_name": "Broadsword",
+            "enchantment": 0,
+            "english_name": "Broadsword",
+            "equivalent_level": 6,
+            "group": "MAIN",
+            "image_url": "https://render.albiononline.com/v1/item/T6_MAIN_SWORD.png?quality=1&locale=en",
+            "market_search_alias": "Master's Broadsword 6.0",
+            "quality": 1,
+            "slot": "main_hand",
+            "slot_label": "Main Hand",
+            "template": "MAIN_SWORD",
+            "tier": 6,
+            "two_handed": false,
+            "unique_name": "T6_MAIN_SWORD"
+          }
+        }
+      ],
+      "total_cost": 1274
+    },
+    "unknown_template_skipped": {
+      "cities": [
+        "Caerleon"
+      ],
+      "currency": "silver",
+      "language": "en",
+      "region": "americas",
+      "slots": [
+        {
+          "best": {
+            "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_HEAD_LEATHER_SET2%402.json?locations=Caerleon&qualities=1",
+            "cheapest_city": "Caerleon",
+            "cheapest_price": 1137,
+            "cheapest_quality": 2,
+            "cheapest_quality_label": "Good",
+            "display_name": "Hunter Hood",
+            "enchantment": 2,
+            "english_name": "Hunter Hood",
+            "equivalent_level": 6,
+            "group": "HEAD",
+            "image_url": "https://render.albiononline.com/v1/item/T4_HEAD_LEATHER_SET2%402.png?quality=1&locale=en",
+            "market_search_alias": "Adept's Hunter Hood 4.2",
+            "quality": 1,
+            "slot": "head",
+            "slot_label": "Head",
+            "template": "HEAD_LEATHER_SET2",
+            "tier": 4,
+            "two_handed": false,
+            "unique_name": "T4_HEAD_LEATHER_SET2@2",
+            "updated_at": "2026-07-02T01:15:00"
+          },
+          "candidates": [
+            {
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_HEAD_LEATHER_SET2%402.json?locations=Caerleon&qualities=1",
+              "cheapest_city": "Caerleon",
+              "cheapest_price": 1137,
+              "cheapest_quality": 2,
+              "cheapest_quality_label": "Good",
+              "display_name": "Hunter Hood",
+              "enchantment": 2,
+              "english_name": "Hunter Hood",
+              "equivalent_level": 6,
+              "group": "HEAD",
+              "image_url": "https://render.albiononline.com/v1/item/T4_HEAD_LEATHER_SET2%402.png?quality=1&locale=en",
+              "market_search_alias": "Adept's Hunter Hood 4.2",
+              "quality": 1,
+              "slot": "head",
+              "slot_label": "Head",
+              "template": "HEAD_LEATHER_SET2",
+              "tier": 4,
+              "two_handed": false,
+              "unique_name": "T4_HEAD_LEATHER_SET2@2",
+              "updated_at": "2026-07-02T01:15:00"
+            },
+            {
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T5_HEAD_LEATHER_SET2%401.json?locations=Caerleon&qualities=1",
+              "cheapest_city": "Caerleon",
+              "cheapest_price": 1548,
+              "cheapest_quality": 5,
+              "cheapest_quality_label": "Masterpiece",
+              "display_name": "Hunter Hood",
+              "enchantment": 1,
+              "english_name": "Hunter Hood",
+              "equivalent_level": 6,
+              "group": "HEAD",
+              "image_url": "https://render.albiononline.com/v1/item/T5_HEAD_LEATHER_SET2%401.png?quality=1&locale=en",
+              "market_search_alias": "Expert's Hunter Hood 5.1",
+              "quality": 1,
+              "slot": "head",
+              "slot_label": "Head",
+              "template": "HEAD_LEATHER_SET2",
+              "tier": 5,
+              "two_handed": false,
+              "unique_name": "T5_HEAD_LEATHER_SET2@1",
+              "updated_at": "2026-07-05T04:15:00"
+            },
+            {
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T6_HEAD_LEATHER_SET2.json?locations=Caerleon&qualities=1",
+              "cheapest_city": "Caerleon",
+              "cheapest_price": 1959,
+              "cheapest_quality": 3,
+              "cheapest_quality_label": "Outstanding",
+              "display_name": "Hunter Hood",
+              "enchantment": 0,
+              "english_name": "Hunter Hood",
+              "equivalent_level": 6,
+              "group": "HEAD",
+              "image_url": "https://render.albiononline.com/v1/item/T6_HEAD_LEATHER_SET2.png?quality=1&locale=en",
+              "market_search_alias": "Master's Hunter Hood 6.0",
+              "quality": 1,
+              "slot": "head",
+              "slot_label": "Head",
+              "template": "HEAD_LEATHER_SET2",
+              "tier": 6,
+              "two_handed": false,
+              "unique_name": "T6_HEAD_LEATHER_SET2",
+              "updated_at": "2026-07-08T07:15:00"
+            }
+          ],
+          "selected": {
+            "display_name": "Hunter Hood",
+            "enchantment": 0,
+            "english_name": "Hunter Hood",
+            "equivalent_level": 6,
+            "group": "HEAD",
+            "image_url": "https://render.albiononline.com/v1/item/T6_HEAD_LEATHER_SET2.png?quality=1&locale=en",
+            "market_search_alias": "Master's Hunter Hood 6.0",
+            "quality": 1,
+            "slot": "head",
+            "slot_label": "Head",
+            "template": "HEAD_LEATHER_SET2",
+            "tier": 6,
+            "two_handed": false,
+            "unique_name": "T6_HEAD_LEATHER_SET2"
+          }
+        }
+      ],
+      "total_cost": 1137
+    }
+  }
+}

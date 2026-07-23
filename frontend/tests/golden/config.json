@@ -1,0 +1,120 @@
+{
+  "languages": [
+    "en",
+    "de",
+    "fr",
+    "pt",
+    "es",
+    "ru",
+    "zh",
+    "ko"
+  ],
+  "qualities": [
+    {
+      "label": "Normal",
+      "value": 1
+    },
+    {
+      "label": "Good",
+      "value": 2
+    },
+    {
+      "label": "Outstanding",
+      "value": 3
+    },
+    {
+      "label": "Excellent",
+      "value": 4
+    },
+    {
+      "label": "Masterpiece",
+      "value": 5
+    }
+  ],
+  "regions": {
+    "americas": {
+      "cities": [
+        "Bridgewatch",
+        "Caerleon",
+        "FortSterling",
+        "Lymhurst",
+        "Martlock",
+        "Thetford",
+        "Brecilien"
+      ],
+      "host": "https://west.albion-online-data.com",
+      "key": "americas",
+      "label": "Americas"
+    },
+    "asia": {
+      "cities": [
+        "Bridgewatch",
+        "Caerleon",
+        "FortSterling",
+        "Lymhurst",
+        "Martlock",
+        "Thetford",
+        "Brecilien"
+      ],
+      "host": "https://east.albion-online-data.com",
+      "key": "asia",
+      "label": "Asia"
+    },
+    "europe": {
+      "cities": [
+        "Bridgewatch",
+        "Caerleon",
+        "FortSterling",
+        "Lymhurst",
+        "Martlock",
+        "Thetford",
+        "Brecilien"
+      ],
+      "host": "https://europe.albion-online-data.com",
+      "key": "europe",
+      "label": "Europe"
+    }
+  },
+  "slots": [
+    {
+      "key": "head",
+      "label": "Head"
+    },
+    {
+      "key": "chest",
+      "label": "Chest"
+    },
+    {
+      "key": "feet",
+      "label": "Feet"
+    },
+    {
+      "key": "main_hand",
+      "label": "Main Hand"
+    },
+    {
+      "key": "off_hand",
+      "label": "Off-Hand"
+    },
+    {
+      "key": "cape",
+      "label": "Cape"
+    },
+    {
+      "key": "bag",
+      "label": "Bag"
+    },
+    {
+      "key": "mount",
+      "label": "Mount"
+    },
+    {
+      "key": "food",
+      "label": "Food"
+    },
+    {
+      "key": "potion",
+      "label": "Potion"
+    }
+  ]
+}

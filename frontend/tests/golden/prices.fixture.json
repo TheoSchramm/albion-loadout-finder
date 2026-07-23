@@ -1,0 +1,273 @@
+{
+  "T4_CAPE@2": {
+    "Bridgewatch": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 4,
+      "sell_price_min": 1933,
+      "updated_at": "2026-07-01T00:15:00"
+    },
+    "Caerleon": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 1,
+      "sell_price_min": 1000,
+      "updated_at": "2026-07-01T00:15:00"
+    },
+    "Martlock": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 2,
+      "sell_price_min": 1311,
+      "updated_at": "2026-07-01T00:15:00"
+    },
+    "Thetford": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 3,
+      "sell_price_min": 1622,
+      "updated_at": "2026-07-01T00:15:00"
+    }
+  },
+  "T4_HEAD_LEATHER_SET2@2": {
+    "Bridgewatch": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 5,
+      "sell_price_min": 2070,
+      "updated_at": "2026-07-02T01:15:00"
+    },
+    "Caerleon": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 2,
+      "sell_price_min": 1137,
+      "updated_at": "2026-07-02T01:15:00"
+    },
+    "Martlock": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 3,
+      "sell_price_min": 1448,
+      "updated_at": "2026-07-02T01:15:00"
+    },
+    "Thetford": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 4,
+      "sell_price_min": 1759,
+      "updated_at": "2026-07-02T01:15:00"
+    }
+  },
+  "T4_MAIN_SWORD@2": {
+    "Bridgewatch": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 1,
+      "sell_price_min": 2207,
+      "updated_at": "2026-07-03T02:15:00"
+    },
+    "Caerleon": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 3,
+      "sell_price_min": 1274,
+      "updated_at": "2026-07-03T02:15:00"
+    },
+    "Martlock": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 4,
+      "sell_price_min": 1585,
+      "updated_at": "2026-07-03T02:15:00"
+    },
+    "Thetford": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 5,
+      "sell_price_min": 1896,
+      "updated_at": "2026-07-03T02:15:00"
+    }
+  },
+  "T5_CAPE@1": {
+    "Bridgewatch": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 2,
+      "sell_price_min": 2344,
+      "updated_at": "2026-07-04T03:15:00"
+    },
+    "Caerleon": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 4,
+      "sell_price_min": 1411,
+      "updated_at": "2026-07-04T03:15:00"
+    },
+    "Martlock": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 5,
+      "sell_price_min": 1722,
+      "updated_at": "2026-07-04T03:15:00"
+    },
+    "Thetford": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 1,
+      "sell_price_min": 2033,
+      "updated_at": "2026-07-04T03:15:00"
+    }
+  },
+  "T5_HEAD_LEATHER_SET2@1": {
+    "Bridgewatch": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 3,
+      "sell_price_min": 2481,
+      "updated_at": "2026-07-05T04:15:00"
+    },
+    "Caerleon": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 5,
+      "sell_price_min": 1548,
+      "updated_at": "2026-07-05T04:15:00"
+    },
+    "Martlock": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 1,
+      "sell_price_min": 1548,
+      "updated_at": "2026-07-05T04:15:00"
+    },
+    "Thetford": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 2,
+      "sell_price_min": 2170,
+      "updated_at": "2026-07-05T04:15:00"
+    }
+  },
+  "T5_MAIN_SWORD@1": {
+    "Bridgewatch": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 4,
+      "sell_price_min": 2618,
+      "updated_at": "2026-07-06T05:15:00"
+    },
+    "Caerleon": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 1,
+      "sell_price_min": 1685,
+      "updated_at": "2026-07-06T05:15:00"
+    },
+    "Martlock": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 2,
+      "sell_price_min": 1996,
+      "updated_at": "2026-07-06T05:15:00"
+    },
+    "Thetford": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 3,
+      "sell_price_min": 2307,
+      "updated_at": "2026-07-06T05:15:00"
+    }
+  },
+  "T6_CAPE": {},
+  "T6_HEAD_LEATHER_SET2": {
+    "Bridgewatch": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 1,
+      "sell_price_min": 2892,
+      "updated_at": "2026-07-08T07:15:00"
+    },
+    "Caerleon": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 3,
+      "sell_price_min": 1959,
+      "updated_at": "2026-07-08T07:15:00"
+    },
+    "Martlock": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 4,
+      "sell_price_min": 2270,
+      "updated_at": "2026-07-08T07:15:00"
+    },
+    "Thetford": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 5,
+      "sell_price_min": 2581,
+      "updated_at": "2026-07-08T07:15:00"
+    }
+  },
+  "T6_MAIN_SWORD": {
+    "Bridgewatch": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 2,
+      "sell_price_min": 3029,
+      "updated_at": "2026-07-09T08:15:00"
+    },
+    "Caerleon": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 4,
+      "sell_price_min": 2096,
+      "updated_at": "2026-07-09T08:15:00"
+    },
+    "Martlock": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 5,
+      "sell_price_min": 2407,
+      "updated_at": "2026-07-09T08:15:00"
+    },
+    "Thetford": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 1,
+      "sell_price_min": 2718,
+      "updated_at": "2026-07-09T08:15:00"
+    }
+  },
+  "T8_MEAL_STEW": {
+    "Bridgewatch": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 3,
+      "sell_price_min": 3166,
+      "updated_at": "2026-07-10T09:15:00"
+    },
+    "Caerleon": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 5,
+      "sell_price_min": 2233,
+      "updated_at": "2026-07-10T09:15:00"
+    },
+    "Martlock": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 1,
+      "sell_price_min": 2233,
+      "updated_at": "2026-07-10T09:15:00"
+    },
+    "Thetford": {
+      "buy_price_max": 0,
+      "fetched_at": 1753000000,
+      "quality": 2,
+      "sell_price_min": 2855,
+      "updated_at": "2026-07-10T09:15:00"
+    }
+  }
+}
