@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Albion Loadout Optimizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL@24,500,0"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    />
+    <link rel="preconnect" href="https://render.albiononline.com" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar panel">
+        <div class="sidebar-section">
+          <p class="eyebrow">Filters</p>
+          <div class="config-controls">
+            <label>
+              Region
+              <select id="regionSelect"></select>
+            </label>
+            <label>
+              Language
+              <select id="languageSelect"></select>
+            </label>
+            <label>
+              Market city
+              <select id="marketCitySelect"></select>
+            </label>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <p class="eyebrow">Presets</p>
+          <div class="loadout-tools">
+            <select id="savedLoadoutSelect" aria-label="Saved loadouts"></select>
+            <div class="loadout-tools-buttons">
+              <button id="loadSavedLoadoutButton" class="small-button" type="button">Load</button>
+              <button id="saveLoadoutButton" class="small-button" type="button">Save</button>
+              <button id="editSavedLoadoutButton" class="small-button" type="button">Edit</button>
+              <button id="deleteSavedLoadoutButton" class="small-button small-button-danger" type="button">Delete</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="content">
+        <section class="panel simulator-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Step 1</p>
+              <h2>Loadout Inventory Simulator</h2>
+            </div>
+            <span class="section-hint">Click a slot to search</span>
+          </div>
+
+          <div class="builder">
+            <div class="builder-column equipment-column">
+              <div class="column-heading">
+                <h3>Equipment</h3>
+              </div>
+              <div id="slotList" class="slot-list"></div>
+            </div>
+
+            <div class="builder-column search-column">
+              <div class="column-heading">
+                <h3 id="searchTitle">Select a slot</h3>
+              </div>
+              <input
+                id="searchInput"
+                type="search"
+                placeholder="Search item name..."
+                autocomplete="off"
+                disabled
+              />
+              <div id="searchResults" class="search-results">
+                <div class="empty-state">Pick a slot on the left to start searching.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel results-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Step 2</p>
+              <h2>Fetch Prices &amp; Results</h2>
+            </div>
+            <div class="total-cost-block">
+              <span class="total-cost-label">Total loadout price</span>
+              <span id="totalCost" class="total-cost">No prices yet</span>
+            </div>
+          </div>
+          <button id="refreshButton" class="primary-button compare-button">
+            <span class="material-symbols-rounded" aria-hidden="true">sync</span>
+            Compare prices
+          </button>
+          <div id="resultsList" class="results-list">
+            <table id="resultsTable" class="results-table" hidden>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Item</th>
+                  <th>Tier</th>
+                  <th>City</th>
+                  <th>Price</th>
+                  <th></th>
+                  <th></th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="resultsBody"></tbody>
+            </table>
+            <div id="resultsEmptyState" class="empty-state">Fill the loadout, then click Compare prices.</div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="saveLoadoutModal" class="modal-overlay" hidden aria-hidden="true">
+      <div class="panel modal">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Save loadout</p>
+            <h2 id="saveLoadoutTitle">Save current loadout</h2>
+            <p id="saveLoadoutHint" class="modal-hint">Give it a title. Description is optional.</p>
+          </div>
+          <button id="saveLoadoutClose" class="icon-button" type="button" aria-label="Close save dialog">
+            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          </button>
+        </div>
+        <form id="saveLoadoutForm" class="modal-form">
+          <label>
+            Title
+            <input id="saveLoadoutName" type="text" maxlength="64" required placeholder="My PvP build" />
+          </label>
+          <label>
+            Description
+            <textarea id="saveLoadoutDescription" rows="3" maxlength="180" placeholder="Optional note for this setup"></textarea>
+          </label>
+          <div class="modal-actions">
+            <button id="saveLoadoutCancel" class="secondary-button" type="button">Cancel</button>
+            <button id="saveLoadoutSubmit" class="primary-button" type="submit">Save loadout</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <template id="slotRowTemplate">
+      <article class="slot-row">
+        <button class="slot-row-main" type="button">
+          <span class="slot-row-icon">
+            <img class="slot-row-image" alt="" />
+            <span class="slot-row-placeholder material-symbols-rounded" aria-hidden="true">add</span>
+          </span>
+          <span class="slot-row-label"></span>
+        </button>
+        <button class="slot-row-clear" type="button" aria-label="Clear slot">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </article>
+    </template>
+
+    <template id="resultRowTemplate">
+      <article class="result-row">
+        <span class="result-row-icon">
+          <img class="result-row-image" alt="" />
+          <span class="material-symbols-rounded result-row-fallback" aria-hidden="true">image</span>
+        </span>
+        <span class="result-row-copy">
+          <strong class="result-row-name"></strong>
+          <span class="result-row-meta"></span>
+        </span>
+        <label class="result-row-field">
+          Tier
+          <select class="result-row-tier"></select>
+        </label>
+        <label class="result-row-field">
+          Ench
+          <select class="result-row-enchant"></select>
+        </label>
+        <button class="result-row-use primary-button" type="button">Use</button>
+      </article>
+    </template>
+
+    <template id="resultCardTemplate">
+      <tr class="result-card">
+        <td>
+          <span class="result-card-icon">
+            <img class="result-card-image" alt="" />
+          </span>
+        </td>
+        <td class="result-card-copy">
+          <strong class="result-card-name"></strong>
+          <span class="result-card-slot"></span>
+        </td>
+        <td class="result-card-tier">
+          <strong class="result-card-tier-value"></strong>
+          <span class="result-card-quality"></span>
+        </td>
+        <td class="result-card-city"></td>
+        <td class="result-card-price">
+          <strong class="result-card-price-value"></strong>
+          <span class="result-card-updated"></span>
+        </td>
+        <td>
+          <button class="result-card-toggle" type="button" hidden aria-label="Show equivalent tier options">
+            <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+          </button>
+        </td>
+        <td>
+          <a class="result-card-api-link" href="#" target="_blank" rel="noopener" title="Open the market data API query for this item">
+            <span class="material-symbols-rounded" aria-hidden="true">data_object</span>
+          </a>
+        </td>
+        <td>
+          <button class="result-card-copy-button" type="button" title="Copy the in-game market search text for this item">
+            <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>
+          </button>
+        </td>
+      </tr>
+      <tr class="result-card-options-row" hidden>
+        <td></td>
+        <td colspan="7">
+          <div class="result-card-options"></div>
+        </td>
+      </tr>
+    </template>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

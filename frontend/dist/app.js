@@ -1,0 +1,1081 @@
+const state = {
+  config: null,
+  region: 'americas',
+  language: 'en',
+  marketCity: 'all',
+  loadout: new Map(),
+  savedLoadouts: [],
+  selectedSavedLoadoutId: '',
+  activePresetId: '',
+  activePresetDescription: '',
+  saveModalMode: 'create',
+  searchTimer: null,
+  selectedSlot: null,
+  searchQuery: '',
+  pricingDirty: true,
+  lastResultsPayload: null,
+};
+
+const elements = {
+  regionSelect: document.getElementById('regionSelect'),
+  languageSelect: document.getElementById('languageSelect'),
+  marketCitySelect: document.getElementById('marketCitySelect'),
+  refreshButton: document.getElementById('refreshButton'),
+  slotList: document.getElementById('slotList'),
+  totalCost: document.getElementById('totalCost'),
+  searchTitle: document.getElementById('searchTitle'),
+  searchInput: document.getElementById('searchInput'),
+  searchResults: document.getElementById('searchResults'),
+  savedLoadoutSelect: document.getElementById('savedLoadoutSelect'),
+  saveLoadoutButton: document.getElementById('saveLoadoutButton'),
+  loadSavedLoadoutButton: document.getElementById('loadSavedLoadoutButton'),
+  editSavedLoadoutButton: document.getElementById('editSavedLoadoutButton'),
+  deleteSavedLoadoutButton: document.getElementById('deleteSavedLoadoutButton'),
+  saveLoadoutModal: document.getElementById('saveLoadoutModal'),
+  saveLoadoutForm: document.getElementById('saveLoadoutForm'),
+  saveLoadoutTitle: document.getElementById('saveLoadoutTitle'),
+  saveLoadoutHint: document.getElementById('saveLoadoutHint'),
+  saveLoadoutSubmit: document.getElementById('saveLoadoutSubmit'),
+  saveLoadoutName: document.getElementById('saveLoadoutName'),
+  saveLoadoutDescription: document.getElementById('saveLoadoutDescription'),
+  saveLoadoutCancel: document.getElementById('saveLoadoutCancel'),
+  saveLoadoutClose: document.getElementById('saveLoadoutClose'),
+  slotRowTemplate: document.getElementById('slotRowTemplate'),
+  resultRowTemplate: document.getElementById('resultRowTemplate'),
+  resultsTable: document.getElementById('resultsTable'),
+  resultsBody: document.getElementById('resultsBody'),
+  resultsEmptyState: document.getElementById('resultsEmptyState'),
+  resultCardTemplate: document.getElementById('resultCardTemplate'),
+};
+
+const SAVED_LOADOUTS_KEY = 'albion-helper.saved-loadouts';
+
+function apiUrl(path) {
+  return new URL(path, window.location.origin).toString();
+}
+
+async function requestJson(path, options = {}) {
+  const response = await fetch(apiUrl(path), {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+    ...options,
+  });
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status}`);
+  }
+  return response.json();
+}
+
+function formatSilver(value) {
+  if (value > 999) {
+    const thousands = Math.round(value / 100) / 10;
+    const label = Number.isInteger(thousands) ? thousands.toFixed(0) : thousands.toFixed(1);
+    return `${label}k`;
+  }
+  return new Intl.NumberFormat('en-US').format(value);
+}
+
+// City names here match the exact strings the backend/AODP API return (REGIONS
+// cities in app_core.py), not their display-friendly spelling (e.g. "FortSterling").
+// These are Albion's own in-game city colors. Three (Thetford, Caerleon, Brecilien)
+// are lightened slightly from the in-game hex, same hue - as flat small mono text on
+// this app's dark paper they were under 3:1 contrast at the original lightness.
+const CITY_COLORS = {
+  Martlock: '#068FA3',
+  Thetford: '#C152EA',
+  FortSterling: '#B4C6C8',
+  Lymhurst: '#5B9C10',
+  Bridgewatch: '#EB9026',
+  Caerleon: '#DD5A4B',
+  Brecilien: '#9E71D0',
+};
+
+const QUALITY_COLORS = {
+  Normal: '#949390',
+  Good: '#BDC3D5',
+  Outstanding: '#E9A263',
+  Excellent: '#FDFEFE',
+  Masterpiece: '#FFDD6F',
+};
+
+function cityColor(city) {
+  return CITY_COLORS[city] || '';
+}
+
+function qualityColor(qualityLabel) {
+  return QUALITY_COLORS[qualityLabel] || '';
+}
+
+async function copyMarketAlias(button, text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    return;
+  }
+  const icon = button.querySelector('.material-symbols-rounded');
+  const originalIcon = icon.textContent;
+  const originalTitle = button.title;
+  icon.textContent = 'check';
+  button.classList.add('is-copied');
+  button.title = 'Copied!';
+  clearTimeout(button.copyResetTimer);
+  button.copyResetTimer = setTimeout(() => {
+    icon.textContent = originalIcon;
+    button.classList.remove('is-copied');
+    button.title = originalTitle;
+  }, 1500);
+}
+
+const STALE_MARKET_DATA_MS = 24 * 60 * 60 * 1000;
+
+// Albion Online Data Project timestamps (e.g. "2026-07-23T00:15:00") have no
+// timezone suffix but are UTC - append "Z" so the browser doesn't interpret them
+// as local time, which would throw the "how old is this" math off by hours.
+function parseMarketTimestamp(value) {
+  if (!value) {
+    return null;
+  }
+  const isoValue = /Z$|[+-]\d{2}:\d{2}$/.test(value) ? value : `${value}Z`;
+  const date = new Date(isoValue);
+  if (Number.isNaN(date.getTime()) || date.getUTCFullYear() <= 1) {
+    return null;
+  }
+  return date;
+}
+
+function formatRelativeTime(date) {
+  const diffMinutes = Math.round((Date.now() - date.getTime()) / 60000);
+  if (diffMinutes < 1) {
+    return 'just now';
+  }
+  if (diffMinutes < 60) {
+    return `${diffMinutes}m ago`;
+  }
+  const diffHours = Math.round(diffMinutes / 60);
+  if (diffHours < 24) {
+    return `${diffHours}h ago`;
+  }
+  const diffDays = Math.round(diffHours / 24);
+  return `${diffDays}d ago`;
+}
+
+// Returns true if this is a real, observed market price; false if no real listing
+// was found and the price shown is a synthetic placeholder (see _price_fallback()
+// in app_core.py - a deterministic but entirely made-up number, not real data).
+function syncUpdatedAt(element, isoValue) {
+  const date = parseMarketTimestamp(isoValue);
+  if (!date) {
+    element.textContent = 'no market data';
+    element.title = 'No real listing was found for this item - the price shown is a placeholder estimate, not a real market price.';
+    element.classList.add('is-stale');
+    return false;
+  }
+  element.textContent = formatRelativeTime(date);
+  element.title = `Last recorded ${date.toLocaleString()}`;
+  element.classList.toggle('is-stale', Date.now() - date.getTime() > STALE_MARKET_DATA_MS);
+  return true;
+}
+
+function syncPriceValue(element, price, hasRealData) {
+  element.textContent = hasRealData ? `${formatSilver(price)} silver` : `~${formatSilver(price)} silver`;
+  element.classList.toggle('is-estimate', !hasRealData);
+  element.title = hasRealData ? '' : 'Estimated placeholder price - no real market listing was found for this item.';
+}
+
+function setStatus(message) {
+  console.log(`[status] ${message}`);
+}
+
+function hideStatus() {}
+
+function getSelected(slot) {
+  return state.loadout.get(slot) || null;
+}
+
+function isOffHandLocked() {
+  const mainHand = getSelected('main_hand');
+  return Boolean(mainHand && mainHand.two_handed);
+}
+
+function isSlotAvailable(slot) {
+  return slot !== 'off_hand' || !isOffHandLocked();
+}
+
+// A two-handed main-hand weapon occupies the off-hand slot too, so it can't hold
+// anything. Call this after any change that could affect main_hand/off_hand: clear
+// any now-invalid off-hand item, and if the off-hand panel is what's currently open,
+// move the user off it since it just became unselectable.
+function applyTwoHandedRule() {
+  if (!isOffHandLocked()) {
+    return;
+  }
+  if (state.loadout.has('off_hand')) {
+    state.loadout.delete('off_hand');
+  }
+  if (state.selectedSlot === 'off_hand') {
+    const nextAvailable = state.config.slots.find(entry => isSlotAvailable(entry.key) && !getSelected(entry.key));
+    if (nextAvailable) {
+      selectSlot(nextAvailable.key);
+    } else {
+      state.selectedSlot = null;
+      elements.searchTitle.textContent = 'Select a slot';
+      elements.searchInput.value = '';
+      elements.searchInput.disabled = true;
+      renderSearchPrompt('Pick a slot on the left to start searching.');
+    }
+  }
+}
+
+function renderConfig() {
+  elements.regionSelect.innerHTML = '';
+  Object.entries(state.config.regions).forEach(([key, region]) => {
+    const option = document.createElement('option');
+    option.value = key;
+    option.textContent = region.label;
+    elements.regionSelect.append(option);
+  });
+
+  elements.languageSelect.innerHTML = '';
+  state.config.languages.forEach(language => {
+    const option = document.createElement('option');
+    option.value = language;
+    option.textContent = language.toUpperCase();
+    elements.languageSelect.append(option);
+  });
+
+  renderMarketCityOptions();
+
+  elements.regionSelect.value = state.region;
+  elements.languageSelect.value = state.language;
+  elements.marketCitySelect.value = state.marketCity;
+}
+
+function renderMarketCityOptions() {
+  const region = state.config.regions[state.region];
+  elements.marketCitySelect.innerHTML = '';
+
+  const allOption = document.createElement('option');
+  allOption.value = 'all';
+  allOption.textContent = 'All cities';
+  elements.marketCitySelect.append(allOption);
+
+  if (region) {
+    region.cities.forEach(city => {
+      const option = document.createElement('option');
+      option.value = city;
+      option.textContent = city;
+      elements.marketCitySelect.append(option);
+    });
+  }
+
+  if (![...elements.marketCitySelect.options].some(option => option.value === state.marketCity)) {
+    state.marketCity = 'all';
+  }
+  elements.marketCitySelect.value = state.marketCity;
+}
+
+function renderInventory() {
+  elements.slotList.innerHTML = '';
+  state.config.slots.forEach(slotInfo => {
+    const fragment = elements.slotRowTemplate.content.cloneNode(true);
+    const row = fragment.querySelector('.slot-row');
+    const mainButton = fragment.querySelector('.slot-row-main');
+    const label = fragment.querySelector('.slot-row-label');
+    const clearButton = fragment.querySelector('.slot-row-clear');
+
+    row.dataset.slot = slotInfo.key;
+    row.dataset.label = slotInfo.label;
+    label.textContent = slotInfo.label;
+    mainButton.setAttribute('aria-label', `${slotInfo.label} slot`);
+
+    mainButton.addEventListener('click', () => selectSlot(slotInfo.key));
+
+    clearButton.addEventListener('click', event => {
+      event.stopPropagation();
+      state.loadout.delete(slotInfo.key);
+      applyTwoHandedRule();
+      markPricingDirty();
+    });
+
+    elements.slotList.append(fragment);
+  });
+
+  syncSlotRows();
+}
+
+function syncSlotRows() {
+  elements.slotList.querySelectorAll('.slot-row').forEach(row => {
+    const slot = row.dataset.slot;
+    const selected = getSelected(slot);
+    const mainButton = row.querySelector('.slot-row-main');
+    const clearButton = row.querySelector('.slot-row-clear');
+    const image = row.querySelector('.slot-row-image');
+    const label = row.querySelector('.slot-row-label');
+    const locked = !isSlotAvailable(slot);
+
+    row.classList.toggle('is-selected', slot === state.selectedSlot);
+    row.classList.toggle('is-disabled', locked);
+    mainButton.disabled = locked;
+    clearButton.disabled = locked;
+
+    if (!selected) {
+      row.classList.remove('is-filled');
+      image.removeAttribute('src');
+      image.alt = '';
+      label.textContent = locked ? 'Locked' : row.dataset.label || '';
+      row.removeAttribute('title');
+      return;
+    }
+
+    row.classList.add('is-filled');
+    image.src = selected.image_url;
+    image.alt = selected.display_name;
+    row.title = `${selected.display_name} - T${selected.tier}.${selected.enchantment} - ${selected.unique_name}`;
+  });
+}
+
+function renderSearchPrompt(message) {
+  elements.searchResults.innerHTML = `<div class="empty-state">${message}</div>`;
+}
+
+// When nothing is being searched, show the loaded preset's own description (if
+// any) instead of the generic hint - a quick reminder of what this build is for.
+function defaultSearchPrompt() {
+  return state.activePresetDescription || 'Type to search the item database.';
+}
+
+function selectSlot(slot) {
+  if (!isSlotAvailable(slot)) {
+    return;
+  }
+  state.selectedSlot = slot;
+  state.searchQuery = '';
+  elements.searchInput.value = '';
+  elements.searchInput.disabled = false;
+  const slotInfo = state.config.slots.find(entry => entry.key === slot);
+  elements.searchTitle.textContent = slotInfo ? `Add to ${slotInfo.label}` : 'Choose an item';
+  renderSearchPrompt(defaultSearchPrompt());
+  syncSlotRows();
+  elements.searchInput.focus();
+}
+
+function getCurrentLoadoutSnapshot() {
+  return Array.from(state.loadout.entries()).map(([slot, item]) => ({
+    slot,
+    item,
+  }));
+}
+
+function normalizeSavedLoadout(entry) {
+  if (!entry || typeof entry !== 'object') {
+    return null;
+  }
+  const title = typeof entry.title === 'string' ? entry.title.trim() : '';
+  if (!title) {
+    return null;
+  }
+  const slots = Array.isArray(entry.slots)
+    ? entry.slots
+        .map(slotEntry => {
+          if (!slotEntry || typeof slotEntry !== 'object') {
+            return null;
+          }
+          const slot = typeof slotEntry.slot === 'string' ? slotEntry.slot : '';
+          const item = slotEntry.item && typeof slotEntry.item === 'object' ? slotEntry.item : null;
+          if (!slot || !item) {
+            return null;
+          }
+          return { slot, item };
+        })
+        .filter(Boolean)
+    : [];
+  return {
+    id: typeof entry.id === 'string' && entry.id ? entry.id : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    title,
+    description: typeof entry.description === 'string' ? entry.description.trim() : '',
+    createdAt: typeof entry.createdAt === 'string' ? entry.createdAt : new Date().toISOString(),
+    updatedAt: typeof entry.updatedAt === 'string' ? entry.updatedAt : new Date().toISOString(),
+    region: typeof entry.region === 'string' ? entry.region : state.region,
+    language: typeof entry.language === 'string' ? entry.language : state.language,
+    marketCity: typeof entry.marketCity === 'string' ? entry.marketCity : state.marketCity,
+    slots,
+  };
+}
+
+function loadSavedLoadoutsFromStorage() {
+  try {
+    const raw = window.localStorage.getItem(SAVED_LOADOUTS_KEY);
+    if (!raw) {
+      return [];
+    }
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed.map(normalizeSavedLoadout).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function persistSavedLoadouts() {
+  window.localStorage.setItem(SAVED_LOADOUTS_KEY, JSON.stringify(state.savedLoadouts));
+}
+
+function renderSavedLoadoutOptions() {
+  const currentSelection = state.selectedSavedLoadoutId;
+  elements.savedLoadoutSelect.innerHTML = '';
+
+  if (!state.savedLoadouts.length) {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = 'No saved loadouts yet';
+    elements.savedLoadoutSelect.append(option);
+    elements.savedLoadoutSelect.disabled = true;
+    elements.loadSavedLoadoutButton.disabled = true;
+    elements.editSavedLoadoutButton.disabled = true;
+    elements.deleteSavedLoadoutButton.disabled = true;
+    state.selectedSavedLoadoutId = '';
+    return;
+  }
+
+  elements.savedLoadoutSelect.disabled = false;
+  elements.loadSavedLoadoutButton.disabled = false;
+  elements.editSavedLoadoutButton.disabled = false;
+  elements.deleteSavedLoadoutButton.disabled = false;
+
+  state.savedLoadouts
+    .slice()
+    .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())
+    .forEach(entry => {
+      const option = document.createElement('option');
+      option.value = entry.id;
+      option.textContent = entry.description ? `${entry.title} — ${entry.description}` : entry.title;
+      elements.savedLoadoutSelect.append(option);
+    });
+
+  if (!state.savedLoadouts.some(entry => entry.id === currentSelection)) {
+    state.selectedSavedLoadoutId = state.savedLoadouts[0].id;
+  }
+  elements.savedLoadoutSelect.value = state.selectedSavedLoadoutId;
+}
+
+function openSaveLoadoutDialog(mode = 'create') {
+  elements.saveLoadoutForm.reset();
+  if (mode === 'edit') {
+    const target = state.savedLoadouts.find(entry => entry.id === state.selectedSavedLoadoutId);
+    if (!target) {
+      return;
+    }
+    state.saveModalMode = 'edit';
+    elements.saveLoadoutName.value = target.title;
+    elements.saveLoadoutDescription.value = target.description;
+    elements.saveLoadoutTitle.textContent = 'Edit loadout details';
+    elements.saveLoadoutHint.textContent = 'Update the title and description. The saved gear itself is not affected.';
+    elements.saveLoadoutSubmit.textContent = 'Save changes';
+  } else {
+    state.saveModalMode = 'create';
+    elements.saveLoadoutTitle.textContent = 'Save current loadout';
+    elements.saveLoadoutHint.textContent = 'Give it a title. Description is optional.';
+    elements.saveLoadoutSubmit.textContent = 'Save loadout';
+  }
+  elements.saveLoadoutModal.hidden = false;
+  elements.saveLoadoutModal.setAttribute('aria-hidden', 'false');
+  elements.saveLoadoutName.focus();
+}
+
+function closeSaveLoadoutDialog() {
+  elements.saveLoadoutModal.hidden = true;
+  elements.saveLoadoutModal.setAttribute('aria-hidden', 'true');
+}
+
+function saveCurrentLoadout(event) {
+  event.preventDefault();
+  const title = elements.saveLoadoutName.value.trim();
+  const description = elements.saveLoadoutDescription.value.trim();
+  if (!title) {
+    elements.saveLoadoutName.focus();
+    return;
+  }
+
+  if (state.saveModalMode === 'edit') {
+    const target = state.savedLoadouts.find(entry => entry.id === state.selectedSavedLoadoutId);
+    if (!target) {
+      closeSaveLoadoutDialog();
+      return;
+    }
+    target.title = title;
+    target.description = description;
+    target.updatedAt = new Date().toISOString();
+    if (state.activePresetId === target.id) {
+      state.activePresetDescription = description;
+      if (!state.searchQuery.trim()) {
+        renderSearchPrompt(defaultSearchPrompt());
+      }
+    }
+    persistSavedLoadouts();
+    renderSavedLoadoutOptions();
+    closeSaveLoadoutDialog();
+    setStatus(`Updated "${title}"`);
+    return;
+  }
+
+  const snapshot = {
+    id: state.selectedSavedLoadoutId || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    title,
+    description,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    region: state.region,
+    language: state.language,
+    marketCity: state.marketCity,
+    slots: getCurrentLoadoutSnapshot(),
+  };
+
+  const titleKey = title.toLowerCase();
+  const existingIndex = state.savedLoadouts.findIndex(entry => entry.title.toLowerCase() === titleKey);
+  if (existingIndex >= 0) {
+    snapshot.id = state.savedLoadouts[existingIndex].id;
+    snapshot.createdAt = state.savedLoadouts[existingIndex].createdAt || snapshot.createdAt;
+    state.savedLoadouts[existingIndex] = snapshot;
+    state.selectedSavedLoadoutId = snapshot.id;
+  } else {
+    state.savedLoadouts.unshift(snapshot);
+    state.selectedSavedLoadoutId = snapshot.id;
+  }
+
+  state.activePresetId = snapshot.id;
+  state.activePresetDescription = description;
+  if (!state.searchQuery.trim()) {
+    renderSearchPrompt(defaultSearchPrompt());
+  }
+
+  persistSavedLoadouts();
+  renderSavedLoadoutOptions();
+  closeSaveLoadoutDialog();
+  setStatus(`Saved "${title}"`);
+}
+
+async function loadSelectedSavedLoadout() {
+  const selectedId = elements.savedLoadoutSelect.value;
+  const savedLoadout = state.savedLoadouts.find(entry => entry.id === selectedId);
+  if (!savedLoadout) {
+    return;
+  }
+
+  state.region = savedLoadout.region || state.region;
+  state.language = savedLoadout.language || state.language;
+  state.marketCity = savedLoadout.marketCity || state.marketCity;
+  renderConfig();
+
+  state.loadout.clear();
+  savedLoadout.slots.forEach(({ slot, item }) => {
+    state.loadout.set(slot, item);
+  });
+  await refreshLoadoutDisplayNames();
+
+  state.activePresetId = savedLoadout.id;
+  state.activePresetDescription = savedLoadout.description || '';
+  if (!state.searchQuery.trim()) {
+    renderSearchPrompt(defaultSearchPrompt());
+  }
+
+  applyTwoHandedRule();
+  markPricingDirty(`Loaded "${savedLoadout.title}". Click Compare prices to refresh market data.`);
+}
+
+function deleteSelectedSavedLoadout() {
+  const selectedId = elements.savedLoadoutSelect.value;
+  if (!selectedId) {
+    return;
+  }
+  const nextLoadouts = state.savedLoadouts.filter(entry => entry.id !== selectedId);
+  state.savedLoadouts = nextLoadouts;
+  state.selectedSavedLoadoutId = nextLoadouts[0]?.id || '';
+  if (state.activePresetId === selectedId) {
+    state.activePresetId = '';
+    state.activePresetDescription = '';
+    if (!state.searchQuery.trim()) {
+      renderSearchPrompt(defaultSearchPrompt());
+    }
+  }
+  persistSavedLoadouts();
+  renderSavedLoadoutOptions();
+  setStatus('Saved loadout removed');
+}
+
+function variantLabel(variant) {
+  return `T${variant.tier}.${variant.enchantment}`;
+}
+
+function sortVariants(variants) {
+  return [...variants].sort((left, right) => {
+    if (left.tier !== right.tier) {
+      return left.tier - right.tier;
+    }
+    if (left.enchantment !== right.enchantment) {
+      return left.enchantment - right.enchantment;
+    }
+    return String(left.unique_name || '').localeCompare(String(right.unique_name || ''));
+  });
+}
+
+function findVariant(variants, tier, enchantment) {
+  if (!variants.length) {
+    return null;
+  }
+  const exactMatch = variants.find(variant => variant.tier === tier && variant.enchantment === enchantment);
+  if (exactMatch) {
+    return exactMatch;
+  }
+  if (tier != null) {
+    const tierMatch = variants.find(variant => variant.tier === tier && (enchantment == null || variant.enchantment === enchantment));
+    if (tierMatch) {
+      return tierMatch;
+    }
+  }
+  if (enchantment != null) {
+    const enchantmentMatch = variants.find(variant => variant.enchantment === enchantment);
+    if (enchantmentMatch) {
+      return enchantmentMatch;
+    }
+  }
+  return sortVariants(variants)[0];
+}
+
+function syncResultPreview(row, variant) {
+  const icon = row.querySelector('.result-row-image');
+  const name = row.querySelector('.result-row-name');
+  const meta = row.querySelector('.result-row-meta');
+
+  icon.src = variant.image_url;
+  icon.alt = variant.display_name;
+  row.classList.add('has-image');
+
+  icon.onerror = () => {
+    row.classList.remove('has-image');
+    icon.removeAttribute('src');
+    icon.alt = '';
+  };
+  icon.onload = () => {
+    row.classList.add('has-image');
+  };
+
+  name.textContent = variant.display_name;
+  meta.textContent = `${variantLabel(variant)} · ${variant.slot_label}`;
+  row.title = `${variant.display_name} - ${variant.unique_name}`;
+}
+
+function hydrateVariantControls(row, variants, selectedVariant) {
+  const tierSelect = row.querySelector('.result-row-tier');
+  const enchantSelect = row.querySelector('.result-row-enchant');
+  const sortedVariants = sortVariants(variants);
+  const tierValues = [...new Set(sortedVariants.map(variant => variant.tier))];
+
+  tierSelect.innerHTML = '';
+  tierValues.forEach(tier => {
+    const option = document.createElement('option');
+    option.value = String(tier);
+    option.textContent = `T${tier}`;
+    tierSelect.append(option);
+  });
+
+  function renderEnchantOptions(tier, preferredEnchantment) {
+    const tierVariants = sortedVariants.filter(variant => variant.tier === tier);
+    const enchantValues = [...new Set(tierVariants.map(variant => variant.enchantment))];
+    enchantSelect.innerHTML = '';
+    enchantValues.forEach(enchantment => {
+      const option = document.createElement('option');
+      option.value = String(enchantment);
+      option.textContent = `+${enchantment}`;
+      enchantSelect.append(option);
+    });
+    const safeEnchantment = enchantValues.includes(preferredEnchantment) ? preferredEnchantment : enchantValues[0];
+    enchantSelect.value = String(safeEnchantment ?? 0);
+    return findVariant(tierVariants, tier, safeEnchantment) || tierVariants[0] || null;
+  }
+
+  tierSelect.value = String(selectedVariant.tier);
+  let currentVariant = renderEnchantOptions(selectedVariant.tier, selectedVariant.enchantment) || selectedVariant;
+  syncResultPreview(row, currentVariant);
+
+  tierSelect.addEventListener('change', () => {
+    const nextTier = Number(tierSelect.value);
+    currentVariant = renderEnchantOptions(nextTier, currentVariant.enchantment) || currentVariant;
+    syncResultPreview(row, currentVariant);
+  });
+
+  enchantSelect.addEventListener('change', () => {
+    const nextTier = Number(tierSelect.value);
+    currentVariant = findVariant(sortedVariants, nextTier, Number(enchantSelect.value)) || currentVariant;
+    syncResultPreview(row, currentVariant);
+  });
+
+  return () => currentVariant;
+}
+
+function renderResultsPrompt(message) {
+  elements.resultsBody.innerHTML = '';
+  elements.resultsTable.hidden = true;
+  elements.resultsEmptyState.textContent = message;
+  elements.resultsEmptyState.hidden = false;
+  elements.totalCost.textContent = 'No prices yet';
+}
+
+function renderResults(payload) {
+  elements.totalCost.textContent = `${formatSilver(payload.total_cost)} silver`;
+
+  if (!payload.slots.length) {
+    renderResultsPrompt('No priced slots yet.');
+    return;
+  }
+
+  elements.resultsBody.innerHTML = '';
+  elements.resultsEmptyState.hidden = true;
+  elements.resultsTable.hidden = false;
+
+  payload.slots.forEach(slotResult => {
+    const fragment = elements.resultCardTemplate.content.cloneNode(true);
+    const row = fragment.querySelector('.result-card');
+    const image = fragment.querySelector('.result-card-image');
+    const name = fragment.querySelector('.result-card-name');
+    const slotLabel = fragment.querySelector('.result-card-slot');
+    const tierValue = fragment.querySelector('.result-card-tier-value');
+    const quality = fragment.querySelector('.result-card-quality');
+    const city = fragment.querySelector('.result-card-city');
+    const priceValue = fragment.querySelector('.result-card-price-value');
+    const updated = fragment.querySelector('.result-card-updated');
+    const toggle = fragment.querySelector('.result-card-toggle');
+    const apiLink = fragment.querySelector('.result-card-api-link');
+    const copyButton = fragment.querySelector('.result-card-copy-button');
+    const optionsRow = fragment.querySelector('.result-card-options-row');
+    const options = fragment.querySelector('.result-card-options');
+
+    image.src = slotResult.best.image_url;
+    image.alt = slotResult.best.display_name;
+    name.textContent = slotResult.best.display_name;
+    slotLabel.textContent = slotResult.selected.slot_label;
+    tierValue.textContent = variantLabel(slotResult.best);
+    quality.textContent = slotResult.best.cheapest_quality_label || '';
+    quality.style.color = qualityColor(slotResult.best.cheapest_quality_label);
+    city.textContent = slotResult.best.cheapest_city || state.marketCity || 'fallback';
+    city.style.color = cityColor(slotResult.best.cheapest_city);
+    const hasRealPrice = syncUpdatedAt(updated, slotResult.best.updated_at);
+    syncPriceValue(priceValue, slotResult.best.cheapest_price, hasRealPrice);
+    if (slotResult.best.api_url) {
+      apiLink.href = slotResult.best.api_url;
+    } else {
+      apiLink.remove();
+    }
+    if (slotResult.best.market_search_alias) {
+      copyButton.addEventListener('click', () => copyMarketAlias(copyButton, slotResult.best.market_search_alias));
+    } else {
+      copyButton.remove();
+    }
+
+    if (slotResult.candidates.length > 1) {
+      toggle.hidden = false;
+      toggle.title = `${slotResult.candidates.length} equivalent tier/enchant options`;
+      slotResult.candidates.forEach(candidate => {
+        const line = document.createElement('div');
+        line.className = `option-line${candidate.unique_name === slotResult.best.unique_name ? ' is-best' : ''}`;
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'option-line-name';
+        nameSpan.textContent = `${candidate.display_name} · ${variantLabel(candidate)}`;
+
+        const leader = document.createElement('span');
+        leader.className = 'option-line-leader';
+        leader.setAttribute('aria-hidden', 'true');
+
+        const candidateDate = parseMarketTimestamp(candidate.updated_at);
+        const hasRealCandidatePrice = Boolean(candidateDate);
+        const pricePrefix = hasRealCandidatePrice ? '' : '~';
+
+        const priceSpan = document.createElement('span');
+        priceSpan.className = 'option-line-price';
+        priceSpan.textContent = `${pricePrefix}${formatSilver(candidate.cheapest_price)} silver`;
+        priceSpan.classList.toggle('is-estimate', !hasRealCandidatePrice);
+
+        const candidateCity = candidate.cheapest_city || state.marketCity || 'fallback';
+        const citySpan = document.createElement('span');
+        citySpan.className = 'option-line-city';
+        citySpan.textContent = candidateCity;
+        citySpan.style.color = cityColor(candidateCity);
+
+        const qualitySpan = document.createElement('span');
+        qualitySpan.className = 'option-line-quality';
+        qualitySpan.textContent = candidate.cheapest_quality_label || '';
+        qualitySpan.style.color = qualityColor(candidate.cheapest_quality_label);
+
+        const freshnessSpan = document.createElement('span');
+        freshnessSpan.className = 'option-line-freshness';
+        freshnessSpan.textContent = hasRealCandidatePrice ? formatRelativeTime(candidateDate) : 'no data';
+
+        line.append(nameSpan, leader, priceSpan, citySpan, qualitySpan, freshnessSpan);
+        options.append(line);
+      });
+
+      const toggleOptions = () => {
+        const expanded = !toggle.classList.contains('is-expanded');
+        toggle.classList.toggle('is-expanded', expanded);
+        optionsRow.hidden = !expanded;
+      };
+
+      row.classList.add('is-expandable');
+      row.addEventListener('click', event => {
+        if (event.target.closest('.result-card-api-link, .result-card-copy-button')) {
+          return;
+        }
+        toggleOptions();
+      });
+    }
+
+    elements.resultsBody.append(fragment);
+  });
+}
+
+function markPricingDirty(message = 'Loadout changed. Click Compare prices to refresh market data.') {
+  state.pricingDirty = true;
+  state.lastResultsPayload = null;
+  renderResultsPrompt(message);
+  setStatus(message);
+  syncSlotRows();
+}
+
+function scheduleSearch(query) {
+  if (!state.selectedSlot) {
+    return;
+  }
+  state.searchQuery = query;
+  clearTimeout(state.searchTimer);
+  state.searchTimer = setTimeout(() => runSearch(state.selectedSlot, query), 160);
+}
+
+async function runSearch(slot, query) {
+  if (!query.trim()) {
+    renderSearchPrompt(defaultSearchPrompt());
+    return;
+  }
+
+  elements.searchResults.innerHTML = '<div class="empty-state">Searching...</div>';
+  try {
+    const payload = await requestJson(
+      `/api/items?query=${encodeURIComponent(query)}&lang=${encodeURIComponent(state.language)}&slot=${encodeURIComponent(slot)}`,
+    );
+    if (state.selectedSlot !== slot) {
+      return;
+    }
+    elements.searchResults.innerHTML = '';
+    if (!payload.items.length) {
+      renderSearchPrompt('No matches found. Try another term or language.');
+      return;
+    }
+
+    payload.items.forEach(item => {
+      const variants = sortVariants(Array.isArray(item.variants) && item.variants.length ? item.variants : [item]);
+      const selectedVariant = findVariant(variants, item.tier, item.enchantment) || variants[0];
+      const fragment = elements.resultRowTemplate.content.cloneNode(true);
+      const row = fragment.querySelector('.result-row');
+      const useButton = fragment.querySelector('.result-row-use');
+      const getCurrentVariant = hydrateVariantControls(row, variants, selectedVariant);
+
+      useButton.addEventListener('click', () => {
+        const activeVariant = getCurrentVariant();
+        if (!activeVariant) {
+          return;
+        }
+        equip(slot, activeVariant);
+      });
+
+      elements.searchResults.append(fragment);
+    });
+  } catch (error) {
+    renderSearchPrompt(`Search failed: ${error.message}`);
+  }
+}
+
+function equip(slot, variant) {
+  state.loadout.set(slot, variant);
+  applyTwoHandedRule();
+  markPricingDirty();
+
+  const nextEmpty = state.config.slots.find(entry => isSlotAvailable(entry.key) && !getSelected(entry.key));
+  if (nextEmpty) {
+    selectSlot(nextEmpty.key);
+  } else {
+    renderSearchPrompt('All slots filled. Click Compare prices, or pick a slot on the left to change it.');
+  }
+}
+
+async function refreshLoadoutDisplayNames() {
+  const updates = await Promise.all(
+    Array.from(state.loadout.entries()).map(async ([slot, item]) => {
+      try {
+        const updated = await requestJson(`/api/item/${encodeURIComponent(item.unique_name)}?lang=${encodeURIComponent(state.language)}`);
+        return [slot, updated];
+      } catch {
+        return [slot, item];
+      }
+    }),
+  );
+
+  updates.forEach(([slot, item]) => {
+    state.loadout.set(slot, item);
+  });
+}
+
+// Prices/cities/timestamps never change with language, only display text does -
+// re-fetch just the localized fields for every item shown in the last results
+// payload and re-render in place, rather than re-running the (network-heavy,
+// price-affecting) optimize call just to relabel text.
+async function refreshResultsDisplayNames() {
+  if (!state.lastResultsPayload || !state.lastResultsPayload.slots.length) {
+    return;
+  }
+
+  const uniqueNames = new Set();
+  state.lastResultsPayload.slots.forEach(slotResult => {
+    uniqueNames.add(slotResult.selected.unique_name);
+    slotResult.candidates.forEach(candidate => uniqueNames.add(candidate.unique_name));
+  });
+
+  const entries = await Promise.all(
+    Array.from(uniqueNames).map(async uniqueName => {
+      try {
+        const updated = await requestJson(`/api/item/${encodeURIComponent(uniqueName)}?lang=${encodeURIComponent(state.language)}`);
+        return [uniqueName, updated];
+      } catch {
+        return [uniqueName, null];
+      }
+    }),
+  );
+  const updatesByName = new Map(entries.filter(([, updated]) => updated));
+
+  state.lastResultsPayload.slots.forEach(slotResult => {
+    const selectedUpdate = updatesByName.get(slotResult.selected.unique_name);
+    if (selectedUpdate) {
+      slotResult.selected = selectedUpdate;
+    }
+    slotResult.candidates.forEach(candidate => Object.assign(candidate, updatesByName.get(candidate.unique_name)));
+    Object.assign(slotResult.best, updatesByName.get(slotResult.best.unique_name));
+  });
+  state.lastResultsPayload.language = state.language;
+  renderResults(state.lastResultsPayload);
+}
+
+async function requestOptimization() {
+  if (!state.loadout.size) {
+    setStatus('Equip at least one item first.');
+    return;
+  }
+
+  const loadout = Array.from(state.loadout.entries()).map(([slot, item]) => ({
+    slot,
+    unique_name: item.unique_name,
+  }));
+
+  setStatus('Fetching prices');
+  const payload = await requestJson('/api/optimize', {
+    method: 'POST',
+    body: JSON.stringify({
+      loadout,
+      region: state.region,
+      language: state.language,
+      cities: state.marketCity === 'all' ? [] : [state.marketCity],
+    }),
+  });
+
+  state.pricingDirty = false;
+  state.lastResultsPayload = payload;
+  renderResults(payload);
+  hideStatus();
+}
+
+async function boot() {
+  setStatus('Loading');
+  state.config = await requestJson('/api/config');
+  state.savedLoadouts = loadSavedLoadoutsFromStorage();
+  state.selectedSavedLoadoutId = state.savedLoadouts[0]?.id || '';
+  renderConfig();
+  renderInventory();
+  renderSavedLoadoutOptions();
+  setStatus('Ready');
+
+  if (state.config.slots.length) {
+    selectSlot(state.config.slots[0].key);
+  }
+
+  elements.regionSelect.addEventListener('change', event => {
+    state.region = event.target.value;
+    renderMarketCityOptions();
+    markPricingDirty('Region changed. Click Compare prices to refresh the market data.');
+  });
+
+  elements.languageSelect.addEventListener('change', async event => {
+    state.language = event.target.value;
+    // Language only changes display text, not prices/cities - unlike region/market city
+    // changes, it must not clear the results table (markPricingDirty() would). Both the
+    // loadout slots and any already-fetched results are relabeled in place instead.
+    await Promise.all([refreshLoadoutDisplayNames(), refreshResultsDisplayNames()]);
+    syncSlotRows();
+    setStatus('Language changed.');
+    if (state.selectedSlot) {
+      const slotInfo = state.config.slots.find(entry => entry.key === state.selectedSlot);
+      elements.searchTitle.textContent = slotInfo ? `Add to ${slotInfo.label}` : 'Choose an item';
+      if (state.searchQuery.trim()) {
+        scheduleSearch(state.searchQuery);
+      } else {
+        renderSearchPrompt(defaultSearchPrompt());
+      }
+    }
+  });
+
+  elements.marketCitySelect.addEventListener('change', event => {
+    state.marketCity = event.target.value;
+    markPricingDirty('Market city changed. Click Compare prices to refresh the market data.');
+  });
+
+  elements.refreshButton.addEventListener('click', () => {
+    requestOptimization().catch(error => {
+      setStatus(`Optimization failed: ${error.message}`);
+    });
+  });
+
+  elements.saveLoadoutButton.addEventListener('click', () => {
+    openSaveLoadoutDialog('create');
+  });
+  elements.editSavedLoadoutButton.addEventListener('click', () => {
+    openSaveLoadoutDialog('edit');
+  });
+  elements.saveLoadoutCancel.addEventListener('click', closeSaveLoadoutDialog);
+  elements.saveLoadoutClose.addEventListener('click', closeSaveLoadoutDialog);
+  elements.saveLoadoutModal.addEventListener('click', event => {
+    if (event.target === elements.saveLoadoutModal) {
+      closeSaveLoadoutDialog();
+    }
+  });
+  elements.saveLoadoutForm.addEventListener('submit', saveCurrentLoadout);
+  elements.loadSavedLoadoutButton.addEventListener('click', () => {
+    loadSelectedSavedLoadout().catch(error => {
+      setStatus(`Could not load saved loadout: ${error.message}`);
+    });
+  });
+  elements.deleteSavedLoadoutButton.addEventListener('click', deleteSelectedSavedLoadout);
+  elements.savedLoadoutSelect.addEventListener('change', event => {
+    state.selectedSavedLoadoutId = event.target.value;
+  });
+
+  elements.searchInput.addEventListener('input', event => scheduleSearch(event.target.value));
+  window.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !elements.saveLoadoutModal.hidden) {
+      closeSaveLoadoutDialog();
+    }
+  });
+}
+
+boot().catch(error => {
+  setStatus(`Failed to load: ${error.message}`);
+});
