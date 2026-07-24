@@ -192,6 +192,49 @@ test('serialize variant uses correct per-tier name', () => {
   assert.equal(serializeVariant(variant, 'en').display_name, 'Beef Stew');
 });
 
+// ------------------------------------- fixed after the port: T8 cosmetic flavor names
+
+test('a T8 cosmetic flavor name does not exclude that tier from its own equivalents', () => {
+  // Most weapon/shield/tome lines get a unique flavor name at T8 while remaining
+  // mechanically the same item at every tier: 2H_AXE is "Greataxe" at T4-T7 and "The
+  // Hand of Khor" at T8; 2H_FIRESTAFF's T8 is "Vendetta's Wrath"; OFF_BOOK's is
+  // "Rosalia's Diary". Equipping a T4 item and enchanting toward level 8 must still
+  // consider the T8 variant, and equipping the T8 item directly must still consider
+  // T5-T7 - the old per-tier-name check treated the flavor name as a different item and
+  // silently dropped it from both directions.
+  for (const template of ['2H_AXE', '2H_FIRESTAFF', 'OFF_BOOK']) {
+    const definition = findDefinition(template);
+    // Level 8, reached from T4 with full enchant - equivalent_level = 4 + 4 = 8.
+    const fromT4 = equivalentVariants(buildVariant(definition, 4, 4));
+    assert.ok(
+      fromT4.some((candidate) => candidate.tier === 8),
+      `${template}: enchanting a T4 item toward level 8 should reach T8`,
+    );
+
+    const fromT8 = equivalentVariants(buildVariant(definition, 8, 0));
+    assert.ok(
+      fromT8.some((candidate) => candidate.tier === 4),
+      `${template}: equipping T8 directly should still offer T4 as a substitute`,
+    );
+  }
+});
+
+test('a genuinely different item at T8 (a gap in the tier range) is still excluded', () => {
+  // The fix above is gated on the tier range being continuous. Where it is not - food,
+  // and these two mounts that only exist at two non-adjacent tiers under different
+  // names - the items really are different, and must stay excluded exactly as before.
+  const spider = findDefinition('MOUNT_SPIDER_HELL');
+  assert.deepEqual(
+    equivalentVariants(buildVariant(spider, 8, 0)).map((c) => c.unique_name),
+    ['T8_MOUNT_SPIDER_HELL'],
+  );
+  const banner = findDefinition('CAPE_ARENA_BANNER');
+  assert.deepEqual(
+    equivalentVariants(buildVariant(banner, 8, 0)).map((c) => c.unique_name),
+    ['T8_CAPE_ARENA_BANNER'],
+  );
+});
+
 // ------------------------------------------------- guards specific to the JS port
 
 const ITEM_KEYS = [

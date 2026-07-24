@@ -98,6 +98,17 @@ export function serializeVariant(variant, language = 'en') {
  * - Tiers that carry a genuinely different item name are different items, not IP-scaled
  *   versions of one (MEAL_STEW exists at T4/T6/T8 as three separate dishes, and skips
  *   T5/T7 entirely). Substituting across those would offer Goat Stew for Beef Stew.
+ *
+ * That second rule only applies when the template's tier range has a GAP (some tier
+ * between min_tier and max_tier is missing entirely), which is what actually signals
+ * "these are different items" for food/potions/seasonal mounts. A continuous range with
+ * a name that only changes at T8 is a different pattern: most weapon, shield and tome
+ * lines get a unique flavor name at T8 ("The Hand of Khor" for 2H_AXE, "Vendetta's
+ * Wrath" for 2H_FIRESTAFF, "Rosalia's Diary" for OFF_BOOK) while remaining mechanically
+ * the same item at every tier. Gating on the name there excluded the T8 variant from its
+ * own template's candidate list - so equipping a T4 Greataxe and enchanting toward level
+ * 8 would never consider the arguably-cheaper T8.0 "Hand of Khor", and equipping the T8
+ * item directly would never consider T5-T7 as substitutes either.
  */
 export function equivalentVariants(variant) {
   const definition = findDefinition(variant.template);
@@ -106,7 +117,16 @@ export function equivalentVariants(variant) {
   }
   const targetLevel = variant.tier + variant.enchantment;
   const tierNames = getCatalog().tierLocalizedNames;
-  const referenceEntry = tierNames.get(tierKey(variant.template, variant.tier));
+
+  let hasGap = false;
+  for (let tier = definition.min_tier; tier <= definition.max_tier; tier += 1) {
+    if (!tierNames.has(tierKey(variant.template, tier))) {
+      hasGap = true;
+      break;
+    }
+  }
+
+  const referenceEntry = hasGap ? tierNames.get(tierKey(variant.template, variant.tier)) : null;
   const referenceName = referenceEntry ? referenceEntry.en : undefined;
 
   const candidates = [];

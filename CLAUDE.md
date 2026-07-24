@@ -116,8 +116,13 @@ substrings. **To support a new category of item, extend that allowlist** — do 
 - Quality (Normal=1 .. Masterpiece=5) adds up to +100 IP, independent of the equivalence math.
 - **Equivalent level = tier + enchantment.** 4.2, 5.1 and 6.0 are interchangeable, which is what
   `equivalentVariants()` expands.
-- **Some templates rename per tier and are not substitutes.** `MEAL_STEW` is Goat Stew at T4, Mutton Stew at
-  T6 and Beef Stew at T8, and skips T5/T7 entirely. Substitution is gated on the English name matching.
+- **Some templates rename per tier and are not substitutes — but only when the tier range has a gap.**
+  `MEAL_STEW` is Goat Stew at T4, Mutton Stew at T6 and Beef Stew at T8, and skips T5/T7 entirely; that gap is
+  what signals "these are different items", so substitution is gated on the English name matching. A
+  continuous tier range whose name only changes at T8 is a *different* pattern and must NOT be gated: most
+  weapon/shield/tome lines get a cosmetic-only T8 flavor name (`2H_AXE` is "Greataxe" at T4-T7 and "The Hand
+  of Khor" at T8) while remaining the same item mechanically. `equivalentVariants()` in `items.js` checks for
+  a gap first and only applies the name filter when one exists.
 
 ### Market prices
 - Region hosts: Americas `west`, Asia `east`, Europe `europe` `.albion-online-data.com`.
