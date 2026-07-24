@@ -34,6 +34,10 @@ Actions), so entries are grouped by date rather than by version number — there
 - Saving the current loadout while a preset is already loaded now updates that same preset in
   place instead of creating a duplicate entry with a colliding id. Saving with no preset loaded
   starts a fresh one, prefilled with a unique default title ("My loadout N").
+- Selecting an empty slot now immediately lists every item available for it, instead of
+  requiring the user to start typing first.
+- The copy-to-clipboard button in the results table moved from its own trailing column to sit
+  right next to the item name.
 
 ### Fixed
 

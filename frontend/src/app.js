@@ -393,6 +393,19 @@ function defaultSearchPrompt() {
   return state.activePresetDescription || 'Type to search the item database.';
 }
 
+// The "nothing typed yet" view: list every item available for the selected slot (an
+// empty query matches everything - see matchesQuery() in text.js) rather than making
+// the user type a letter just to see what's on offer. Only falls back to the generic
+// hint when no slot is selected at all, which is rare (a slot is auto-selected on
+// boot and stays selected across most actions).
+function showIdleSearchView() {
+  if (state.selectedSlot) {
+    runSearch(state.selectedSlot, '');
+  } else {
+    renderSearchPrompt(defaultSearchPrompt());
+  }
+}
+
 function selectSlot(slot) {
   if (!isSlotAvailable(slot)) {
     return;
@@ -403,7 +416,7 @@ function selectSlot(slot) {
   elements.searchInput.disabled = false;
   const slotInfo = state.config.slots.find(entry => entry.key === slot);
   elements.searchTitle.textContent = slotInfo ? `Add to ${slotInfo.label}` : 'Choose an item';
-  renderSearchPrompt(defaultSearchPrompt());
+  showIdleSearchView();
   syncSlotRows();
   elements.searchInput.focus();
 }
@@ -630,7 +643,7 @@ function saveCurrentLoadout(event) {
     if (state.activePresetId === target.id) {
       state.activePresetDescription = description;
       if (!state.searchQuery.trim()) {
-        renderSearchPrompt(defaultSearchPrompt());
+        showIdleSearchView();
       }
     }
     persistSavedLoadouts();
@@ -656,7 +669,7 @@ function saveCurrentLoadout(event) {
     state.selectedSavedLoadoutId = target.id;
     state.activePresetDescription = description;
     if (!state.searchQuery.trim()) {
-      renderSearchPrompt(defaultSearchPrompt());
+      showIdleSearchView();
     }
     persistSavedLoadouts();
     renderSavedLoadoutOptions();
@@ -695,7 +708,7 @@ function saveCurrentLoadout(event) {
   state.activePresetId = snapshot.id;
   state.activePresetDescription = description;
   if (!state.searchQuery.trim()) {
-    renderSearchPrompt(defaultSearchPrompt());
+    showIdleSearchView();
   }
 
   persistSavedLoadouts();
@@ -725,7 +738,7 @@ async function loadSelectedSavedLoadout() {
   state.activePresetId = savedLoadout.id;
   state.activePresetDescription = savedLoadout.description || '';
   if (!state.searchQuery.trim()) {
-    renderSearchPrompt(defaultSearchPrompt());
+    showIdleSearchView();
   }
 
   applyTwoHandedRule();
@@ -748,7 +761,7 @@ function deleteSelectedSavedLoadout() {
     state.activePresetId = '';
     state.activePresetDescription = '';
     if (!state.searchQuery.trim()) {
-      renderSearchPrompt(defaultSearchPrompt());
+      showIdleSearchView();
     }
   }
   persistSavedLoadouts();
@@ -1079,7 +1092,7 @@ function clearLoadout() {
   state.activePresetId = '';
   state.activePresetDescription = '';
   if (!state.searchQuery.trim()) {
-    renderSearchPrompt(defaultSearchPrompt());
+    showIdleSearchView();
   }
   markPricingDirty(); // also calls syncSlotRows(), which redraws every slot as empty
 }
@@ -1141,7 +1154,7 @@ function importLoadoutCode() {
   state.activePresetId = '';
   state.activePresetDescription = '';
   if (!state.searchQuery.trim()) {
-    renderSearchPrompt(defaultSearchPrompt());
+    showIdleSearchView();
   }
 
   const itemWord = resolved.length === 1 ? 'item' : 'items';
@@ -1166,12 +1179,10 @@ function scheduleSearch(query) {
   state.searchTimer = setTimeout(() => runSearch(state.selectedSlot, query), 160);
 }
 
+// An empty query is not "no search" - matchesQuery() in text.js treats it as matching
+// everything, so this lists every item available for the slot (capped at the usual
+// result limit) rather than requiring the user to type before seeing any options.
 async function runSearch(slot, query) {
-  if (!query.trim()) {
-    renderSearchPrompt(defaultSearchPrompt());
-    return;
-  }
-
   elements.searchResults.innerHTML = '<div class="empty-state">Searching...</div>';
   try {
     const payload = getItems({ query, lang: state.language, slot });
@@ -1180,7 +1191,9 @@ async function runSearch(slot, query) {
     }
     elements.searchResults.innerHTML = '';
     if (!payload.items.length) {
-      renderSearchPrompt('No matches found. Try another term or language.');
+      renderSearchPrompt(
+        query.trim() ? 'No matches found. Try another term or language.' : 'No items available for this slot.',
+      );
       return;
     }
 
@@ -1378,7 +1391,7 @@ async function boot() {
       if (state.searchQuery.trim()) {
         scheduleSearch(state.searchQuery);
       } else {
-        renderSearchPrompt(defaultSearchPrompt());
+        showIdleSearchView();
       }
     }
   });

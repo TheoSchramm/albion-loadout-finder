@@ -131,7 +131,6 @@
                   <th>Price</th>
                   <th></th>
                   <th></th>
-                  <th></th>
                 </tr>
               </thead>
               <tbody id="resultsBody"></tbody>
@@ -221,7 +220,12 @@
           </span>
         </td>
         <td class="result-card-copy">
-          <strong class="result-card-name"></strong>
+          <span class="result-card-name-row">
+            <strong class="result-card-name"></strong>
+            <button class="result-card-copy-button" type="button" title="Copy the in-game market search text for this item">
+              <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>
+            </button>
+          </span>
           <span class="result-card-slot"></span>
         </td>
         <td class="result-card-tier">
@@ -243,15 +247,10 @@
             <span class="material-symbols-rounded" aria-hidden="true">data_object</span>
           </a>
         </td>
-        <td>
-          <button class="result-card-copy-button" type="button" title="Copy the in-game market search text for this item">
-            <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>
-          </button>
-        </td>
       </tr>
       <tr class="result-card-options-row" hidden>
         <td></td>
-        <td colspan="7">
+        <td colspan="6">
           <div class="result-card-options"></div>
         </td>
       </tr>

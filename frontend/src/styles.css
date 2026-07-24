@@ -862,8 +862,7 @@ button:disabled {
 }
 
 .results-table thead th:nth-child(6),
-.results-table thead th:nth-child(7),
-.results-table thead th:nth-child(8) {
+.results-table thead th:nth-child(7) {
   width: 2.1rem;
 }
 
@@ -924,8 +923,17 @@ button:disabled {
   font-family: var(--font-sans);
 }
 
+.result-card-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
 .result-card-name {
   display: block;
+  min-width: 0;
+  flex: 1 1 auto;
   font-size: 1rem;
   font-weight: 600;
   white-space: nowrap;
@@ -1042,9 +1050,10 @@ button:disabled {
 
 .result-card-copy-button {
   display: grid;
+  flex-shrink: 0;
   place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 1.5rem;
+  height: 1.5rem;
   border-radius: 50%;
   background: transparent;
   color: hsl(var(--ink-faint));
@@ -1060,7 +1069,7 @@ button:disabled {
 }
 
 .result-card-copy-button .material-symbols-rounded {
-  font-size: 1.2rem;
+  font-size: 1.05rem;
 }
 
 .result-card-options-row td:last-child {
