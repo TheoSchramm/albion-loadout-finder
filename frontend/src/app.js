@@ -284,7 +284,7 @@ function renderMinQualityOptions() {
   state.config.qualities.forEach(({ value, label }) => {
     const option = document.createElement('option');
     option.value = String(value);
-    option.textContent = value === 1 ? label : `${label} or better`;
+    option.textContent = value === 1 ? label : `${label}`;
     elements.minQualitySelect.append(option);
   });
   elements.minQualitySelect.value = String(state.minQuality);

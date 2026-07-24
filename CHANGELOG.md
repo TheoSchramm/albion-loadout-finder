@@ -48,6 +48,8 @@ Actions), so entries are grouped by date rather than by version number — there
   decorative vanity skins.
 - The results table could visually spill past its card's rounded border on narrow viewports or
   at high browser zoom; it now scrolls horizontally within its own card instead.
+- The item search results could likewise spill past their column at high browser zoom, before
+  the layout was narrow enough to trigger the mobile breakpoint.
 
 ## 2026-07-23
 

@@ -433,6 +433,13 @@ button:disabled {
 .builder-column {
   display: flex;
   flex-direction: column;
+  /* Without this, a grid item's automatic minimum width defaults to its content's
+     min-content size - here that's the search results' select/button columns, wide
+     enough to force this whole column (and .builder, and the panel around it) past
+     its intended width at high zoom, well before the responsive breakpoints kick in.
+     min-width: 0 lets the .builder track sizing (and search-results' own overflow:
+     auto) govern instead. */
+  min-width: 0;
   min-height: 0;
 }
 
