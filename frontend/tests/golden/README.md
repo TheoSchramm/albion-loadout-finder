@@ -20,7 +20,7 @@ git show <commit>^:backend/app_core.py > app_core.py
 | File | Contents |
 |---|---|
 | `config.json` | The `/api/config` payload: languages, regions, slot order, qualities |
-| `entries.json` | Count, SHA-256 over all 7,479 catalog entries, plus 153 sampled entries at exact indexes |
+| `entries.json` | Count, SHA-256 over all catalog entries, plus ~150 sampled entries at exact indexes |
 | `search.json` | `matrix`: ordered `unique_name` lists for 380+ query/language/slot combinations. `deep`: 12 full payloads |
 | `item.json` | 20 serialized variants covering per-tier naming, rank titles, tier<4, and fallback-only templates |
 | `equivalents.json` | IP-equivalent substitution sets |
@@ -39,16 +39,24 @@ the commit message, and change it in a commit that does nothing else.
 
 ### Deviations from the original Python behavior
 
-Everything here still matches the Python implementation exactly, **except `search.json`**,
-which was regenerated once — see the "Phase 7" commit.
+Two fixtures have been regenerated to reflect intentional fixes - both bugs that existed
+in the original Python implementation too, not porting mistakes. Each time, the fixture
+was regenerated from the *new* code, which makes it self-referential for that fixture, so
+`core.test.js` also asserts the intended behavior directly rather than relying on the
+fixture alone.
 
-The Python `normalize_text` was `[^a-z0-9]` over a lowercased string, which deleted every
-non-ASCII character. Russian, Chinese and Korean queries therefore normalized to `""`, and
-an empty query matches everything, so search returned the first 24 catalog entries
-unfiltered in three of the app's advertised languages. That is fixed, and 79 of the 360
-matrix entries changed as a result — all of them non-Latin or accented queries. No
-ASCII-only query changed.
+**`search.json`** (Phase 7 commit) - `normalize_text` was `[^a-z0-9]` over a lowercased
+string, which deleted every non-ASCII character. Russian, Chinese and Korean queries
+therefore normalized to `""`, and an empty query matches everything, so search returned
+the first 24 catalog entries unfiltered in three of the app's advertised languages. Fixed;
+79 of the 360 matrix entries changed, all non-Latin or accented queries, zero ASCII-only
+queries affected.
 
-Because the fixture is now self-generated for those cases, `core.test.js` asserts the
-intended behavior directly (a non-Latin query must return a strict, non-empty subset of an
-empty query's results) rather than relying on the fixture alone, which would be circular.
+**`entries.json` and `search.json` again** ("Crest" exclusion commit) - `CAPEITEM_*_BP`
+templates ("Bridgewatch Crest", a faction trophy item) share the `CAPEITEM_` prefix with
+real capes (`CAPEITEM_FW_BRIDGEWATCH`, "Bridgewatch Cape") and were misclassified as
+equipable capes, the same category of bug as the artefact/gathering-tool exclusions.
+Fixed by excluding the `_BP` suffix in `deriveSlotFromTemplate`; the catalog lost 14
+templates (70 entries) and 10 of 360 search matrix entries changed - only the `cape` query
+and the unfiltered `""` listing, which is where the 14 Crests had been crowding out real
+capes (arena banners, faction capes) from the 24-result cap.

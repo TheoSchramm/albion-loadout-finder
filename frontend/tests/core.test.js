@@ -138,6 +138,21 @@ test('search excludes gathering tools', () => {
   assert.deepEqual(searchItems('pickaxe', 'en', 'main_hand'), []);
 });
 
+test('searching "cape" returns capes, not Crests', () => {
+  // CAPEITEM_FW_BRIDGEWATCH_BP is "Bridgewatch Crest" - a faction trophy item, not an
+  // equipable cape - despite sharing the CAPEITEM_ prefix with real capes.
+  const results = searchItems('cape', 'en', 'cape');
+  assert.ok(results.length > 0, 'expected real capes to match');
+  assert.ok(
+    !results.some((item) => item.template.endsWith('_BP')),
+    `Crest items must not appear in cape search: ${results.filter((i) => i.template.endsWith('_BP')).map((i) => i.display_name)}`,
+  );
+  assert.ok(
+    !results.some((item) => item.display_name.includes('Crest')),
+    'no result should be named "* Crest"',
+  );
+});
+
 test('search display name has no tier title', () => {
   const results = searchItems('sword', 'en', 'main_hand');
   assert.ok(results.length > 0);

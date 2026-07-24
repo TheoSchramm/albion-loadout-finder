@@ -56,6 +56,15 @@ test('gathering tools and non-equipment are excluded', () => {
   );
 });
 
+test('cape Crests are excluded from the cape slot', () => {
+  // CAPEITEM_FW_BRIDGEWATCH_BP is "Bridgewatch Crest", a faction trophy item, not
+  // "Bridgewatch Cape" (CAPEITEM_FW_BRIDGEWATCH, no suffix) - despite sharing the
+  // CAPEITEM_ prefix. Searching "cape" used to surface all 7 city Crests plus 2 more,
+  // crowding real capes (arena banners, faction capes) out of the 24-result cap.
+  const bpEntries = entries.filter((entry) => entry.template.endsWith('_BP'));
+  assert.equal(bpEntries.length, 0, `Crest items must not appear: ${bpEntries.map((e) => e.template)}`);
+});
+
 test('readers throw before the catalog is loaded, instead of returning undefined', () => {
   resetCatalog();
   assert.throws(() => findDefinition('MAIN_SWORD'), /catalog not loaded/);

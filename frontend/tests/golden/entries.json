@@ -1,5 +1,5 @@
 {
-  "count": 7479,
+  "count": 7409,
   "first": [
     {
       "_localized_names": {
@@ -280,6 +280,506 @@
       "two_handed": false,
       "unique_name": "T2_POTION_HEAL"
     },
+    "49": {
+      "_localized_names": {
+        "de": "Kleiner klebriger Trank",
+        "en": "Minor Sticky Potion",
+        "es": "Poción pegajosa menor",
+        "fr": "Potion collante mineure",
+        "ko": "소형 끈끈이 포션",
+        "pt": "Poção Pegajosa Menor",
+        "ru": "Малая вязкая настойка",
+        "zh": "初级黏性药水"
+      },
+      "display_name": "Minor Sticky Potion",
+      "enchantment": 1,
+      "english_name": "Minor Sticky Potion",
+      "equivalent_level": 4,
+      "group": "POTION",
+      "image_url": "https://render.albiononline.com/v1/item/T3_POTION_SLOWFIELD%401.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "potion",
+      "slot_label": "Potion",
+      "template": "POTION_SLOWFIELD",
+      "tier": 3,
+      "two_handed": false,
+      "unique_name": "T3_POTION_SLOWFIELD@1"
+    },
+    "98": {
+      "_localized_names": {
+        "de": "Großer Reinigungstrank",
+        "en": "Major Cleansing Potion",
+        "es": "Poción de limpieza mayor",
+        "fr": "Potion de purification majeure",
+        "ko": "대형 정화 포션",
+        "pt": "Poção Purificadora Maior",
+        "ru": "Большое очищающее зелье",
+        "zh": "高级净化药水"
+      },
+      "display_name": "Major Cleansing Potion",
+      "enchantment": 2,
+      "english_name": "Major Cleansing Potion",
+      "equivalent_level": 9,
+      "group": "POTION",
+      "image_url": "https://render.albiononline.com/v1/item/T7_POTION_CLEANSE2%402.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "potion",
+      "slot_label": "Potion",
+      "template": "POTION_CLEANSE2",
+      "tier": 7,
+      "two_handed": false,
+      "unique_name": "T7_POTION_CLEANSE2@2"
+    },
+    "147": {
+      "_localized_names": {
+        "de": "Großer Sammeltrank",
+        "en": "Major Gathering Potion",
+        "es": "Poción de recolección mayor",
+        "fr": "Potion de récolte majeure",
+        "ko": "대형 채집 포션",
+        "pt": "Poção de Coleta Maior",
+        "ru": "Большое зелье собирателя",
+        "zh": "高级采集药水"
+      },
+      "display_name": "Major Gathering Potion",
+      "enchantment": 3,
+      "english_name": "Major Gathering Potion",
+      "equivalent_level": 11,
+      "group": "POTION",
+      "image_url": "https://render.albiononline.com/v1/item/T8_POTION_GATHER%403.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "potion",
+      "slot_label": "Potion",
+      "template": "POTION_GATHER",
+      "tier": 8,
+      "two_handed": false,
+      "unique_name": "T8_POTION_GATHER@3"
+    },
+    "196": {
+      "_localized_names": {
+        "de": "Kartoffelsalat",
+        "en": "Potato Salad",
+        "es": "Ensalada de patata",
+        "fr": "Salade de patates",
+        "ko": "감자 샐러드",
+        "pt": "Salada de Batata",
+        "ru": "Картофельный салат",
+        "zh": "土豆沙拉"
+      },
+      "display_name": "Potato Salad",
+      "enchantment": 2,
+      "english_name": "Potato Salad",
+      "equivalent_level": 8,
+      "group": "MEAL",
+      "image_url": "https://render.albiononline.com/v1/item/T6_MEAL_SALAD%402.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "food",
+      "slot_label": "Food",
+      "template": "MEAL_SALAD",
+      "tier": 6,
+      "two_handed": false,
+      "unique_name": "T6_MEAL_SALAD@2"
+    },
+    "245": {
+      "_localized_names": {
+        "de": "Schweineomelett",
+        "en": "Pork Omelette",
+        "es": "Tortilla de cerdo",
+        "fr": "Omelette au porc",
+        "ko": "돼지고기 오믈렛",
+        "pt": "Omelete de Porco",
+        "ru": "Омлет с беконом",
+        "zh": "猪肉蛋饼"
+      },
+      "display_name": "Pork Omelette",
+      "enchantment": 3,
+      "english_name": "Pork Omelette",
+      "equivalent_level": 10,
+      "group": "MEAL",
+      "image_url": "https://render.albiononline.com/v1/item/T7_MEAL_OMELETTE%403.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "food",
+      "slot_label": "Food",
+      "template": "MEAL_OMELETTE",
+      "tier": 7,
+      "two_handed": false,
+      "unique_name": "T7_MEAL_OMELETTE@3"
+    },
+    "294": {
+      "_localized_names": {
+        "de": "Avalonischer Ziegeneintopf",
+        "en": "Avalonian Goat Stew",
+        "es": "Guiso de cabra avaloniano",
+        "fr": "Ragoût de chèvre avalonien",
+        "ko": "아발로니안 염소 스튜",
+        "pt": "Guisado de Cabra Avaloniano",
+        "ru": "Авалонское жаркое из козлятины",
+        "zh": "阿瓦隆炖山羊肉"
+      },
+      "display_name": "Avalonian Goat Stew",
+      "enchantment": 0,
+      "english_name": "Avalonian Goat Stew",
+      "equivalent_level": 4,
+      "group": "MEAL",
+      "image_url": "https://render.albiononline.com/v1/item/T4_MEAL_STEW_AVALON.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "food",
+      "slot_label": "Food",
+      "template": "MEAL_STEW_AVALON",
+      "tier": 4,
+      "two_handed": false,
+      "unique_name": "T4_MEAL_STEW_AVALON"
+    },
+    "343": {
+      "_localized_names": {
+        "de": "Brathähnchen",
+        "en": "Roast Chicken",
+        "es": "Pollo asado",
+        "fr": "Poulet rôti",
+        "ko": "구운 치킨",
+        "pt": "Frango Assado",
+        "ru": "Жареный цыпленок",
+        "zh": "烤鸡"
+      },
+      "display_name": "Roast Chicken",
+      "enchantment": 1,
+      "english_name": "Roast Chicken",
+      "equivalent_level": 4,
+      "group": "MEAL",
+      "image_url": "https://render.albiononline.com/v1/item/T3_MEAL_ROAST%401.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "food",
+      "slot_label": "Food",
+      "template": "MEAL_ROAST",
+      "tier": 3,
+      "two_handed": false,
+      "unique_name": "T3_MEAL_ROAST@1"
+    },
+    "392": {
+      "_localized_names": {
+        "de": "Schild des Ältesten",
+        "en": "Elder's Shield",
+        "es": "Escudo del anciano",
+        "fr": "Bouclier du sage",
+        "ko": "장로의 방패",
+        "pt": "Escudo do Ancião",
+        "ru": "Щит (старейшина)",
+        "zh": "禅师级盾牌"
+      },
+      "display_name": "Shield",
+      "enchantment": 3,
+      "english_name": "Shield",
+      "equivalent_level": 11,
+      "group": "OFF",
+      "image_url": "https://render.albiononline.com/v1/item/T8_OFF_SHIELD%403.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "off_hand",
+      "slot_label": "Off-Hand",
+      "template": "OFF_SHIELD",
+      "tier": 8,
+      "two_handed": false,
+      "unique_name": "T8_OFF_SHIELD@3"
+    },
+    "441": {
+      "_localized_names": {
+        "de": "Niederträchtiger Schild des Ältesten",
+        "en": "Elder's Caitiff Shield",
+        "es": "Escudo de villano del anciano",
+        "fr": "Bouclier de scélérat du sage",
+        "ko": "장로의 케이티프 방패",
+        "pt": "Escudo Vampírico do Ancião",
+        "ru": "Щит негодяя (старейшина)",
+        "zh": "禅师级怯懦盾牌"
+      },
+      "display_name": "Caitiff Shield",
+      "enchantment": 2,
+      "english_name": "Caitiff Shield",
+      "equivalent_level": 10,
+      "group": "OFF",
+      "image_url": "https://render.albiononline.com/v1/item/T8_OFF_SHIELD_HELL%402.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "off_hand",
+      "slot_label": "Off-Hand",
+      "template": "OFF_SHIELD_HELL",
+      "tier": 8,
+      "two_handed": false,
+      "unique_name": "T8_OFF_SHIELD_HELL@2"
+    },
+    "490": {
+      "_localized_names": {
+        "de": "Astrale Aegis des Ältesten",
+        "en": "Elder's Astral Aegis",
+        "es": "Aegis Astral del anciano",
+        "fr": "Égide astrale du sage",
+        "ko": "장로의 아스트랄 아이기스",
+        "pt": "Égide Astral do Ancião",
+        "ru": "Эгида звезд (старейшина)",
+        "zh": "禅师级星域神盾"
+      },
+      "display_name": "Astral Aegis",
+      "enchantment": 1,
+      "english_name": "Astral Aegis",
+      "equivalent_level": 9,
+      "group": "OFF",
+      "image_url": "https://render.albiononline.com/v1/item/T8_OFF_SHIELD_AVALON%401.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "off_hand",
+      "slot_label": "Off-Hand",
+      "template": "OFF_SHIELD_AVALON",
+      "tier": 8,
+      "two_handed": false,
+      "unique_name": "T8_OFF_SHIELD_AVALON@1"
+    },
+    "539": {
+      "_localized_names": {
+        "de": "Zauberbuch des Großmeisters",
+        "en": "Grandmaster's Tome of Spells",
+        "es": "Libro de hechizos del gran maestro",
+        "fr": "Tome de sorts du grand maître",
+        "ko": "그랜드 마스터의 주문 서적",
+        "pt": "Tomo de Feitiços do Grão-mestre",
+        "ru": "Книга заклинаний (магистр)",
+        "zh": "宗师级咒书"
+      },
+      "display_name": "Tome of Spells",
+      "enchantment": 3,
+      "english_name": "Tome of Spells",
+      "equivalent_level": 10,
+      "group": "OFF",
+      "image_url": "https://render.albiononline.com/v1/item/T7_OFF_BOOK%403.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "off_hand",
+      "slot_label": "Off-Hand",
+      "template": "OFF_BOOK",
+      "tier": 7,
+      "two_handed": false,
+      "unique_name": "T7_OFF_BOOK@3"
+    },
+    "588": {
+      "_localized_names": {
+        "de": "Muisak des Großmeisters",
+        "en": "Grandmaster's Muisak",
+        "es": "Muisak del gran maestro",
+        "fr": "Miniaturisé du grand maître",
+        "ko": "그랜드 마스터의 뮤삭",
+        "pt": "Muisec do Grão-mestre",
+        "ru": "Череп-трофей (магистр)",
+        "zh": "宗师级怨灵之链"
+      },
+      "display_name": "Muisak",
+      "enchantment": 2,
+      "english_name": "Muisak",
+      "equivalent_level": 9,
+      "group": "OFF",
+      "image_url": "https://render.albiononline.com/v1/item/T7_OFF_DEMONSKULL_HELL%402.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "off_hand",
+      "slot_label": "Off-Hand",
+      "template": "OFF_DEMONSKULL_HELL",
+      "tier": 7,
+      "two_handed": false,
+      "unique_name": "T7_OFF_DEMONSKULL_HELL@2"
+    },
+    "637": {
+      "_localized_names": {
+        "de": "Himmlisches Weihrauchfässchen des Großmeisters",
+        "en": "Grandmaster's Celestial Censer",
+        "es": "Incensario celestial del gran maestro",
+        "fr": "Encens céleste du grand maître",
+        "ko": "그랜드 마스터의 천상의 향로",
+        "pt": "Incensário Celeste do Grão-mestre",
+        "ru": "Небесное кадило (магистр)",
+        "zh": "宗师级苍空香炉"
+      },
+      "display_name": "Celestial Censer",
+      "enchantment": 1,
+      "english_name": "Celestial Censer",
+      "equivalent_level": 8,
+      "group": "OFF",
+      "image_url": "https://render.albiononline.com/v1/item/T7_OFF_CENSER_AVALON%401.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "off_hand",
+      "slot_label": "Off-Hand",
+      "template": "OFF_CENSER_AVALON",
+      "tier": 7,
+      "two_handed": false,
+      "unique_name": "T7_OFF_CENSER_AVALON@1"
+    },
+    "686": {
+      "_localized_names": {
+        "de": "Fackel des Meisters",
+        "en": "Master's Torch",
+        "es": "Antorcha del maestro",
+        "fr": "Torche du maître",
+        "ko": "마스터의 횃불",
+        "pt": "Tocha do Mestre",
+        "ru": "Факел (мастер)",
+        "zh": "大师级火把"
+      },
+      "display_name": "Torch",
+      "enchantment": 4,
+      "english_name": "Torch",
+      "equivalent_level": 10,
+      "group": "OFF",
+      "image_url": "https://render.albiononline.com/v1/item/T6_OFF_TORCH%404.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "off_hand",
+      "slot_label": "Off-Hand",
+      "template": "OFF_TORCH",
+      "tier": 6,
+      "two_handed": false,
+      "unique_name": "T6_OFF_TORCH@4"
+    },
+    "735": {
+      "_localized_names": {
+        "de": "Geheiligtes Szepter des Meisters",
+        "en": "Master's Sacred Scepter",
+        "es": "Cetro sagrado del maestro",
+        "fr": "Sceptre sacré du maître",
+        "ko": "마스터의 성스러운 셉터",
+        "pt": "Cetro Sagrado do Mestre",
+        "ru": "Священный скипетр (мастер)",
+        "zh": "大师级神圣权杖"
+      },
+      "display_name": "Sacred Scepter",
+      "enchantment": 3,
+      "english_name": "Sacred Scepter",
+      "equivalent_level": 9,
+      "group": "OFF",
+      "image_url": "https://render.albiononline.com/v1/item/T6_OFF_TALISMAN_AVALON%403.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "off_hand",
+      "slot_label": "Off-Hand",
+      "template": "OFF_TALISMAN_AVALON",
+      "tier": 6,
+      "two_handed": false,
+      "unique_name": "T6_OFF_TALISMAN_AVALON@3"
+    },
+    "784": {
+      "_localized_names": {
+        "de": "Grinsender Stock des Meisters",
+        "en": "Master's Leering Cane",
+        "es": "Bastón malicioso del maestro",
+        "fr": "Canne grimaçante du maître",
+        "ko": "마스터의 음흉한 지팡이",
+        "pt": "Bengala Maligna do Mestre",
+        "ru": "Зловещая трость (мастер)",
+        "zh": "大师级邪杖"
+      },
+      "display_name": "Leering Cane",
+      "enchantment": 2,
+      "english_name": "Leering Cane",
+      "equivalent_level": 8,
+      "group": "OFF",
+      "image_url": "https://render.albiononline.com/v1/item/T6_OFF_JESTERCANE_HELL%402.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "off_hand",
+      "slot_label": "Off-Hand",
+      "template": "OFF_JESTERCANE_HELL",
+      "tier": 6,
+      "two_handed": false,
+      "unique_name": "T6_OFF_JESTERCANE_HELL@2"
+    },
+    "833": {
+      "_localized_names": {
+        "de": "Umhang des Experten",
+        "en": "Expert's Cape",
+        "es": "Capa del experto",
+        "fr": "Cape de l'expert",
+        "ko": "전문가의 망토",
+        "pt": "Capa do Perito",
+        "ru": "Плащ (эксперт)",
+        "zh": "专家级披风"
+      },
+      "display_name": "Cape",
+      "enchantment": 4,
+      "english_name": "Cape",
+      "equivalent_level": 9,
+      "group": "CAPE",
+      "image_url": "https://render.albiononline.com/v1/item/T5_CAPE%404.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "cape",
+      "slot_label": "Cape",
+      "template": "CAPE",
+      "tier": 5,
+      "two_handed": false,
+      "unique_name": "T5_CAPE@4"
+    },
+    "882": {
+      "_localized_names": {
+        "de": "Umhang des Experten von Fort Sterling",
+        "en": "Expert's Fort Sterling Cape",
+        "es": "Capa de Fort Sterling del experto",
+        "fr": "Cape de Fort Sterling de l'expert",
+        "ko": "전문가의 Fort Sterling 망토",
+        "pt": "Capa de Fort Sterling do Perito",
+        "ru": "Накидка города Fort Sterling (эксперт)",
+        "zh": "专家级Fort Sterling披风"
+      },
+      "display_name": "Fort Sterling Cape",
+      "enchantment": 3,
+      "english_name": "Fort Sterling Cape",
+      "equivalent_level": 8,
+      "group": "CAPEITEM",
+      "image_url": "https://render.albiononline.com/v1/item/T5_CAPEITEM_FW_FORTSTERLING%403.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "cape",
+      "slot_label": "Cape",
+      "template": "CAPEITEM_FW_FORTSTERLING",
+      "tier": 5,
+      "two_handed": false,
+      "unique_name": "T5_CAPEITEM_FW_FORTSTERLING@3"
+    },
+    "931": {
+      "_localized_names": {
+        "de": "Umhang des Experten von Martlock",
+        "en": "Expert's Martlock Cape",
+        "es": "Capa de Martlock del experto",
+        "fr": "Cape de Martlock de l'expert",
+        "ko": "전문가의 Martlock 망토",
+        "pt": "Capa de Martlock do Perito",
+        "ru": "Накидка города Martlock (эксперт)",
+        "zh": "专家级Martlock披风"
+      },
+      "display_name": "Martlock Cape",
+      "enchantment": 2,
+      "english_name": "Martlock Cape",
+      "equivalent_level": 7,
+      "group": "CAPEITEM",
+      "image_url": "https://render.albiononline.com/v1/item/T5_CAPEITEM_FW_MARTLOCK%402.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "cape",
+      "slot_label": "Cape",
+      "template": "CAPEITEM_FW_MARTLOCK",
+      "tier": 5,
+      "two_handed": false,
+      "unique_name": "T5_CAPEITEM_FW_MARTLOCK@2"
+    },
+    "980": {
+      "_localized_names": {
+        "de": "Umhang von Caerleon des Experten",
+        "en": "Expert's Caerleon Cape",
+        "es": "Capa de Caerleon del experto",
+        "fr": "Cape de Caerleon de l'expert",
+        "ko": "전문가의 Caerleon 망토",
+        "pt": "Capa de Caerleon do Perito",
+        "ru": "Плащ города Caerleon (эксперт)",
+        "zh": "专家级Caerleon披风"
+      },
+      "display_name": "Caerleon Cape",
+      "enchantment": 1,
+      "english_name": "Caerleon Cape",
+      "equivalent_level": 6,
+      "group": "CAPEITEM",
+      "image_url": "https://render.albiononline.com/v1/item/T5_CAPEITEM_FW_CAERLEON%401.png?quality=1&locale=en",
+      "quality": 1,
+      "slot": "cape",
+      "slot_label": "Cape",
+      "template": "CAPEITEM_FW_CAERLEON",
+      "tier": 5,
+      "two_handed": false,
+      "unique_name": "T5_CAPEITEM_FW_CAERLEON@1"
+    },
     "1029": {
       "_localized_names": {
         "de": "Avalonischer Umhang des Experten",
@@ -504,31 +1004,6 @@
       "tier": 5,
       "two_handed": false,
       "unique_name": "T5_ARMOR_PLATE_SET2"
-    },
-    "147": {
-      "_localized_names": {
-        "de": "Großer Sammeltrank",
-        "en": "Major Gathering Potion",
-        "es": "Poción de recolección mayor",
-        "fr": "Potion de récolte majeure",
-        "ko": "대형 채집 포션",
-        "pt": "Poção de Coleta Maior",
-        "ru": "Большое зелье собирателя",
-        "zh": "高级采集药水"
-      },
-      "display_name": "Major Gathering Potion",
-      "enchantment": 3,
-      "english_name": "Major Gathering Potion",
-      "equivalent_level": 11,
-      "group": "POTION",
-      "image_url": "https://render.albiononline.com/v1/item/T8_POTION_GATHER%403.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "potion",
-      "slot_label": "Potion",
-      "template": "POTION_GATHER",
-      "tier": 8,
-      "two_handed": false,
-      "unique_name": "T8_POTION_GATHER@3"
     },
     "1470": {
       "_localized_names": {
@@ -780,31 +1255,6 @@
       "two_handed": false,
       "unique_name": "T8_SHOES_PLATE_AVALON"
     },
-    "196": {
-      "_localized_names": {
-        "de": "Kartoffelsalat",
-        "en": "Potato Salad",
-        "es": "Ensalada de patata",
-        "fr": "Salade de patates",
-        "ko": "감자 샐러드",
-        "pt": "Salada de Batata",
-        "ru": "Картофельный салат",
-        "zh": "土豆沙拉"
-      },
-      "display_name": "Potato Salad",
-      "enchantment": 2,
-      "english_name": "Potato Salad",
-      "equivalent_level": 8,
-      "group": "MEAL",
-      "image_url": "https://render.albiononline.com/v1/item/T6_MEAL_SALAD%402.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "food",
-      "slot_label": "Food",
-      "template": "MEAL_SALAD",
-      "tier": 6,
-      "two_handed": false,
-      "unique_name": "T6_MEAL_SALAD@2"
-    },
     "1960": {
       "_localized_names": {
         "de": "Söldnerjacke des Meisters",
@@ -1054,31 +1504,6 @@
       "tier": 4,
       "two_handed": false,
       "unique_name": "T4_ARMOR_LEATHER_FEY@1"
-    },
-    "245": {
-      "_localized_names": {
-        "de": "Schweineomelett",
-        "en": "Pork Omelette",
-        "es": "Tortilla de cerdo",
-        "fr": "Omelette au porc",
-        "ko": "돼지고기 오믈렛",
-        "pt": "Omelete de Porco",
-        "ru": "Омлет с беконом",
-        "zh": "猪肉蛋饼"
-      },
-      "display_name": "Pork Omelette",
-      "enchantment": 3,
-      "english_name": "Pork Omelette",
-      "equivalent_level": 10,
-      "group": "MEAL",
-      "image_url": "https://render.albiononline.com/v1/item/T7_MEAL_OMELETTE%403.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "food",
-      "slot_label": "Food",
-      "template": "MEAL_OMELETTE",
-      "tier": 7,
-      "two_handed": false,
-      "unique_name": "T7_MEAL_OMELETTE@3"
     },
     "2450": {
       "_localized_names": {
@@ -1330,31 +1755,6 @@
       "two_handed": false,
       "unique_name": "T6_SHOES_CLOTH_HELL"
     },
-    "294": {
-      "_localized_names": {
-        "de": "Avalonischer Ziegeneintopf",
-        "en": "Avalonian Goat Stew",
-        "es": "Guiso de cabra avaloniano",
-        "fr": "Ragoût de chèvre avalonien",
-        "ko": "아발로니안 염소 스튜",
-        "pt": "Guisado de Cabra Avaloniano",
-        "ru": "Авалонское жаркое из козлятины",
-        "zh": "阿瓦隆炖山羊肉"
-      },
-      "display_name": "Avalonian Goat Stew",
-      "enchantment": 0,
-      "english_name": "Avalonian Goat Stew",
-      "equivalent_level": 4,
-      "group": "MEAL",
-      "image_url": "https://render.albiononline.com/v1/item/T4_MEAL_STEW_AVALON.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "food",
-      "slot_label": "Food",
-      "template": "MEAL_STEW_AVALON",
-      "tier": 4,
-      "two_handed": false,
-      "unique_name": "T4_MEAL_STEW_AVALON"
-    },
     "2940": {
       "_localized_names": {
         "de": "Kultistenrobe des Experten",
@@ -1604,31 +2004,6 @@
       "tier": 4,
       "two_handed": false,
       "unique_name": "T4_ARMOR_GATHERER_FIBER"
-    },
-    "343": {
-      "_localized_names": {
-        "de": "Brathähnchen",
-        "en": "Roast Chicken",
-        "es": "Pollo asado",
-        "fr": "Poulet rôti",
-        "ko": "구운 치킨",
-        "pt": "Frango Assado",
-        "ru": "Жареный цыпленок",
-        "zh": "烤鸡"
-      },
-      "display_name": "Roast Chicken",
-      "enchantment": 1,
-      "english_name": "Roast Chicken",
-      "equivalent_level": 4,
-      "group": "MEAL",
-      "image_url": "https://render.albiononline.com/v1/item/T3_MEAL_ROAST%401.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "food",
-      "slot_label": "Food",
-      "template": "MEAL_ROAST",
-      "tier": 3,
-      "two_handed": false,
-      "unique_name": "T3_MEAL_ROAST@1"
     },
     "3430": {
       "_localized_names": {
@@ -1880,31 +2255,6 @@
       "two_handed": false,
       "unique_name": "T7_HEAD_GATHERER_FISH"
     },
-    "392": {
-      "_localized_names": {
-        "de": "Schild des Ältesten",
-        "en": "Elder's Shield",
-        "es": "Escudo del anciano",
-        "fr": "Bouclier du sage",
-        "ko": "장로의 방패",
-        "pt": "Escudo do Ancião",
-        "ru": "Щит (старейшина)",
-        "zh": "禅师级盾牌"
-      },
-      "display_name": "Shield",
-      "enchantment": 3,
-      "english_name": "Shield",
-      "equivalent_level": 11,
-      "group": "OFF",
-      "image_url": "https://render.albiononline.com/v1/item/T8_OFF_SHIELD%403.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "off_hand",
-      "slot_label": "Off-Hand",
-      "template": "OFF_SHIELD",
-      "tier": 8,
-      "two_handed": false,
-      "unique_name": "T8_OFF_SHIELD@3"
-    },
     "3920": {
       "_localized_names": {
         "de": "Anglerstiefel des Meisters",
@@ -2154,31 +2504,6 @@
       "tier": 4,
       "two_handed": false,
       "unique_name": "T4_MAIN_CURSEDSTAFF@1"
-    },
-    "441": {
-      "_localized_names": {
-        "de": "Niederträchtiger Schild des Ältesten",
-        "en": "Elder's Caitiff Shield",
-        "es": "Escudo de villano del anciano",
-        "fr": "Bouclier de scélérat du sage",
-        "ko": "장로의 케이티프 방패",
-        "pt": "Escudo Vampírico do Ancião",
-        "ru": "Щит негодяя (старейшина)",
-        "zh": "禅师级怯懦盾牌"
-      },
-      "display_name": "Caitiff Shield",
-      "enchantment": 2,
-      "english_name": "Caitiff Shield",
-      "equivalent_level": 10,
-      "group": "OFF",
-      "image_url": "https://render.albiononline.com/v1/item/T8_OFF_SHIELD_HELL%402.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "off_hand",
-      "slot_label": "Off-Hand",
-      "template": "OFF_SHIELD_HELL",
-      "tier": 8,
-      "two_handed": false,
-      "unique_name": "T8_OFF_SHIELD_HELL@2"
     },
     "4410": {
       "_localized_names": {
@@ -2430,56 +2755,6 @@
       "two_handed": false,
       "unique_name": "T6_MAIN_FROSTSTAFF_KEEPER@3"
     },
-    "49": {
-      "_localized_names": {
-        "de": "Kleiner klebriger Trank",
-        "en": "Minor Sticky Potion",
-        "es": "Poción pegajosa menor",
-        "fr": "Potion collante mineure",
-        "ko": "소형 끈끈이 포션",
-        "pt": "Poção Pegajosa Menor",
-        "ru": "Малая вязкая настойка",
-        "zh": "初级黏性药水"
-      },
-      "display_name": "Minor Sticky Potion",
-      "enchantment": 1,
-      "english_name": "Minor Sticky Potion",
-      "equivalent_level": 4,
-      "group": "POTION",
-      "image_url": "https://render.albiononline.com/v1/item/T3_POTION_SLOWFIELD%401.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "potion",
-      "slot_label": "Potion",
-      "template": "POTION_SLOWFIELD",
-      "tier": 3,
-      "two_handed": false,
-      "unique_name": "T3_POTION_SLOWFIELD@1"
-    },
-    "490": {
-      "_localized_names": {
-        "de": "Astrale Aegis des Ältesten",
-        "en": "Elder's Astral Aegis",
-        "es": "Aegis Astral del anciano",
-        "fr": "Égide astrale du sage",
-        "ko": "장로의 아스트랄 아이기스",
-        "pt": "Égide Astral do Ancião",
-        "ru": "Эгида звезд (старейшина)",
-        "zh": "禅师级星域神盾"
-      },
-      "display_name": "Astral Aegis",
-      "enchantment": 1,
-      "english_name": "Astral Aegis",
-      "equivalent_level": 9,
-      "group": "OFF",
-      "image_url": "https://render.albiononline.com/v1/item/T8_OFF_SHIELD_AVALON%401.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "off_hand",
-      "slot_label": "Off-Hand",
-      "template": "OFF_SHIELD_AVALON",
-      "tier": 8,
-      "two_handed": false,
-      "unique_name": "T8_OFF_SHIELD_AVALON@1"
-    },
     "4900": {
       "_localized_names": {
         "de": "Permafrostprisma des Meisters",
@@ -2729,31 +3004,6 @@
       "tier": 4,
       "two_handed": true,
       "unique_name": "T4_2H_HOLYSTAFF_CRYSTAL@1"
-    },
-    "539": {
-      "_localized_names": {
-        "de": "Zauberbuch des Großmeisters",
-        "en": "Grandmaster's Tome of Spells",
-        "es": "Libro de hechizos del gran maestro",
-        "fr": "Tome de sorts du grand maître",
-        "ko": "그랜드 마스터의 주문 서적",
-        "pt": "Tomo de Feitiços do Grão-mestre",
-        "ru": "Книга заклинаний (магистр)",
-        "zh": "宗师级咒书"
-      },
-      "display_name": "Tome of Spells",
-      "enchantment": 3,
-      "english_name": "Tome of Spells",
-      "equivalent_level": 10,
-      "group": "OFF",
-      "image_url": "https://render.albiononline.com/v1/item/T7_OFF_BOOK%403.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "off_hand",
-      "slot_label": "Off-Hand",
-      "template": "OFF_BOOK",
-      "tier": 7,
-      "two_handed": false,
-      "unique_name": "T7_OFF_BOOK@3"
     },
     "5390": {
       "_localized_names": {
@@ -3005,31 +3255,6 @@
       "two_handed": true,
       "unique_name": "T7_2H_SPEAR@3"
     },
-    "588": {
-      "_localized_names": {
-        "de": "Muisak des Großmeisters",
-        "en": "Grandmaster's Muisak",
-        "es": "Muisak del gran maestro",
-        "fr": "Miniaturisé du grand maître",
-        "ko": "그랜드 마스터의 뮤삭",
-        "pt": "Muisec do Grão-mestre",
-        "ru": "Череп-трофей (магистр)",
-        "zh": "宗师级怨灵之链"
-      },
-      "display_name": "Muisak",
-      "enchantment": 2,
-      "english_name": "Muisak",
-      "equivalent_level": 9,
-      "group": "OFF",
-      "image_url": "https://render.albiononline.com/v1/item/T7_OFF_DEMONSKULL_HELL%402.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "off_hand",
-      "slot_label": "Off-Hand",
-      "template": "OFF_DEMONSKULL_HELL",
-      "tier": 7,
-      "two_handed": false,
-      "unique_name": "T7_OFF_DEMONSKULL_HELL@2"
-    },
     "5880": {
       "_localized_names": {
         "de": "Reiherspeer des Großmeisters",
@@ -3279,31 +3504,6 @@
       "tier": 4,
       "two_handed": true,
       "unique_name": "T4_2H_DUALSCIMITAR_UNDEAD@4"
-    },
-    "637": {
-      "_localized_names": {
-        "de": "Himmlisches Weihrauchfässchen des Großmeisters",
-        "en": "Grandmaster's Celestial Censer",
-        "es": "Incensario celestial del gran maestro",
-        "fr": "Encens céleste du grand maître",
-        "ko": "그랜드 마스터의 천상의 향로",
-        "pt": "Incensário Celeste do Grão-mestre",
-        "ru": "Небесное кадило (магистр)",
-        "zh": "宗师级苍空香炉"
-      },
-      "display_name": "Celestial Censer",
-      "enchantment": 1,
-      "english_name": "Celestial Censer",
-      "equivalent_level": 8,
-      "group": "OFF",
-      "image_url": "https://render.albiononline.com/v1/item/T7_OFF_CENSER_AVALON%401.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "off_hand",
-      "slot_label": "Off-Hand",
-      "template": "OFF_CENSER_AVALON",
-      "tier": 7,
-      "two_handed": false,
-      "unique_name": "T7_OFF_CENSER_AVALON@1"
     },
     "6370": {
       "_localized_names": {
@@ -3555,31 +3755,6 @@
       "two_handed": false,
       "unique_name": "T7_MAIN_MACE@1"
     },
-    "686": {
-      "_localized_names": {
-        "de": "Fackel des Meisters",
-        "en": "Master's Torch",
-        "es": "Antorcha del maestro",
-        "fr": "Torche du maître",
-        "ko": "마스터의 횃불",
-        "pt": "Tocha do Mestre",
-        "ru": "Факел (мастер)",
-        "zh": "大师级火把"
-      },
-      "display_name": "Torch",
-      "enchantment": 4,
-      "english_name": "Torch",
-      "equivalent_level": 10,
-      "group": "OFF",
-      "image_url": "https://render.albiononline.com/v1/item/T6_OFF_TORCH%404.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "off_hand",
-      "slot_label": "Off-Hand",
-      "template": "OFF_TORCH",
-      "tier": 6,
-      "two_handed": false,
-      "unique_name": "T6_OFF_TORCH@4"
-    },
     "6860": {
       "_localized_names": {
         "de": "Morgenstern des Großmeisters",
@@ -3830,31 +4005,6 @@
       "two_handed": true,
       "unique_name": "T4_2H_SHAPESHIFTER_HELL@4"
     },
-    "735": {
-      "_localized_names": {
-        "de": "Geheiligtes Szepter des Meisters",
-        "en": "Master's Sacred Scepter",
-        "es": "Cetro sagrado del maestro",
-        "fr": "Sceptre sacré du maître",
-        "ko": "마스터의 성스러운 셉터",
-        "pt": "Cetro Sagrado do Mestre",
-        "ru": "Священный скипетр (мастер)",
-        "zh": "大师级神圣权杖"
-      },
-      "display_name": "Sacred Scepter",
-      "enchantment": 3,
-      "english_name": "Sacred Scepter",
-      "equivalent_level": 9,
-      "group": "OFF",
-      "image_url": "https://render.albiononline.com/v1/item/T6_OFF_TALISMAN_AVALON%403.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "off_hand",
-      "slot_label": "Off-Hand",
-      "template": "OFF_TALISMAN_AVALON",
-      "tier": 6,
-      "two_handed": false,
-      "unique_name": "T6_OFF_TALISMAN_AVALON@3"
-    },
     "7350": {
       "_localized_names": {
         "de": "Lichtrufer des Adepten",
@@ -3882,204 +4032,29 @@
     },
     "7399": {
       "_localized_names": {
-        "de": "Wappen des Meisters von Bridgewatch",
-        "en": "Master's Bridgewatch Crest",
-        "es": "Insignia de Bridgewatch de maestro",
-        "fr": "Armoiries de Bridgewatch du maître",
-        "ko": "마스터의 Bridgewatch 문장",
-        "pt": "Ornamento de Bridgewatch do Mestre",
-        "ru": "Герб города Bridgewatch (мастер)",
-        "zh": "大师级Bridgewatch徽章"
+        "de": "Großes Banner des Arenaveteranen",
+        "en": "Arena Veteran's Large Banner",
+        "es": "Estandarte grande del veterano de arena",
+        "fr": "Grande bannière de vétéran de l'Arène",
+        "ko": "아레나 베테랑의 대형 배너",
+        "pt": "Estandarte Grande do Veterano de Arena",
+        "ru": "Большой флаг ветерана арены",
+        "zh": "竞技场老兵大型战旗"
       },
-      "display_name": "Bridgewatch Crest",
+      "display_name": "Arena Veteran's Large Banner",
       "enchantment": 0,
-      "english_name": "Bridgewatch Crest",
-      "equivalent_level": 6,
-      "group": "CAPEITEM",
-      "image_url": "https://render.albiononline.com/v1/item/T6_CAPEITEM_FW_BRIDGEWATCH_BP.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "cape",
-      "slot_label": "Cape",
-      "template": "CAPEITEM_FW_BRIDGEWATCH_BP",
-      "tier": 6,
-      "two_handed": false,
-      "unique_name": "T6_CAPEITEM_FW_BRIDGEWATCH_BP"
-    },
-    "7448": {
-      "_localized_names": {
-        "de": "Untotenwappen des Experten",
-        "en": "Expert's Undead Crest",
-        "es": "Insignia de muerto viviente del experto",
-        "fr": "Armoiries des morts-vivants de l'expert",
-        "ko": "전문가의 언데드 문장",
-        "pt": "Ornamento Morto-Vivo do Perito",
-        "ru": "Герб Нежити (эксперт)",
-        "zh": "专家级亡灵徽章"
-      },
-      "display_name": "Undead Crest",
-      "enchantment": 0,
-      "english_name": "Undead Crest",
-      "equivalent_level": 5,
-      "group": "CAPEITEM",
-      "image_url": "https://render.albiononline.com/v1/item/T5_CAPEITEM_UNDEAD_BP.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "cape",
-      "slot_label": "Cape",
-      "template": "CAPEITEM_UNDEAD_BP",
-      "tier": 5,
-      "two_handed": false,
-      "unique_name": "T5_CAPEITEM_UNDEAD_BP"
-    },
-    "784": {
-      "_localized_names": {
-        "de": "Grinsender Stock des Meisters",
-        "en": "Master's Leering Cane",
-        "es": "Bastón malicioso del maestro",
-        "fr": "Canne grimaçante du maître",
-        "ko": "마스터의 음흉한 지팡이",
-        "pt": "Bengala Maligna do Mestre",
-        "ru": "Зловещая трость (мастер)",
-        "zh": "大师级邪杖"
-      },
-      "display_name": "Leering Cane",
-      "enchantment": 2,
-      "english_name": "Leering Cane",
+      "english_name": "Arena Veteran's Large Banner",
       "equivalent_level": 8,
-      "group": "OFF",
-      "image_url": "https://render.albiononline.com/v1/item/T6_OFF_JESTERCANE_HELL%402.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "off_hand",
-      "slot_label": "Off-Hand",
-      "template": "OFF_JESTERCANE_HELL",
-      "tier": 6,
-      "two_handed": false,
-      "unique_name": "T6_OFF_JESTERCANE_HELL@2"
-    },
-    "833": {
-      "_localized_names": {
-        "de": "Umhang des Experten",
-        "en": "Expert's Cape",
-        "es": "Capa del experto",
-        "fr": "Cape de l'expert",
-        "ko": "전문가의 망토",
-        "pt": "Capa do Perito",
-        "ru": "Плащ (эксперт)",
-        "zh": "专家级披风"
-      },
-      "display_name": "Cape",
-      "enchantment": 4,
-      "english_name": "Cape",
-      "equivalent_level": 9,
       "group": "CAPE",
-      "image_url": "https://render.albiononline.com/v1/item/T5_CAPE%404.png?quality=1&locale=en",
+      "image_url": "https://render.albiononline.com/v1/item/T8_CAPE_ARENA_BANNER.png?quality=1&locale=en",
       "quality": 1,
       "slot": "cape",
       "slot_label": "Cape",
-      "template": "CAPE",
-      "tier": 5,
+      "template": "CAPE_ARENA_BANNER",
+      "tier": 8,
       "two_handed": false,
-      "unique_name": "T5_CAPE@4"
-    },
-    "882": {
-      "_localized_names": {
-        "de": "Umhang des Experten von Fort Sterling",
-        "en": "Expert's Fort Sterling Cape",
-        "es": "Capa de Fort Sterling del experto",
-        "fr": "Cape de Fort Sterling de l'expert",
-        "ko": "전문가의 Fort Sterling 망토",
-        "pt": "Capa de Fort Sterling do Perito",
-        "ru": "Накидка города Fort Sterling (эксперт)",
-        "zh": "专家级Fort Sterling披风"
-      },
-      "display_name": "Fort Sterling Cape",
-      "enchantment": 3,
-      "english_name": "Fort Sterling Cape",
-      "equivalent_level": 8,
-      "group": "CAPEITEM",
-      "image_url": "https://render.albiononline.com/v1/item/T5_CAPEITEM_FW_FORTSTERLING%403.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "cape",
-      "slot_label": "Cape",
-      "template": "CAPEITEM_FW_FORTSTERLING",
-      "tier": 5,
-      "two_handed": false,
-      "unique_name": "T5_CAPEITEM_FW_FORTSTERLING@3"
-    },
-    "931": {
-      "_localized_names": {
-        "de": "Umhang des Experten von Martlock",
-        "en": "Expert's Martlock Cape",
-        "es": "Capa de Martlock del experto",
-        "fr": "Cape de Martlock de l'expert",
-        "ko": "전문가의 Martlock 망토",
-        "pt": "Capa de Martlock do Perito",
-        "ru": "Накидка города Martlock (эксперт)",
-        "zh": "专家级Martlock披风"
-      },
-      "display_name": "Martlock Cape",
-      "enchantment": 2,
-      "english_name": "Martlock Cape",
-      "equivalent_level": 7,
-      "group": "CAPEITEM",
-      "image_url": "https://render.albiononline.com/v1/item/T5_CAPEITEM_FW_MARTLOCK%402.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "cape",
-      "slot_label": "Cape",
-      "template": "CAPEITEM_FW_MARTLOCK",
-      "tier": 5,
-      "two_handed": false,
-      "unique_name": "T5_CAPEITEM_FW_MARTLOCK@2"
-    },
-    "98": {
-      "_localized_names": {
-        "de": "Großer Reinigungstrank",
-        "en": "Major Cleansing Potion",
-        "es": "Poción de limpieza mayor",
-        "fr": "Potion de purification majeure",
-        "ko": "대형 정화 포션",
-        "pt": "Poção Purificadora Maior",
-        "ru": "Большое очищающее зелье",
-        "zh": "高级净化药水"
-      },
-      "display_name": "Major Cleansing Potion",
-      "enchantment": 2,
-      "english_name": "Major Cleansing Potion",
-      "equivalent_level": 9,
-      "group": "POTION",
-      "image_url": "https://render.albiononline.com/v1/item/T7_POTION_CLEANSE2%402.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "potion",
-      "slot_label": "Potion",
-      "template": "POTION_CLEANSE2",
-      "tier": 7,
-      "two_handed": false,
-      "unique_name": "T7_POTION_CLEANSE2@2"
-    },
-    "980": {
-      "_localized_names": {
-        "de": "Umhang von Caerleon des Experten",
-        "en": "Expert's Caerleon Cape",
-        "es": "Capa de Caerleon del experto",
-        "fr": "Cape de Caerleon de l'expert",
-        "ko": "전문가의 Caerleon 망토",
-        "pt": "Capa de Caerleon do Perito",
-        "ru": "Плащ города Caerleon (эксперт)",
-        "zh": "专家级Caerleon披风"
-      },
-      "display_name": "Caerleon Cape",
-      "enchantment": 1,
-      "english_name": "Caerleon Cape",
-      "equivalent_level": 6,
-      "group": "CAPEITEM",
-      "image_url": "https://render.albiononline.com/v1/item/T5_CAPEITEM_FW_CAERLEON%401.png?quality=1&locale=en",
-      "quality": 1,
-      "slot": "cape",
-      "slot_label": "Cape",
-      "template": "CAPEITEM_FW_CAERLEON",
-      "tier": 5,
-      "two_handed": false,
-      "unique_name": "T5_CAPEITEM_FW_CAERLEON@1"
+      "unique_name": "T8_CAPE_ARENA_BANNER"
     }
   },
-  "sha256": "fb28590d13711607018bfe285cfdfc2156bd2c397ffe7a970717a275f3899bba"
+  "sha256": "9d0a0530dde3e2fc73b86110e8c73ef3e33d428051583aa12daa0faf430f505b"
 }

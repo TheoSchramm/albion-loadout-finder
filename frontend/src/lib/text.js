@@ -106,13 +106,21 @@ export function templateGroup(template) {
 /**
  * Map a template to one of the 10 loadout slots, or null if it is not equipable gear.
  *
- * Gathering tools (pickaxe, sickle, skinning knife...) are equipped in the weapon slot
- * in-game and share the "2H_" prefix with real weapons, but carry a "TOOL_" segment -
- * excluded so weapon search does not surface them.
+ * Two exclusions on top of the prefix allowlist:
+ * - Gathering tools (pickaxe, sickle, skinning knife...) are equipped in the weapon slot
+ *   in-game and share the "2H_" prefix with real weapons, but carry a "TOOL_" segment -
+ *   excluded so weapon search does not surface them.
+ * - "_BP" templates are Crests - faction/season trophy items, not capes - despite
+ *   sharing the "CAPEITEM_" prefix with real capes (e.g. CAPEITEM_FW_BRIDGEWATCH is
+ *   "Bridgewatch Cape", equipable; CAPEITEM_FW_BRIDGEWATCH_BP is "Bridgewatch Crest", a
+ *   collectible, and would otherwise show up in cape search results. Verified this
+ *   suffix is cape-specific pollution - it does not occur under any other prefix - but
+ *   the exclusion is written generally in case a future item category reuses it.
  */
 export function deriveSlotFromTemplate(template) {
-  if (String(template).startsWith('2H_TOOL_')) {
+  const value = String(template);
+  if (value.startsWith('2H_TOOL_') || value.endsWith('_BP')) {
     return null;
   }
-  return TEMPLATE_PREFIX_SLOTS[templateGroup(template)] || null;
+  return TEMPLATE_PREFIX_SLOTS[templateGroup(value)] || null;
 }
