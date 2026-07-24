@@ -148,6 +148,29 @@ button {
 
 /* ---- shell: persistent sidebar + working area, not stacked identical cards ---- */
 
+/* Shown until the item catalog finishes loading, and turned into an error if it never
+   does. Without it a catalog failure would leave the shell rendered but inert, since
+   every other status message only reaches the console. */
+
+.boot-status {
+  position: relative;
+  z-index: 2;
+  width: min(1500px, calc(100% - 1.5rem));
+  margin: var(--space-4) auto 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid hsl(var(--rule-strong));
+  border-radius: var(--radius-sm);
+  background: hsl(var(--paper));
+  color: hsl(var(--ink-soft));
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+
+.boot-status.is-error {
+  border-color: hsl(var(--seal));
+  color: hsl(var(--seal));
+}
+
 .app-shell {
   position: relative;
   z-index: 1;
