@@ -315,6 +315,25 @@ async function main() {
   await mkdir(path.dirname(args.out), { recursive: true });
   await writeFile(args.out, text, 'utf8');
 
+  // The parity fixtures were generated from one specific items dump, and the entries
+  // test compares the shipped catalog against them. If upstream ever changes the set of
+  // equipable items, that test starts failing for a reason that has nothing to do with
+  // the code - so say so here, where it is actionable, rather than leaving someone to
+  // decode a digest mismatch later. (CI regenerates the catalog *after* running tests
+  // precisely so a live refresh can never invalidate them mid-run.)
+  const goldenEntries = path.join(HERE, '..', 'tests', 'golden', 'entries.json');
+  if (existsSync(goldenEntries)) {
+    const expected = JSON.parse(await readFile(goldenEntries, 'utf8')).count;
+    if (expected !== result.stats.kept) {
+      console.warn(
+        `\n  WARNING: this catalog has ${result.stats.kept} entries but the parity ` +
+          `fixtures expect ${expected}.\n  Upstream item data has changed. Committing ` +
+          `this file will fail the entries parity test until the\n  golden fixtures are ` +
+          `regenerated from the same dump.\n`,
+      );
+    }
+  }
+
   console.log(`Wrote ${path.relative(process.cwd(), args.out)}`);
   console.log(`  entries    ${result.stats.kept}`);
   console.log(`  templates  ${result.stats.templateCount}`);
