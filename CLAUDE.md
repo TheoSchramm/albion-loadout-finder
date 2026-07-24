@@ -165,9 +165,13 @@ else and say so explicitly.
 
 ## Working Conventions
 
-- **Update `CHANGELOG.md`** when a change is user-facing (a fix, a new feature, a behavior change) — add a
-  bullet under today's date (new `### Added`/`### Changed`/`### Fixed` section if today doesn't have one yet).
-  Skip it for internal-only work (refactors, test additions, docs).
+- **Every user-facing change must update `CHANGELOG.md` in the same session, before considering the work
+  done** — a fix, a new feature, or a behavior change all count. Add a bullet under today's date (start a new
+  `### Added`/`### Changed`/`### Fixed` section if today doesn't have one yet; add a new date heading at the
+  top if the last entry is from an earlier day). This applies every time, not just when it's convenient —
+  treat forgetting it as an incomplete task, the same as shipping code without running the tests. The only
+  changes that skip it are ones with no visible effect on the app itself: refactors, test additions, docs,
+  CI/build tooling.
 - **Field names in payloads are `snake_case`** (`unique_name`, `slot_label`, `two_handed`), inherited from the
   Python original and relied on by `app.js`. Function names are `camelCase`. Do not "modernize" the data keys.
 - `serializeVariant()` returns exactly 14 keys, and there is a test freezing that set. `app.js` merges this
