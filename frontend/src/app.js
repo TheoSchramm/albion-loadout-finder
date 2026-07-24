@@ -802,17 +802,25 @@ function renderResultsPrompt(message) {
   elements.itemsFoundCounter.hidden = true;
 }
 
-// How many equipped slots actually resolved to a real market price, out of how many
-// were priced at all. A slot with no listing anywhere still counts toward the total
-// (see optimizeLoadoutWithCities - every equipped item that resolves to a known
-// template always produces a slot row now), it just doesn't count as "found".
-function syncItemsFoundCounter(payload) {
-  const total = payload.slots.length;
-  const found = payload.slots.filter(slot => slot.best.cheapest_price != null).length;
+// How many equipped slots actually resolved to a real market price, out of how many are
+// being priced in total. `resolvedSlots` may be a partial list while requests are still
+// in flight - pass the eventual total explicitly in that case, so the counter can show
+// "checking" progress rather than jumping from nothing straight to a final count.
+//
+// A slot that finishes with no listing anywhere still counts toward the total (see
+// optimizeLoadoutWithCities - every equipped item that resolves to a known template
+// always produces a slot row), it just doesn't count as "found".
+function syncItemsFoundCounter(resolvedSlots, total = resolvedSlots.length) {
+  const found = resolvedSlots.filter(slot => slot.best.cheapest_price != null).length;
+  const stillChecking = resolvedSlots.length < total;
+
   elements.itemsFoundCounter.hidden = false;
-  elements.itemsFoundCounter.classList.toggle('is-complete', found === total);
-  elements.itemsFoundCounter.classList.toggle('is-empty', found === 0);
-  if (found === 0) {
+  elements.itemsFoundCounter.classList.toggle('is-complete', !stillChecking && found === total);
+  elements.itemsFoundCounter.classList.toggle('is-empty', !stillChecking && found === 0);
+
+  if (stillChecking) {
+    elements.itemsFoundCounter.textContent = `Checking market... ${found}/${total} found`;
+  } else if (found === 0) {
     elements.itemsFoundCounter.textContent = 'No items found';
   } else if (found === total) {
     elements.itemsFoundCounter.textContent = 'All items found';
@@ -829,13 +837,144 @@ function slotQuantity(slot) {
   return getSelected(slot)?.quantity || 1;
 }
 
-function computeDisplayTotal(payload) {
-  return payload.slots.reduce((total, slotResult) => {
+function computeDisplayTotalFromSlots(slots) {
+  return slots.reduce((total, slotResult) => {
     if (slotResult.best.cheapest_price == null) {
       return total;
     }
     return total + slotResult.best.cheapest_price * slotQuantity(slotResult.selected.slot);
   }, 0);
+}
+
+function computeDisplayTotal(payload) {
+  return computeDisplayTotalFromSlots(payload.slots);
+}
+
+// Builds one result-card's DOM (plus its sibling expandable-options row) for a single
+// priced slot. Returns the fragment rather than appending it, so it can be used both for
+// a full renderResults() pass and for appending one row at a time as live results arrive
+// (see requestOptimization()).
+function buildResultCardFragment(slotResult) {
+  const fragment = elements.resultCardTemplate.content.cloneNode(true);
+  const row = fragment.querySelector('.result-card');
+  const image = fragment.querySelector('.result-card-image');
+  const name = fragment.querySelector('.result-card-name');
+  const slotLabel = fragment.querySelector('.result-card-slot');
+  const tierValue = fragment.querySelector('.result-card-tier-value');
+  const quality = fragment.querySelector('.result-card-quality');
+  const city = fragment.querySelector('.result-card-city');
+  const priceValue = fragment.querySelector('.result-card-price-value');
+  const updated = fragment.querySelector('.result-card-updated');
+  const toggle = fragment.querySelector('.result-card-toggle');
+  const apiLink = fragment.querySelector('.result-card-api-link');
+  const copyButton = fragment.querySelector('.result-card-copy-button');
+  const optionsRow = fragment.querySelector('.result-card-options-row');
+  const options = fragment.querySelector('.result-card-options');
+
+  image.src = slotResult.best.image_url;
+  image.alt = slotResult.best.display_name;
+  name.textContent = slotResult.best.display_name;
+  slotLabel.textContent = slotResult.selected.slot_label;
+  tierValue.textContent = variantLabel(slotResult.best);
+  quality.textContent = slotResult.best.cheapest_quality_label || '';
+  quality.style.color = qualityColor(slotResult.best.cheapest_quality_label);
+  // No fallback to state.marketCity here: that's the user's *filter*, not where this
+  // item is actually priced, and showing it next to a "no market data" price would
+  // read as "this is priced in <city>" when it isn't priced anywhere.
+  city.textContent = slotResult.best.cheapest_city || '—';
+  city.style.color = cityColor(slotResult.best.cheapest_city);
+  const hasRealPrice = syncUpdatedAt(updated, slotResult.best.updated_at);
+  syncPriceValue(priceValue, slotResult.best.cheapest_price, hasRealPrice, slotQuantity(slotResult.selected.slot));
+  if (slotResult.best.api_url) {
+    apiLink.href = slotResult.best.api_url;
+  } else {
+    apiLink.remove();
+  }
+  if (slotResult.best.market_search_alias) {
+    copyButton.addEventListener('click', () => copyMarketAlias(copyButton, slotResult.best.market_search_alias));
+  } else {
+    copyButton.remove();
+  }
+
+  // Every IP-equivalent variant is always listed here, priced or not (see
+  // optimizeLoadoutWithCities) - a user comparing options should see every
+  // alternative that exists, with a one-click way to check it in-game, rather than
+  // unpriced ones silently vanishing.
+  if (slotResult.candidates.length > 1) {
+    toggle.hidden = false;
+    toggle.title = `${slotResult.candidates.length} equivalent tier/enchant options`;
+    slotResult.candidates.forEach(candidate => {
+      const line = document.createElement('div');
+      line.className = `option-line${candidate.unique_name === slotResult.best.unique_name ? ' is-best' : ''}`;
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'option-line-name';
+      nameSpan.textContent = `${candidate.display_name} · ${variantLabel(candidate)}`;
+
+      const leader = document.createElement('span');
+      leader.className = 'option-line-leader';
+      leader.setAttribute('aria-hidden', 'true');
+
+      const hasCandidatePrice = candidate.cheapest_price != null;
+      const candidateDate = parseMarketTimestamp(candidate.updated_at);
+      const hasRealCandidatePrice = hasCandidatePrice && Boolean(candidateDate);
+      const pricePrefix = hasCandidatePrice && !hasRealCandidatePrice ? '~' : '';
+
+      const priceSpan = document.createElement('span');
+      priceSpan.className = 'option-line-price';
+      priceSpan.textContent = hasCandidatePrice
+        ? `${pricePrefix}${formatSilver(candidate.cheapest_price)} silver`
+        : 'no data';
+      priceSpan.classList.toggle('is-estimate', hasCandidatePrice && !hasRealCandidatePrice);
+
+      const citySpan = document.createElement('span');
+      citySpan.className = 'option-line-city';
+      citySpan.textContent = candidate.cheapest_city || '—';
+      citySpan.style.color = cityColor(candidate.cheapest_city);
+
+      const qualitySpan = document.createElement('span');
+      qualitySpan.className = 'option-line-quality';
+      qualitySpan.textContent = candidate.cheapest_quality_label || '';
+      qualitySpan.style.color = qualityColor(candidate.cheapest_quality_label);
+
+      const freshnessSpan = document.createElement('span');
+      freshnessSpan.className = 'option-line-freshness';
+      freshnessSpan.textContent = hasRealCandidatePrice ? formatRelativeTime(candidateDate) : 'no data';
+
+      const copyLineButton = document.createElement('button');
+      copyLineButton.type = 'button';
+      copyLineButton.className = 'option-line-copy-button';
+      copyLineButton.title = 'Copy the in-game market search text for this item';
+      copyLineButton.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">content_copy</span>';
+      if (candidate.market_search_alias) {
+        copyLineButton.addEventListener('click', event => {
+          event.stopPropagation();
+          copyMarketAlias(copyLineButton, candidate.market_search_alias);
+        });
+      } else {
+        copyLineButton.disabled = true;
+      }
+
+      line.append(nameSpan, leader, priceSpan, citySpan, qualitySpan, freshnessSpan, copyLineButton);
+      options.append(line);
+    });
+
+    const toggleOptions = () => {
+      const expanded = !toggle.classList.contains('is-expanded');
+      toggle.classList.toggle('is-expanded', expanded);
+      optionsRow.hidden = !expanded;
+    };
+
+    row.classList.add('is-expandable');
+    row.addEventListener('click', event => {
+      if (event.target.closest('.result-card-api-link, .result-card-copy-button, .option-line-copy-button')) {
+        return;
+      }
+      toggleOptions();
+    });
+  }
+
+  return fragment;
 }
 
 function renderResults(payload) {
@@ -846,132 +985,13 @@ function renderResults(payload) {
     return;
   }
 
-  syncItemsFoundCounter(payload);
+  syncItemsFoundCounter(payload.slots);
   elements.resultsBody.innerHTML = '';
   elements.resultsEmptyState.hidden = true;
   elements.resultsTable.hidden = false;
 
   payload.slots.forEach(slotResult => {
-    const fragment = elements.resultCardTemplate.content.cloneNode(true);
-    const row = fragment.querySelector('.result-card');
-    const image = fragment.querySelector('.result-card-image');
-    const name = fragment.querySelector('.result-card-name');
-    const slotLabel = fragment.querySelector('.result-card-slot');
-    const tierValue = fragment.querySelector('.result-card-tier-value');
-    const quality = fragment.querySelector('.result-card-quality');
-    const city = fragment.querySelector('.result-card-city');
-    const priceValue = fragment.querySelector('.result-card-price-value');
-    const updated = fragment.querySelector('.result-card-updated');
-    const toggle = fragment.querySelector('.result-card-toggle');
-    const apiLink = fragment.querySelector('.result-card-api-link');
-    const copyButton = fragment.querySelector('.result-card-copy-button');
-    const optionsRow = fragment.querySelector('.result-card-options-row');
-    const options = fragment.querySelector('.result-card-options');
-
-    image.src = slotResult.best.image_url;
-    image.alt = slotResult.best.display_name;
-    name.textContent = slotResult.best.display_name;
-    slotLabel.textContent = slotResult.selected.slot_label;
-    tierValue.textContent = variantLabel(slotResult.best);
-    quality.textContent = slotResult.best.cheapest_quality_label || '';
-    quality.style.color = qualityColor(slotResult.best.cheapest_quality_label);
-    // No fallback to state.marketCity here: that's the user's *filter*, not where this
-    // item is actually priced, and showing it next to a "no market data" price would
-    // read as "this is priced in <city>" when it isn't priced anywhere.
-    city.textContent = slotResult.best.cheapest_city || '—';
-    city.style.color = cityColor(slotResult.best.cheapest_city);
-    const hasRealPrice = syncUpdatedAt(updated, slotResult.best.updated_at);
-    syncPriceValue(priceValue, slotResult.best.cheapest_price, hasRealPrice, slotQuantity(slotResult.selected.slot));
-    if (slotResult.best.api_url) {
-      apiLink.href = slotResult.best.api_url;
-    } else {
-      apiLink.remove();
-    }
-    if (slotResult.best.market_search_alias) {
-      copyButton.addEventListener('click', () => copyMarketAlias(copyButton, slotResult.best.market_search_alias));
-    } else {
-      copyButton.remove();
-    }
-
-    // Every IP-equivalent variant is always listed here, priced or not (see
-    // optimizeLoadoutWithCities) - a user comparing options should see every
-    // alternative that exists, with a one-click way to check it in-game, rather than
-    // unpriced ones silently vanishing.
-    if (slotResult.candidates.length > 1) {
-      toggle.hidden = false;
-      toggle.title = `${slotResult.candidates.length} equivalent tier/enchant options`;
-      slotResult.candidates.forEach(candidate => {
-        const line = document.createElement('div');
-        line.className = `option-line${candidate.unique_name === slotResult.best.unique_name ? ' is-best' : ''}`;
-
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'option-line-name';
-        nameSpan.textContent = `${candidate.display_name} · ${variantLabel(candidate)}`;
-
-        const leader = document.createElement('span');
-        leader.className = 'option-line-leader';
-        leader.setAttribute('aria-hidden', 'true');
-
-        const hasCandidatePrice = candidate.cheapest_price != null;
-        const candidateDate = parseMarketTimestamp(candidate.updated_at);
-        const hasRealCandidatePrice = hasCandidatePrice && Boolean(candidateDate);
-        const pricePrefix = hasCandidatePrice && !hasRealCandidatePrice ? '~' : '';
-
-        const priceSpan = document.createElement('span');
-        priceSpan.className = 'option-line-price';
-        priceSpan.textContent = hasCandidatePrice
-          ? `${pricePrefix}${formatSilver(candidate.cheapest_price)} silver`
-          : 'no data';
-        priceSpan.classList.toggle('is-estimate', hasCandidatePrice && !hasRealCandidatePrice);
-
-        const citySpan = document.createElement('span');
-        citySpan.className = 'option-line-city';
-        citySpan.textContent = candidate.cheapest_city || '—';
-        citySpan.style.color = cityColor(candidate.cheapest_city);
-
-        const qualitySpan = document.createElement('span');
-        qualitySpan.className = 'option-line-quality';
-        qualitySpan.textContent = candidate.cheapest_quality_label || '';
-        qualitySpan.style.color = qualityColor(candidate.cheapest_quality_label);
-
-        const freshnessSpan = document.createElement('span');
-        freshnessSpan.className = 'option-line-freshness';
-        freshnessSpan.textContent = hasRealCandidatePrice ? formatRelativeTime(candidateDate) : 'no data';
-
-        const copyLineButton = document.createElement('button');
-        copyLineButton.type = 'button';
-        copyLineButton.className = 'option-line-copy-button';
-        copyLineButton.title = 'Copy the in-game market search text for this item';
-        copyLineButton.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">content_copy</span>';
-        if (candidate.market_search_alias) {
-          copyLineButton.addEventListener('click', event => {
-            event.stopPropagation();
-            copyMarketAlias(copyLineButton, candidate.market_search_alias);
-          });
-        } else {
-          copyLineButton.disabled = true;
-        }
-
-        line.append(nameSpan, leader, priceSpan, citySpan, qualitySpan, freshnessSpan, copyLineButton);
-        options.append(line);
-      });
-
-      const toggleOptions = () => {
-        const expanded = !toggle.classList.contains('is-expanded');
-        toggle.classList.toggle('is-expanded', expanded);
-        optionsRow.hidden = !expanded;
-      };
-
-      row.classList.add('is-expandable');
-      row.addEventListener('click', event => {
-        if (event.target.closest('.result-card-api-link, .result-card-copy-button, .option-line-copy-button')) {
-          return;
-        }
-        toggleOptions();
-      });
-    }
-
-    elements.resultsBody.append(fragment);
+    elements.resultsBody.append(buildResultCardFragment(slotResult));
   });
 }
 
@@ -1190,18 +1210,54 @@ async function requestOptimization() {
     return;
   }
 
-  const loadout = Array.from(state.loadout.entries()).map(([slot, item]) => ({
-    slot,
-    unique_name: item.unique_name,
-  }));
+  const entries = Array.from(state.loadout.entries());
+  const cities = state.marketCity === 'all' ? [] : [state.marketCity];
+  const total = entries.length;
 
   setStatus('Fetching prices');
-  const payload = await optimize({
-    loadout,
+  elements.resultsBody.innerHTML = '';
+  elements.resultsEmptyState.hidden = true;
+  elements.resultsTable.hidden = false;
+  elements.totalCost.textContent = 'Fetching prices...';
+  syncItemsFoundCounter([], total);
+
+  // Each equipped item is priced independently and its row is appended to the table the
+  // moment its own result comes back, rather than waiting for the whole loadout - the
+  // items-found counter and the total both fill in live as responses arrive instead of
+  // jumping from nothing straight to a finished table after one silent wait. Requests
+  // run concurrently, so they don't necessarily resolve in equip order; a final render
+  // below re-lays the table out in that stable order once everything has settled.
+  const resolvedSlots = [];
+  await Promise.allSettled(
+    entries.map(async ([slot, item]) => {
+      const slotPayload = await optimize({
+        loadout: [{ slot, unique_name: item.unique_name }],
+        region: state.region,
+        language: state.language,
+        cities,
+      });
+      const slotResult = slotPayload.slots[0];
+      if (!slotResult) {
+        return;
+      }
+      resolvedSlots.push(slotResult);
+      elements.resultsBody.append(buildResultCardFragment(slotResult));
+      syncItemsFoundCounter(resolvedSlots, total);
+      elements.totalCost.textContent = `${formatSilver(computeDisplayTotalFromSlots(resolvedSlots))} silver`;
+    }),
+  );
+
+  const resolvedCities = cities.length ? cities : state.config.regions[state.region]?.cities || [];
+  const payload = {
     region: state.region,
     language: state.language,
-    cities: state.marketCity === 'all' ? [] : [state.marketCity],
-  });
+    cities: resolvedCities,
+    // Reorder to match the equipped slot order (Map insertion order), not whichever
+    // request happened to finish first.
+    slots: entries.map(([slot]) => resolvedSlots.find(result => result.selected.slot === slot)).filter(Boolean),
+    total_cost: resolvedSlots.reduce((sum, result) => sum + (result.best.cheapest_price ?? 0), 0),
+    currency: 'silver',
+  };
 
   state.pricingDirty = false;
   state.lastResultsPayload = payload;
