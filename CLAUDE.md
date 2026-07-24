@@ -8,129 +8,160 @@ A web app for Albion Online players: build a 10-slot equipment loadout, search i
 autocomplete, and compare live market prices across item-power-equivalent tier/enchantment variants to find
 the cheapest way to hit a target IP.
 
-The actual implementation is a lightweight **Flask + vanilla JS** app — not the Angular/TypeScript/FastAPI/Redis
-stack an earlier draft of this file described. There's no `controllers/services/cache/utils` split; see the
-real structure below.
+It is a **fully static, client-side app** — plain ES modules, no framework, no bundler, no dependencies, and
+no server of any kind. It is deployed to GitHub Pages and talks to the Albion Online Data Project API directly
+from the browser.
+
+There used to be a Python/Flask backend holding all the domain logic. It was ported to JavaScript and deleted;
+`frontend/tests/golden/` still records its exact behavior and is what the port is asserted against. If you need
+the original Python (e.g. to regenerate a fixture), recover it from git history — see
+`frontend/tests/golden/README.md`.
 
 ## Directory Structure
 
 ```
-backend/
-  app_core.py     # All domain logic: item catalog, IP/tier math, search, price fetching, optimizer
-  main.py         # Flask app: routes + static file serving for the built frontend
-  cache/items.json  # Cached copy of ao-bin-dumps items.json (fetched on first run, reused after)
-  tests/test_core.py
 frontend/
-  src/            # Source: app.js (vanilla JS, no framework/bundler), index.html, styles.css
-  dist/           # Built output served by the backend (plain file copy of src/)
-  scripts/build.mjs       # Copies src/ -> dist/ (no transpilation/bundling)
-  scripts/dev-server.mjs  # Dev server on :5173, proxies /api/* to the Flask backend on :8000
-DEPLOY.md         # Setup/run instructions
+  src/
+    index.html            # single page; loads ./app.js as type="module"
+    app.js                # all UI: module-level `state`, cached `elements`, imperative render*/sync* fns
+    styles.css            # dark "Quartermaster's Ledger" theme, CSS custom properties
+    lib/                  # the domain logic (ported from the old Python backend)
+      constants.js        # static data: languages, regions, slots, quality labels, template allowlist
+      text.js             # normalize/strip/parse helpers for names and templates
+      urls.js             # price-API and item-render URL construction
+      catalog.js          # async catalog bootstrap + derived lookup tables
+      items.js            # variant building, naming, serialization, IP-equivalence
+      search.js           # search, grouping, representative-variant selection
+      prices.js           # market price fetching and batching
+      optimizer.js        # cheapest-variant-per-slot optimization
+      api.js              # shim preserving the five payload shapes the old HTTP API returned
+    data/items.catalog.json  # generated; 7,479 equipable items in 8 languages (~520 KB, ~70 KB gzipped)
+  scripts/
+    build.mjs             # copies src/ -> dist/, emits .nojekyll + 404.html, runs deploy guards
+    build-catalog.mjs     # builds data/items.catalog.json from ao-bin-dumps
+    dev-server.mjs        # static dev server on :5173
+    lint.mjs              # no-op placeholder
+  tests/                  # node:test suite, zero dependencies
+    golden/               # frozen fixtures recording the original Python behavior
+.github/workflows/pages.yml  # test -> refresh catalog -> build -> deploy to Pages
 ```
 
 ## Common Commands
 
 ```bash
-# Backend
-cd backend && python -m pip install -r requirements.txt
-python -m backend.main              # run Flask dev server on http://127.0.0.1:8000 (from repo root)
-python -m unittest backend.tests.test_core -v   # run backend tests
-
-# Frontend
 cd frontend
-node scripts/build.mjs              # build src/ -> dist/ (rerun after editing frontend before restarting backend)
-node scripts/dev-server.mjs         # serve src/ directly on :5173 with API proxy to :8000, for live editing
+npm test                  # node:test suite (45 tests). No network - see below.
+npm run dev               # static server on http://127.0.0.1:5173
+npm run build             # src/ -> dist/ plus Pages files and guards
+npm run build:catalog     # regenerate the item catalog from live upstream
+npm run check:catalog     # verify the committed catalog is current
+
+node --test tests/core.test.js          # a single test file
+node scripts/build-catalog.mjs --from <path-to-items.json>   # build from a local dump
 ```
 
-There's no bundler, TypeScript compiler, or real lint tooling — `frontend/scripts/lint.mjs` (run via
-`npm run lint`) is a no-op placeholder. On Windows, if `npm` is blocked in PowerShell, call the `.mjs` scripts
-with `node` directly (as above) or use `npm.cmd`.
+There is no bundler, transpiler, or linter (`lint.mjs` is a placeholder). On Windows, if `npm` is blocked in
+PowerShell, call the `.mjs` scripts with `node` directly or use `npm.cmd`.
 
 ## Architecture
 
-**`backend/app_core.py`** is the single source of truth for domain logic — read it before making backend
-changes. Key pieces:
+`frontend/src/lib/` is the single source of truth for domain logic — read it before making behavioral changes.
+The dependency direction is strictly one-way:
 
-- `ITEM_DEFINITIONS` — a small hardcoded catalog of item templates (e.g. `MAIN_SWORD`, `HEAD_PLATE`) used as a
-  demo/fallback set, separate from the external `ao-bin-dumps` catalog.
-- `load_external_catalog()` — lazily fetches `items.json` from `ao-data/ao-bin-dumps` on GitHub, caching it to
-  `backend/cache/items.json` on disk (`@lru_cache`, so only one fetch per process). That file is the
-  *formatted* dump: each entry only has `UniqueName` + `LocalizedNames`/`LocalizedDescriptions` — no
-  slot/category/two-handed field — so slot and two-handedness must be derived, not read directly.
-- **Slot derivation**: `_derive_slot_from_template()` maps the category token right after the tier in a
-  template (`T4_MAIN_SWORD` → `MAIN`, `T4_ARTEFACT_2H_BOW_HELL` → `ARTEFACT`) through an explicit allowlist
-  (`_TEMPLATE_PREFIX_SLOTS`) to one of the 10 loadout slots. This is intentionally an allowlist, not a
-  keyword/substring scan of localized names — free-text matching across ~15 languages produces false
-  positives (e.g. Polish "Dębowe" normalizes to contain "bow" and would match raw log/wood resources; items
-  literally named `ARTEFACT_*` are crafting resources, not equipable gear, despite containing weapon-like
-  substrings such as "bow" or "firestaff" in their template). Anything without a recognized prefix (crafting
-  resources, quest items, journals, vanity/skin unlocks, loot chests, farm goods, furniture, tokens...) is
-  excluded from search results entirely.
-- **Template registry**: `TEMPLATE_DEFINITIONS` / `find_definition()` merge `ITEM_DEFINITIONS` with
-  `ItemDefinition`s derived from the external catalog (`_external_template_definitions()`, grouped by
-  template with tier range inferred from the data actually present). Both the optimizer and
-  `equivalent_variants()` look items up here — **not** just `ITEM_DEFINITIONS` — since almost every item a
-  user actually picks via search comes from the external catalog, not the ~24-item hardcoded set.
-- **Unique name format**: `T{tier}_{TEMPLATE}` or `T{tier}_{TEMPLATE}@{enchantment}` (e.g. `T6_MAIN_SWORD@2`).
-  `parse_unique_name()` / `format_unique_name()` convert between this and `(tier, template, enchantment)`.
-- **Display names**: the game's raw localized names bake the tier-rank title into the string itself (e.g.
-  "Adept's Sword", "Master's Sword" are literally how T4/T6 swords are named in the source data).
-  `strip_tier_title()` strips that leading title (English only — other languages use different grammar, e.g.
-  German/Portuguese suffix the rank instead of prefixing it, which isn't handled) so search results group by
-  the base item name across tiers instead of splintering per tier-title.
-- **Locale codes**: the source data keys `LocalizedNames` by full locale (`de-de`, `pt-br`, ...), but this
-  app's `LANGUAGES`/UI use short codes (`de`, `pt`, ...). `_localized_names_from_raw()` aliases the short
-  codes it supports so non-English UI languages actually resolve a translated name instead of silently
-  falling back to English.
-- **Item images**: `item_image_url()` builds render URLs against `https://render.albiononline.com/v1/item/...`
-  — always pass the machine `unique_name`, not a display name (the render API resolves by unique name only).
-- **Pricing**: `fetch_prices()` batches unique names into comma-joined requests against the Albion Online Data
-  Project API (`{region-host}/api/v2/stats/prices/{items}.json?locations={cities}&qualities=1`), splitting
-  batches to stay under the 4096-char URL length limit. A live network failure (or a `0` sell price) falls
-  back to `_price_fallback()`, a deterministic hash-based synthetic price — so pricing always returns
-  *something* even offline, which matters when testing without network access.
-- **Optimizer**: `optimize_loadout_with_cities()` takes the selected loadout, expands each slot to its
-  IP-equivalent variants via `equivalent_variants()`, fetches prices for all of them, and picks the cheapest
-  variant per slot independently (not a global combination search).
+```
+constants.js -> text.js -> urls.js -> catalog.js -> items.js -> search.js
+                                                        \-> optimizer.js -> prices.js
+                                                                  \-> api.js -> app.js
+```
 
-**`backend/main.py`** is a thin Flask layer: `/api/health`, `/api/config`, `/api/items` (search), `/api/item/<unique_name>`,
-`/api/optimize` (POST). It also serves the frontend — `/` and `/<path:path>` return files from `frontend/dist`
-if it exists, else fall back to `frontend/src` directly (so you can skip the build step during iteration, or
-use `dev-server.mjs` for proxying without a build).
+- **`catalog.js` is an async bootstrap, not a module-level constant.** The Python original built its lookup
+  tables at import time, including a network fetch as a side effect of `import app_core`. In a browser that
+  has to be explicit: call `loadCatalog(url)` once during boot, then `getCatalog()` everywhere. Readers
+  **throw** before the catalog is loaded rather than returning `undefined` — do not "fix" that by returning a
+  default, it exists to make an ordering mistake loud.
+- **`api.js` is a deliberate seam.** It reproduces the five payload shapes the old Flask endpoints returned, so
+  `app.js` changed in only five places during the port and the golden fixtures have something stable to assert
+  against. New UI code may call the domain modules directly, but do not change `api.js`'s payload shapes
+  casually.
+- **`app.js` has no component system.** New UI features mean adding to `state`, writing a `render*` function,
+  and wiring it into `updateAllViews()`. Loadouts persist to `localStorage` under `SAVED_LOADOUTS_KEY`.
 
-**`frontend/src/app.js`** is a single vanilla-JS file with no framework: a module-level `state` object, a cached
-`elements` lookup of DOM nodes by id, and imperative `render*`/`sync*` functions. There's no component system —
-new UI features mean adding state, a render function, and wiring it into `updateAllViews()`. Loadouts can be
-saved/loaded from `localStorage` (`SAVED_LOADOUTS_KEY`).
+### Item catalog
+
+`data/items.catalog.json` is generated from
+[`ao-data/ao-bin-dumps`](https://raw.githubusercontent.com/ao-data/ao-bin-dumps/refs/heads/master/formatted/items.json).
+The upstream dump is ~24 MB of all 12,071 items with long descriptions in 15 languages; the build prunes it to
+the 7,479 equipable ones in the 8 supported languages and groups them by template.
+
+Two properties of the format are load-bearing:
+
+- **`templates` is a JSON array, in upstream order.** Search groups results by first appearance and truncates
+  to 24, so serializing it as an object would make the visible result set depend on JS property-order rules.
+  Flattening the grouped form reproduces the original entry order exactly — there is a test for this.
+- **Names are stored raw**, with the rank title ("Adept's Sword") intact. Display names strip it; the in-game
+  market alias needs it back. Storing stripped names would make the alias unreconstructible.
+
+The source dump ships **no slot or category field**, so slots are derived from the template prefix via an
+explicit allowlist (`TEMPLATE_PREFIX_SLOTS` in `constants.js`). This is an allowlist on purpose: free-text
+matching across 15 languages produces false positives (Polish "Dębowe" normalizes to contain "bow", matching
+raw wood as bows), and items named `ARTEFACT_*` are crafting resources despite containing weapon-like
+substrings. **To support a new category of item, extend that allowlist** — do not add keyword matching.
 
 ## Core Domain Rules
 
 ### Item Power (IP)
-- Tiers range T4–T8; each tier adds +100 IP over T4 base.
-- Enchantment (`.0`–`.4`) adds +100 IP per level.
-- Quality (Normal=1 .. Masterpiece=5) adds up to +100 IP (+20 per step), independent of the equivalence math below.
-- **Equivalent level** = `tier + enchantment`. e.g. 4.2, 5.1, and 6.0 are all equivalent level 6 and are treated
-  as interchangeable by the optimizer (`equivalent_variants()`).
+- Tiers T4–T8; each tier adds +100 IP over T4 base.
+- Enchantment `.0`–`.4` adds +100 IP per level. **Only tier 4+ can be enchanted** — tiers 1–3 exist only at
+  `.0`, so a `T2_CAPE@4` would price an item the game has never had.
+- Quality (Normal=1 .. Masterpiece=5) adds up to +100 IP, independent of the equivalence math.
+- **Equivalent level = tier + enchantment.** 4.2, 5.1 and 6.0 are interchangeable, which is what
+  `equivalentVariants()` expands.
+- **Some templates rename per tier and are not substitutes.** `MEAL_STEW` is Goat Stew at T4, Mutton Stew at
+  T6 and Beef Stew at T8, and skips T5/T7 entirely. Substitution is gated on the English name matching.
 
-### Live Market Prices (Albion Online Data Project)
-- Region hosts: Americas `https://west.albion-online-data.com`, Asia `https://east.albion-online-data.com`,
-  Europe `https://europe.albion-online-data.com`.
-- Respect upstream rate limits when touching price-fetching code: 180 requests/min, 300 requests/5 min, plus
-  the 4096-character URL cap already enforced in `fetch_prices()`.
+### Market prices
+- Region hosts: Americas `west`, Asia `east`, Europe `europe` `.albion-online-data.com`.
+- Requests are chunked to stay under a 4096-character URL. **Send no request headers** — a `Content-Type` on a
+  cross-origin GET forces a CORS preflight per batch, doubling requests against the 180 req/min budget.
+- **Never fabricate a price.** A zero `sell_price_min` means "nothing listed", not "free". Items and slots with
+  no real listing are omitted from results entirely rather than shown with a placeholder. An absent row is
+  honest; a made-up number that looks exactly like a real one is not.
+- Rate limits are per client IP and now belong to each visitor rather than a shared server, which is why
+  Compare prices is disabled while a request is in flight.
+
+## Testing
+
+`npm test` runs `node:test` with zero dependencies, in three layers:
+
+1. **Parity** (`parity.test.js`) — asserts against `tests/golden/`, generated from the Python implementation.
+   Covers the full search matrix, serialized items, equivalents, URLs, batch boundaries, and optimizer output.
+2. **Ported unit tests** (`core.test.js`) — the original Python suite, 1:1, with names mirrored.
+3. **Port-specific guards** — hazards that exist only because this is browser JavaScript.
+
+**The suite never touches the network**, and that is enforced: `tests/helpers.mjs` replaces `globalThis.fetch`
+with a throw. Code needing HTTP takes an injected `fetchImpl`. If you add a test that hits the network, it will
+fail — inject a fake instead.
+
+The fixtures **pin the original behavior including its bugs**, so a parity failure can only mean "the port
+diverged". If you intentionally change behavior, regenerate the affected fixture in a commit that does nothing
+else and say so explicitly.
 
 ## Working Conventions
 
-- Backend: Python with type hints and dataclasses (`ItemDefinition`, `ItemVariant`). Plain Flask — no
-  FastAPI/Pydantic.
-- Frontend: no TypeScript, no framework, no real build step — keep additions in plain JS/HTML/CSS consistent
-  with the existing single-file style unless there's a genuine reason to restructure.
-- When adding a supported item template, update `ITEM_DEFINITIONS` (via `_base_catalog()` /
-  `_specialized_catalog()`) and its localized names in `BASE_LOCALIZED_NAMES`/`SPECIALIZED_LOCALIZED_NAMES`.
-  If the change is about recognizing a *new category* of external-catalog item, extend
-  `_TEMPLATE_PREFIX_SLOTS` instead (allowlist, not the hardcoded catalog).
-- Handle missing/null `LocalizedNames` entries and stale/zero `sell_price_min`/`buy_price_max` values gracefully
-  rather than throwing — the external catalog and price API are both unreliable data sources in practice.
+- **Field names in payloads are `snake_case`** (`unique_name`, `slot_label`, `two_handed`), inherited from the
+  Python original and relied on by `app.js`. Function names are `camelCase`. Do not "modernize" the data keys.
+- `serializeVariant()` returns exactly 14 keys, and there is a test freezing that set. `app.js` merges this
+  over live results with `Object.assign` when the language changes, so adding a market-data key such as
+  `updated_at` would blank prices that were correct a moment earlier.
+- Handle missing/null localized names and stale/zero prices gracefully rather than throwing — the item dump and
+  the price API are both unreliable in practice.
+- **Everything must work from a subpath.** GitHub Pages serves this from `https://<user>.github.io/<repo>/`, so
+  asset paths stay document-relative (`./app.js`) and URLs are built against `import.meta.url`, never
+  `window.location.origin`. `build.mjs` fails the build if a root-relative path or `window.location.origin`
+  appears in the output.
 - `styles.css` has a global `[hidden] { display: none !important; }` rule specifically because any class rule
-  setting `display` (e.g. `.modal-overlay { display: grid; }`) has the same CSS specificity as the browser's
-  built-in `[hidden]` rule and can silently win, leaving an element visible despite `element.hidden = true` in
-  JS. Keep relying on that global rule for modals/overlays rather than toggling `display` directly.
+  setting `display` (e.g. `.modal-overlay { display: grid; }`) has the same specificity as the browser's
+  built-in `[hidden]` rule and can silently win, leaving an element visible despite `element.hidden = true`.
+  Keep relying on that rule rather than toggling `display` directly.
+- Visual conventions the design deliberately follows: dark theme only, no gradients anywhere, no emoji, and
+  city/quality colors derived from the in-game palette (adjusted only for contrast, preserving hue).
