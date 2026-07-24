@@ -110,14 +110,19 @@ test('optimize loadout returns every slot', async () => {
   );
 });
 
-test('optimize loadout omits slots with no real market data', async () => {
-  // Never fabricate a price: a slot with zero listings anywhere is left out entirely
-  // rather than filled in with a made-up number.
+test('optimize loadout still shows a slot with zero listings, just with no price', async () => {
+  // Never fabricate a price - but never hide the slot either. A user comparing options
+  // wants to see every equipped item and its equivalents even when the market has no
+  // data right now, with a way to check in-game (market_search_alias) rather than the
+  // item silently disappearing from results.
   const result = await optimizeLoadoutWithCities({
     loadout: [{ slot: 'main_hand', unique_name: 'T6_MAIN_SWORD@0' }],
     fetchOptions: EMPTY_PRICES,
   });
-  assert.deepEqual(result.slots, []);
+  assert.equal(result.slots.length, 1);
+  assert.equal(result.slots[0].best.cheapest_price, null);
+  assert.equal(result.slots[0].best.cheapest_city, null);
+  assert.ok(result.slots[0].best.market_search_alias);
   assert.equal(result.total_cost, 0);
 });
 
@@ -417,7 +422,7 @@ test('accented queries match, but accent folding is deliberately not implemented
   assert.equal(searchItems('Epee', 'fr', 'main_hand').length, 0);
 });
 
-test('a network failure yields no data rather than a fabricated price', async () => {
+test('a network failure yields no price, not a fabricated one, but the slot stays', async () => {
   const fetchImpl = async () => {
     throw new TypeError('network down');
   };
@@ -425,6 +430,7 @@ test('a network failure yields no data rather than a fabricated price', async ()
     loadout: [{ slot: 'cape', unique_name: 'T4_CAPE' }],
     fetchOptions: { fetchImpl, now: () => 0 },
   });
-  assert.deepEqual(result.slots, []);
+  assert.equal(result.slots.length, 1);
+  assert.equal(result.slots[0].best.cheapest_price, null);
   assert.equal(result.total_cost, 0);
 });

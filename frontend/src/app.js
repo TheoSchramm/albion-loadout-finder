@@ -179,9 +179,15 @@ function syncUpdatedAt(element, isoValue) {
 }
 
 function syncPriceValue(element, price, hasRealData) {
+  if (price == null) {
+    element.textContent = '—';
+    element.classList.add('is-estimate');
+    element.title = 'No real listing was found for this item on the market.';
+    return;
+  }
   element.textContent = hasRealData ? `${formatSilver(price)} silver` : `~${formatSilver(price)} silver`;
   element.classList.toggle('is-estimate', !hasRealData);
-  element.title = hasRealData ? '' : 'Estimated placeholder price - no real market listing was found for this item.';
+  element.title = hasRealData ? '' : 'This item has a price, but its listing timestamp could not be read.';
 }
 
 function setStatus(message) {
@@ -770,7 +776,10 @@ function renderResults(payload) {
     tierValue.textContent = variantLabel(slotResult.best);
     quality.textContent = slotResult.best.cheapest_quality_label || '';
     quality.style.color = qualityColor(slotResult.best.cheapest_quality_label);
-    city.textContent = slotResult.best.cheapest_city || state.marketCity || 'fallback';
+    // No fallback to state.marketCity here: that's the user's *filter*, not where this
+    // item is actually priced, and showing it next to a "no market data" price would
+    // read as "this is priced in <city>" when it isn't priced anywhere.
+    city.textContent = slotResult.best.cheapest_city || '—';
     city.style.color = cityColor(slotResult.best.cheapest_city);
     const hasRealPrice = syncUpdatedAt(updated, slotResult.best.updated_at);
     syncPriceValue(priceValue, slotResult.best.cheapest_price, hasRealPrice);
@@ -785,6 +794,10 @@ function renderResults(payload) {
       copyButton.remove();
     }
 
+    // Every IP-equivalent variant is always listed here, priced or not (see
+    // optimizeLoadoutWithCities) - a user comparing options should see every
+    // alternative that exists, with a one-click way to check it in-game, rather than
+    // unpriced ones silently vanishing.
     if (slotResult.candidates.length > 1) {
       toggle.hidden = false;
       toggle.title = `${slotResult.candidates.length} equivalent tier/enchant options`;
@@ -800,20 +813,22 @@ function renderResults(payload) {
         leader.className = 'option-line-leader';
         leader.setAttribute('aria-hidden', 'true');
 
+        const hasCandidatePrice = candidate.cheapest_price != null;
         const candidateDate = parseMarketTimestamp(candidate.updated_at);
-        const hasRealCandidatePrice = Boolean(candidateDate);
-        const pricePrefix = hasRealCandidatePrice ? '' : '~';
+        const hasRealCandidatePrice = hasCandidatePrice && Boolean(candidateDate);
+        const pricePrefix = hasCandidatePrice && !hasRealCandidatePrice ? '~' : '';
 
         const priceSpan = document.createElement('span');
         priceSpan.className = 'option-line-price';
-        priceSpan.textContent = `${pricePrefix}${formatSilver(candidate.cheapest_price)} silver`;
-        priceSpan.classList.toggle('is-estimate', !hasRealCandidatePrice);
+        priceSpan.textContent = hasCandidatePrice
+          ? `${pricePrefix}${formatSilver(candidate.cheapest_price)} silver`
+          : 'no data';
+        priceSpan.classList.toggle('is-estimate', hasCandidatePrice && !hasRealCandidatePrice);
 
-        const candidateCity = candidate.cheapest_city || state.marketCity || 'fallback';
         const citySpan = document.createElement('span');
         citySpan.className = 'option-line-city';
-        citySpan.textContent = candidateCity;
-        citySpan.style.color = cityColor(candidateCity);
+        citySpan.textContent = candidate.cheapest_city || '—';
+        citySpan.style.color = cityColor(candidate.cheapest_city);
 
         const qualitySpan = document.createElement('span');
         qualitySpan.className = 'option-line-quality';
@@ -824,7 +839,21 @@ function renderResults(payload) {
         freshnessSpan.className = 'option-line-freshness';
         freshnessSpan.textContent = hasRealCandidatePrice ? formatRelativeTime(candidateDate) : 'no data';
 
-        line.append(nameSpan, leader, priceSpan, citySpan, qualitySpan, freshnessSpan);
+        const copyLineButton = document.createElement('button');
+        copyLineButton.type = 'button';
+        copyLineButton.className = 'option-line-copy-button';
+        copyLineButton.title = 'Copy the in-game market search text for this item';
+        copyLineButton.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">content_copy</span>';
+        if (candidate.market_search_alias) {
+          copyLineButton.addEventListener('click', event => {
+            event.stopPropagation();
+            copyMarketAlias(copyLineButton, candidate.market_search_alias);
+          });
+        } else {
+          copyLineButton.disabled = true;
+        }
+
+        line.append(nameSpan, leader, priceSpan, citySpan, qualitySpan, freshnessSpan, copyLineButton);
         options.append(line);
       });
 
@@ -836,7 +865,7 @@ function renderResults(payload) {
 
       row.classList.add('is-expandable');
       row.addEventListener('click', event => {
-        if (event.target.closest('.result-card-api-link, .result-card-copy-button')) {
+        if (event.target.closest('.result-card-api-link, .result-card-copy-button, .option-line-copy-button')) {
           return;
         }
         toggleOptions();

@@ -1045,8 +1045,8 @@ button:disabled {
 
 .option-line {
   display: grid;
-  grid-template-columns: minmax(4rem, 1fr) minmax(1rem, auto) 5.5rem 6rem 5.5rem 4.5rem;
-  align-items: baseline;
+  grid-template-columns: minmax(4rem, 1fr) minmax(1rem, auto) 5.5rem 6rem 5.5rem 4.5rem 1.75rem;
+  align-items: center;
   column-gap: 0.6rem;
   padding: 0.4rem 0;
   border-bottom: 1px solid hsl(var(--rule) / 0.6);
@@ -1105,6 +1105,31 @@ button:disabled {
 .option-line.is-best .option-line-name {
   color: hsl(var(--verdigris));
   font-weight: 600;
+}
+
+.option-line-copy-button {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: hsl(var(--ink-faint));
+  cursor: pointer;
+}
+
+.option-line-copy-button:hover {
+  color: hsl(var(--brass));
+  background: hsl(var(--ink) / 0.08);
+}
+
+.option-line-copy-button.is-copied {
+  color: hsl(var(--verdigris));
+}
+
+.option-line-copy-button .material-symbols-rounded {
+  font-size: 1rem;
 }
 
 /* --- save loadout modal --- */

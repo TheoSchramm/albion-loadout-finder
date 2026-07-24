@@ -31,9 +31,14 @@ function cheapestCity(cityPrices) {
  * Each slot is optimized independently - the cheapest equivalent variant per slot, not a
  * global combination search, which is what the UI presents.
  *
- * Slots and candidates with no real market data are omitted entirely rather than shown
- * with a placeholder price. An absent row is honest; a fabricated number that looks
- * exactly like a real one is not.
+ * Every equipped slot and every IP-equivalent candidate is always returned, even ones
+ * with no real market listing anywhere - `cheapest_price` is `null` for those rather than
+ * a fabricated number, and the UI is responsible for showing "no market data" instead of
+ * a price. This is a deliberate change from only returning priced rows: a user comparing
+ * options wants to see every tier/enchant alternative that exists, including ones AODP
+ * simply has no data for right now, with a one-click way to check the in-game market
+ * search directly (market_search_alias) rather than having the item vanish from the list
+ * entirely. total_cost still only ever sums real prices.
  */
 export async function optimizeLoadoutWithCities({
   loadout,
@@ -86,29 +91,44 @@ export async function optimizeLoadoutWithCities({
     for (const candidate of equivalentVariants(variant)) {
       const cityPrices = priceMap.get(candidate.unique_name) || {};
       const best = cheapestCity(cityPrices);
-      if (!best) continue;
 
       const payload = {
         ...serializeVariant(candidate, language),
-        cheapest_city: best.city,
-        cheapest_price: best.data.sell_price_min,
-        cheapest_quality: best.data.quality,
-        cheapest_quality_label: qualityLabel(best.data.quality),
-        updated_at: best.data.updated_at,
+        cheapest_city: best ? best.city : null,
+        cheapest_price: best ? best.data.sell_price_min : null,
+        cheapest_quality: best ? best.data.quality : null,
+        cheapest_quality_label: best ? qualityLabel(best.data.quality) : null,
+        updated_at: best ? best.data.updated_at : '',
         api_url: priceQueryUrl(candidate.unique_name, region, selectedCities),
       };
       candidatePayloads.push(payload);
-      if (cheapest === null || payload.cheapest_price < cheapest.cheapest_price) {
+      if (best && (cheapest === null || payload.cheapest_price < cheapest.cheapest_price)) {
         cheapest = payload;
       }
     }
 
-    if (cheapest === null) continue;
+    // equivalentVariants() always includes the equipped variant itself, so
+    // candidatePayloads is never empty. If nothing had real data, fall back to that
+    // variant's own (unpriced) payload so the slot still appears, just with no price,
+    // instead of disappearing from the results entirely.
+    if (cheapest === null) {
+      cheapest = candidatePayloads.find((c) => c.unique_name === variant.unique_name) || candidatePayloads[0];
+    }
 
-    totalCost += cheapest.cheapest_price;
+    if (cheapest.cheapest_price != null) {
+      totalCost += cheapest.cheapest_price;
+    }
+
     slots.push({
       selected: serializeVariant(variant, language),
-      candidates: [...candidatePayloads].sort((a, b) => a.cheapest_price - b.cheapest_price),
+      // Priced candidates first (cheapest to most expensive), unpriced ones after in
+      // their natural tier/enchant order.
+      candidates: [...candidatePayloads].sort((a, b) => {
+        if (a.cheapest_price == null && b.cheapest_price == null) return 0;
+        if (a.cheapest_price == null) return 1;
+        if (b.cheapest_price == null) return -1;
+        return a.cheapest_price - b.cheapest_price;
+      }),
       best: cheapest,
     });
   }

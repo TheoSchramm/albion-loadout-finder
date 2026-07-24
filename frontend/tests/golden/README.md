@@ -60,3 +60,12 @@ Fixed by excluding the `_BP` suffix in `deriveSlotFromTemplate`; the catalog los
 templates (70 entries) and 10 of 360 search matrix entries changed - only the `cape` query
 and the unfiltered `""` listing, which is where the 14 Crests had been crowding out real
 capes (arena banners, faction capes) from the 24-result cap.
+
+**`optimize.json`** ("show all alternatives" commit) - `optimizeLoadoutWithCities` used to
+drop any candidate, and any whole slot, with no real market listing. Changed to always
+return every equipped slot and every IP-equivalent candidate; unpriced ones carry
+`cheapest_price: null` (etc.) instead of being omitted, so a user can see every
+alternative that exists and copy its market alias to check in-game, rather than having it
+silently disappear. `total_cost` is unaffected - it only ever summed real prices. Only the
+shape of unpriced rows changed (present-with-nulls instead of absent); `cases` and
+`prices.fixture.json` are untouched.

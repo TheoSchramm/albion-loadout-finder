@@ -134,9 +134,12 @@ prefix, add a targeted exclusion here** rather than narrowing the prefix allowli
 - Region hosts: Americas `west`, Asia `east`, Europe `europe` `.albion-online-data.com`.
 - Requests are chunked to stay under a 4096-character URL. **Send no request headers** — a `Content-Type` on a
   cross-origin GET forces a CORS preflight per batch, doubling requests against the 180 req/min budget.
-- **Never fabricate a price.** A zero `sell_price_min` means "nothing listed", not "free". Items and slots with
-  no real listing are omitted from results entirely rather than shown with a placeholder. An absent row is
-  honest; a made-up number that looks exactly like a real one is not.
+- **Never fabricate a price, but never hide the row either.** A zero `sell_price_min` means "nothing listed",
+  not "free". Every equipped slot and every IP-equivalent candidate is always returned by the optimizer, even
+  with no real listing anywhere — `cheapest_price`/`cheapest_city`/`cheapest_quality`/`cheapest_quality_label`
+  are `null` and `updated_at` is `''` rather than a made-up number, and the UI shows "no market data" plus a
+  copy-to-clipboard market alias so the user can check in-game directly. `total_cost` only ever sums real
+  prices.
 - Rate limits are per client IP and now belong to each visitor rather than a shared server, which is why
   Compare prices is disabled while a request is in flight.
 

@@ -441,6 +441,28 @@
               "two_handed": false,
               "unique_name": "T5_CAPE@1",
               "updated_at": "2026-07-04T03:15:00"
+            },
+            {
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T6_CAPE.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "cheapest_city": null,
+              "cheapest_price": null,
+              "cheapest_quality": null,
+              "cheapest_quality_label": null,
+              "display_name": "Cape",
+              "enchantment": 0,
+              "english_name": "Cape",
+              "equivalent_level": 6,
+              "group": "CAPE",
+              "image_url": "https://render.albiononline.com/v1/item/T6_CAPE.png?quality=1&locale=en",
+              "market_search_alias": "Master's Cape 6.0",
+              "quality": 1,
+              "slot": "cape",
+              "slot_label": "Cape",
+              "template": "CAPE",
+              "tier": 6,
+              "two_handed": false,
+              "unique_name": "T6_CAPE",
+              "updated_at": ""
             }
           ],
           "selected": {
