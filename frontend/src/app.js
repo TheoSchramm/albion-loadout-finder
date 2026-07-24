@@ -58,11 +58,17 @@ const elements = {
   resultsEmptyState: document.getElementById('resultsEmptyState'),
   resultCardTemplate: document.getElementById('resultCardTemplate'),
   bootStatus: document.getElementById('bootStatus'),
+  clearLoadoutButton: document.getElementById('clearLoadoutButton'),
 };
 
 const SAVED_LOADOUTS_KEY = 'albion-helper.saved-loadouts';
 
 function formatSilver(value) {
+  if (value >= 1_000_000) {
+    const millions = Math.round(value / 100_000) / 10;
+    const label = Number.isInteger(millions) ? millions.toFixed(0) : millions.toFixed(1);
+    return `${label}M`;
+  }
   if (value > 999) {
     const thousands = Math.round(value / 100) / 10;
     const label = Number.isInteger(thousands) ? thousands.toFixed(0) : thousands.toFixed(1);
@@ -155,14 +161,14 @@ function formatRelativeTime(date) {
   return `${diffDays}d ago`;
 }
 
-// Returns true if this is a real, observed market price; false if no real listing
-// was found and the price shown is a synthetic placeholder (see _price_fallback()
-// in app_core.py - a deterministic but entirely made-up number, not real data).
+// Returns true if this is a real, observed market price; false if no listing was found
+// at all, in which case there is no price to show (see prices.js - a missing listing is
+// never filled in with a fabricated number).
 function syncUpdatedAt(element, isoValue) {
   const date = parseMarketTimestamp(isoValue);
   if (!date) {
     element.textContent = 'no market data';
-    element.title = 'No real listing was found for this item - the price shown is a placeholder estimate, not a real market price.';
+    element.title = 'No real listing was found for this item on the market.';
     element.classList.add('is-stale');
     return false;
   }
@@ -500,6 +506,9 @@ function saveCurrentLoadout(event) {
       closeSaveLoadoutDialog();
       return;
     }
+    if (!window.confirm(`Save changes to "${target.title}"?`)) {
+      return;
+    }
     target.title = title;
     target.description = description;
     target.updatedAt = new Date().toISOString();
@@ -531,6 +540,9 @@ function saveCurrentLoadout(event) {
   const titleKey = title.toLowerCase();
   const existingIndex = state.savedLoadouts.findIndex(entry => entry.title.toLowerCase() === titleKey);
   if (existingIndex >= 0) {
+    if (!window.confirm(`A loadout named "${state.savedLoadouts[existingIndex].title}" already exists. Overwrite it?`)) {
+      return;
+    }
     snapshot.id = state.savedLoadouts[existingIndex].id;
     snapshot.createdAt = state.savedLoadouts[existingIndex].createdAt || snapshot.createdAt;
     state.savedLoadouts[existingIndex] = snapshot;
@@ -583,6 +595,10 @@ async function loadSelectedSavedLoadout() {
 function deleteSelectedSavedLoadout() {
   const selectedId = elements.savedLoadoutSelect.value;
   if (!selectedId) {
+    return;
+  }
+  const target = state.savedLoadouts.find(entry => entry.id === selectedId);
+  if (!window.confirm(`Delete "${target ? target.title : 'this loadout'}"? This cannot be undone.`)) {
     return;
   }
   const nextLoadouts = state.savedLoadouts.filter(entry => entry.id !== selectedId);
@@ -831,6 +847,22 @@ function renderResults(payload) {
   });
 }
 
+function clearLoadout() {
+  if (!state.loadout.size) {
+    return;
+  }
+  if (!window.confirm('Clear all equipped items?')) {
+    return;
+  }
+  state.loadout.clear();
+  state.activePresetId = '';
+  state.activePresetDescription = '';
+  if (!state.searchQuery.trim()) {
+    renderSearchPrompt(defaultSearchPrompt());
+  }
+  markPricingDirty(); // also calls syncSlotRows(), which redraws every slot as empty
+}
+
 function markPricingDirty(message = 'Loadout changed. Click Compare prices to refresh market data.') {
   state.pricingDirty = true;
   state.lastResultsPayload = null;
@@ -1036,6 +1068,8 @@ async function boot() {
         elements.refreshButton.disabled = false;
       });
   });
+
+  elements.clearLoadoutButton.addEventListener('click', clearLoadout);
 
   elements.saveLoadoutButton.addEventListener('click', () => {
     openSaveLoadoutDialog('create');
