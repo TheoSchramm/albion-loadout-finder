@@ -237,6 +237,23 @@ def dump_config() -> None:
     _write("config.json", build_config_payload())
 
 
+def _narrow_localized_names(entry: dict[str, Any]) -> dict[str, Any]:
+    """Keep only the 8 short language codes the app actually supports.
+
+    The raw dump carries 15 locales, and `_localized_names_from_raw` adds 8 short-code
+    aliases on top, giving every entry 23 keys. The shipped browser catalog only carries
+    the 8, so the fixture narrows to match. Verified safe before narrowing: all 7,479
+    entries have exactly 23 keys and a non-empty "en", so no entry is dropped and no
+    `display_name` changes (the `next(iter(...))` fallback in `_external_search_entries`
+    never fires). Nothing downstream reads a full-locale key - every lookup goes through
+    a short code from LANGUAGES.
+    """
+    narrowed = dict(entry)
+    names = entry.get("_localized_names") or {}
+    narrowed["_localized_names"] = {code: names[code] for code in LANGUAGES if code in names}
+    return narrowed
+
+
 def dump_entries() -> None:
     """A digest plus a sample, rather than all 7,479 entries.
 
@@ -244,7 +261,7 @@ def dump_entries() -> None:
     just "hash mismatch". Committing the full list would add megabytes to the repo for
     no extra detection power.
     """
-    entries = [dict(entry) for entry in EXTERNAL_SEARCH_ENTRIES]
+    entries = [_narrow_localized_names(entry) for entry in EXTERNAL_SEARCH_ENTRIES]
     digest = hashlib.sha256(_canonical(entries).encode("utf-8")).hexdigest()
     sample_indexes = list(range(0, len(entries), max(1, len(entries) // 150)))
     _write(
