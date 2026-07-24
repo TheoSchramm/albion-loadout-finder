@@ -110,8 +110,11 @@ substrings. **To support a new category of item, extend that allowlist** — do 
 The prefix allowlist alone isn't always enough: `deriveSlotFromTemplate()` (`text.js`) also excludes specific
 false positives that share a real equipment prefix. `2H_TOOL_*` (gathering tools) shares `2H_` with real
 weapons; `*_BP` templates (faction/season "Crests", e.g. `CAPEITEM_FW_BRIDGEWATCH_BP` = "Bridgewatch Crest",
-a trophy item) share `CAPEITEM_` with real capes. **If a new false positive turns up sharing a legitimate
-prefix, add a targeted exclusion here** rather than narrowing the prefix allowlist itself.
+a trophy item) share `CAPEITEM_` with real capes; `CAPE_*` templates (`CAPE_ARENA_BANNER` = "Arena Veteran's
+Small Banner"; `CAPE_{PLATE,LEATHER,CLOTH}_{UNDEAD,KEEPER,MORGANA}` = "Decorative ... Cape", cosmetic-only
+vanity skins) share the bare `CAPE` template's first-token prefix, since `templateGroup()` only looks at the
+token before the first underscore. **If a new false positive turns up sharing a legitimate prefix, add a
+targeted exclusion here** rather than narrowing the prefix allowlist itself.
 
 ## Core Domain Rules
 

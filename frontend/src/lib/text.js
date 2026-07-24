@@ -106,7 +106,7 @@ export function templateGroup(template) {
 /**
  * Map a template to one of the 10 loadout slots, or null if it is not equipable gear.
  *
- * Two exclusions on top of the prefix allowlist:
+ * Three exclusions on top of the prefix allowlist:
  * - Gathering tools (pickaxe, sickle, skinning knife...) are equipped in the weapon slot
  *   in-game and share the "2H_" prefix with real weapons, but carry a "TOOL_" segment -
  *   excluded so weapon search does not surface them.
@@ -116,10 +116,18 @@ export function templateGroup(template) {
  *   collectible, and would otherwise show up in cape search results. Verified this
  *   suffix is cape-specific pollution - it does not occur under any other prefix - but
  *   the exclusion is written generally in case a future item category reuses it.
+ * - "CAPE_" templates (as opposed to bare "CAPE" or "CAPEITEM_...") are non-equipable
+ *   cosmetics: CAPE_ARENA_BANNER is "Arena Veteran's Small Banner", and
+ *   CAPE_{PLATE,LEATHER,CLOTH}_{UNDEAD,KEEPER,MORGANA} are "Decorative ... Cape" vanity
+ *   skins - visual recolors with no combat stats, distinct from the real combat capes
+ *   CAPEITEM_UNDEAD/KEEPER/MORGANA. Both share the "CAPE" first-token prefix with the
+ *   real base cape (bare "CAPE") since templateGroup() only looks at the token before
+ *   the first underscore, so "CAPEITEM_..." is unaffected (its first token is
+ *   "CAPEITEM", not "CAPE") but this excludes all 10 non-equipable "CAPE_*" templates.
  */
 export function deriveSlotFromTemplate(template) {
   const value = String(template);
-  if (value.startsWith('2H_TOOL_') || value.endsWith('_BP')) {
+  if (value.startsWith('2H_TOOL_') || value.endsWith('_BP') || value.startsWith('CAPE_')) {
     return null;
   }
   return TEMPLATE_PREFIX_SLOTS[templateGroup(value)] || null;

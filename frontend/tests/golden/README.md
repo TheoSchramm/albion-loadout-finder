@@ -58,8 +58,18 @@ real capes (`CAPEITEM_FW_BRIDGEWATCH`, "Bridgewatch Cape") and were misclassifie
 equipable capes, the same category of bug as the artefact/gathering-tool exclusions.
 Fixed by excluding the `_BP` suffix in `deriveSlotFromTemplate`; the catalog lost 14
 templates (70 entries) and 10 of 360 search matrix entries changed - only the `cape` query
-and the unfiltered `""` listing, which is where the 14 Crests had been crowding out real
-capes (arena banners, faction capes) from the 24-result cap.
+and the unfiltered `""` listing, which is where the 14 Crests had been crowding other
+results out of the 24-result cap.
+
+**`entries.json` and `search.json` a third time** (arena banner / decorative cape
+exclusion commit) - `CAPE_ARENA_BANNER` ("Arena Veteran's Small Banner") and 9
+`CAPE_{PLATE,LEATHER,CLOTH}_{UNDEAD,KEEPER,MORGANA}` templates ("Decorative ... Cape",
+cosmetic-only vanity skins) share the "CAPE" first-token prefix with the real base cape
+(bare `CAPE`) - `templateGroup()` only looks at the token before the first underscore, so
+`CAPE_ARENA_BANNER` and `CAPE` both reduce to `"CAPE"`. Fixed by excluding any template
+starting with `CAPE_` (which does not match `CAPEITEM_*`, since character 5 is `I` there,
+not `_`); the catalog lost 10 templates (12 entries) and 10 of 360 search matrix entries
+changed - again only the `cape` query and the unfiltered `""` listing.
 
 **`optimize.json`** ("show all alternatives" commit) - `optimizeLoadoutWithCities` used to
 drop any candidate, and any whole slot, with no real market listing. Changed to always

@@ -65,6 +65,22 @@ test('cape Crests are excluded from the cape slot', () => {
   assert.equal(bpEntries.length, 0, `Crest items must not appear: ${bpEntries.map((e) => e.template)}`);
 });
 
+test('arena banners and decorative cape skins are excluded from the cape slot', () => {
+  // CAPE_ARENA_BANNER ("Arena Veteran's Small Banner") and the 9
+  // CAPE_{PLATE,LEATHER,CLOTH}_{UNDEAD,KEEPER,MORGANA} templates ("Decorative ... Cape")
+  // are cosmetic-only, not equipable combat capes - unlike the real ones, which are
+  // either the bare "CAPE" template or "CAPEITEM_*" (CAPEITEM_UNDEAD = "Undead Cape").
+  // All of them reduce to the same "CAPE" first-token prefix as the real base cape.
+  const nonCapeitem = entries.filter(
+    (entry) => entry.slot === 'cape' && entry.template.startsWith('CAPE_'),
+  );
+  assert.equal(
+    nonCapeitem.length,
+    0,
+    `non-equipable CAPE_* templates must not appear: ${nonCapeitem.map((e) => e.template)}`,
+  );
+});
+
 test('readers throw before the catalog is loaded, instead of returning undefined', () => {
   resetCatalog();
   assert.throws(() => findDefinition('MAIN_SWORD'), /catalog not loaded/);

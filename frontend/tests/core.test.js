@@ -158,6 +158,20 @@ test('searching "cape" returns capes, not Crests', () => {
   );
 });
 
+test('searching "cape" excludes arena banners and decorative skins', () => {
+  const results = searchItems('cape', 'en', 'cape');
+  const nonCapeitem = results.filter((item) => item.template.startsWith('CAPE_'));
+  assert.equal(
+    nonCapeitem.length,
+    0,
+    `arena banner / decorative results must not appear: ${nonCapeitem.map((i) => i.display_name)}`,
+  );
+  assert.ok(
+    !results.some((item) => item.display_name.startsWith('Arena') || item.display_name.startsWith('Decorative')),
+    'no result should be named "Arena ..." or "Decorative ..."',
+  );
+});
+
 test('search display name has no tier title', () => {
   const results = searchItems('sword', 'en', 'main_hand');
   assert.ok(results.length > 0);
@@ -248,10 +262,10 @@ test('a genuinely different item at T8 (a gap in the tier range) is still exclud
     equivalentVariants(buildVariant(spider, 8, 0)).map((c) => c.unique_name),
     ['T8_MOUNT_SPIDER_HELL'],
   );
-  const banner = findDefinition('CAPE_ARENA_BANNER');
+  const cougar = findDefinition('MOUNT_COUGAR_KEEPER');
   assert.deepEqual(
-    equivalentVariants(buildVariant(banner, 8, 0)).map((c) => c.unique_name),
-    ['T8_CAPE_ARENA_BANNER'],
+    equivalentVariants(buildVariant(cougar, 8, 0)).map((c) => c.unique_name),
+    ['T8_MOUNT_COUGAR_KEEPER'],
   );
 });
 
