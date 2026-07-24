@@ -165,6 +165,9 @@ else and say so explicitly.
 
 ## Working Conventions
 
+- **Update `CHANGELOG.md`** when a change is user-facing (a fix, a new feature, a behavior change) — add a
+  bullet under today's date (new `### Added`/`### Changed`/`### Fixed` section if today doesn't have one yet).
+  Skip it for internal-only work (refactors, test additions, docs).
 - **Field names in payloads are `snake_case`** (`unique_name`, `slot_label`, `two_handed`), inherited from the
   Python original and relied on by `app.js`. Function names are `camelCase`. Do not "modernize" the data keys.
 - `serializeVariant()` returns exactly 14 keys, and there is a test freezing that set. `app.js` merges this
