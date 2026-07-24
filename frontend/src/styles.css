@@ -625,6 +625,19 @@ button:disabled {
   display: flex;
 }
 
+.slot-row-quantity-badge {
+  position: absolute;
+  bottom: 0.3rem;
+  right: 0.3rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--shadow) / 0.72);
+  color: hsl(var(--brass));
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+}
+
 .empty-state {
   padding: var(--space-4) 0;
   color: hsl(var(--ink-faint));

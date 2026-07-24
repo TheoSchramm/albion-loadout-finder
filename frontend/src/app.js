@@ -179,16 +179,22 @@ function syncUpdatedAt(element, isoValue) {
   return true;
 }
 
-function syncPriceValue(element, price, hasRealData) {
+function syncPriceValue(element, price, hasRealData, quantity = 1) {
   if (price == null) {
     element.textContent = '—';
     element.classList.add('is-estimate');
     element.title = 'No real listing was found for this item on the market.';
     return;
   }
-  element.textContent = hasRealData ? `${formatSilver(price)} silver` : `~${formatSilver(price)} silver`;
+  const total = price * quantity;
+  const suffix = quantity > 1 ? ` (×${quantity})` : '';
+  element.textContent = hasRealData
+    ? `${formatSilver(total)} silver${suffix}`
+    : `~${formatSilver(total)} silver${suffix}`;
   element.classList.toggle('is-estimate', !hasRealData);
-  element.title = hasRealData ? '' : 'This item has a price, but its listing timestamp could not be read.';
+  element.title = quantity > 1
+    ? `${formatSilver(price)} silver each × ${quantity}`
+    : hasRealData ? '' : 'This item has a price, but its listing timestamp could not be read.';
 }
 
 function setStatus(message) {
@@ -208,6 +214,14 @@ function isOffHandLocked() {
 
 function isSlotAvailable(slot) {
   return slot !== 'off_hand' || !isOffHandLocked();
+}
+
+const MAX_CONSUMABLE_QUANTITY = 10;
+
+// Only potions and food are bought/consumed in stacks - a quantity multiplier on a
+// weapon or armor piece (which you equip exactly one of) wouldn't mean anything.
+function isConsumableSlot(slot) {
+  return slot === 'potion' || slot === 'food';
 }
 
 // A two-handed main-hand weapon occupies the off-hand slot too, so it can't hold
@@ -320,6 +334,7 @@ function syncSlotRows() {
     const clearButton = row.querySelector('.slot-row-clear');
     const image = row.querySelector('.slot-row-image');
     const label = row.querySelector('.slot-row-label');
+    const quantityBadge = row.querySelector('.slot-row-quantity-badge');
     const locked = !isSlotAvailable(slot);
 
     row.classList.toggle('is-selected', slot === state.selectedSlot);
@@ -333,6 +348,7 @@ function syncSlotRows() {
       image.alt = '';
       label.textContent = locked ? 'Locked' : row.dataset.label || '';
       row.removeAttribute('title');
+      quantityBadge.hidden = true;
       return;
     }
 
@@ -340,6 +356,13 @@ function syncSlotRows() {
     image.src = selected.image_url;
     image.alt = selected.display_name;
     row.title = `${selected.display_name} - T${selected.tier}.${selected.enchantment} - ${selected.unique_name}`;
+
+    if (selected.quantity > 1) {
+      quantityBadge.hidden = false;
+      quantityBadge.textContent = `×${selected.quantity}`;
+    } else {
+      quantityBadge.hidden = true;
+    }
   });
 }
 
@@ -761,8 +784,25 @@ function syncItemsFoundCounter(payload) {
   }
 }
 
+// The quantity a consumable slot's price should be multiplied by. Read from the live
+// loadout rather than stored on the results payload, so adjusting quantity and
+// re-rendering with the same cached payload (no re-fetch needed) picks it up
+// immediately - prices per unit don't change with quantity, only the total does.
+function slotQuantity(slot) {
+  return getSelected(slot)?.quantity || 1;
+}
+
+function computeDisplayTotal(payload) {
+  return payload.slots.reduce((total, slotResult) => {
+    if (slotResult.best.cheapest_price == null) {
+      return total;
+    }
+    return total + slotResult.best.cheapest_price * slotQuantity(slotResult.selected.slot);
+  }, 0);
+}
+
 function renderResults(payload) {
-  elements.totalCost.textContent = `${formatSilver(payload.total_cost)} silver`;
+  elements.totalCost.textContent = `${formatSilver(computeDisplayTotal(payload))} silver`;
 
   if (!payload.slots.length) {
     renderResultsPrompt('No priced slots yet.');
@@ -804,7 +844,7 @@ function renderResults(payload) {
     city.textContent = slotResult.best.cheapest_city || '—';
     city.style.color = cityColor(slotResult.best.cheapest_city);
     const hasRealPrice = syncUpdatedAt(updated, slotResult.best.updated_at);
-    syncPriceValue(priceValue, slotResult.best.cheapest_price, hasRealPrice);
+    syncPriceValue(priceValue, slotResult.best.cheapest_price, hasRealPrice, slotQuantity(slotResult.selected.slot));
     if (slotResult.best.api_url) {
       apiLink.href = slotResult.best.api_url;
     } else {
@@ -955,14 +995,27 @@ async function runSearch(slot, query) {
       const fragment = elements.resultRowTemplate.content.cloneNode(true);
       const row = fragment.querySelector('.result-row');
       const useButton = fragment.querySelector('.result-row-use');
+      const quantityField = fragment.querySelector('.result-row-quantity-field');
+      const quantitySelect = fragment.querySelector('.result-row-quantity');
       const getCurrentVariant = hydrateVariantControls(row, variants, selectedVariant);
+
+      if (isConsumableSlot(slot)) {
+        quantityField.hidden = false;
+        for (let quantity = 1; quantity <= MAX_CONSUMABLE_QUANTITY; quantity += 1) {
+          const option = document.createElement('option');
+          option.value = String(quantity);
+          option.textContent = `×${quantity}`;
+          quantitySelect.append(option);
+        }
+      }
 
       useButton.addEventListener('click', () => {
         const activeVariant = getCurrentVariant();
         if (!activeVariant) {
           return;
         }
-        equip(slot, activeVariant);
+        const quantity = isConsumableSlot(slot) ? Number(quantitySelect.value) || 1 : 1;
+        equip(slot, activeVariant, quantity);
       });
 
       elements.searchResults.append(fragment);
@@ -972,8 +1025,8 @@ async function runSearch(slot, query) {
   }
 }
 
-function equip(slot, variant) {
-  state.loadout.set(slot, variant);
+function equip(slot, variant, quantity = 1) {
+  state.loadout.set(slot, { ...variant, quantity });
   applyTwoHandedRule();
   markPricingDirty();
 
@@ -987,8 +1040,11 @@ function equip(slot, variant) {
 
 function refreshLoadoutDisplayNames() {
   Array.from(state.loadout.entries()).forEach(([slot, item]) => {
-    // An unknown template keeps the item as-is rather than blanking the slot.
-    state.loadout.set(slot, getItem(item.unique_name, { lang: state.language }) || item);
+    // An unknown template keeps the item as-is rather than blanking the slot. quantity
+    // is app-local state, not part of the domain payload getItem() returns, so it has
+    // to be carried over explicitly or a language switch would silently reset it to 1.
+    const updated = getItem(item.unique_name, { lang: state.language });
+    state.loadout.set(slot, updated ? { ...updated, quantity: item.quantity } : item);
   });
 }
 
