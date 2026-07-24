@@ -59,6 +59,7 @@ const elements = {
   resultCardTemplate: document.getElementById('resultCardTemplate'),
   bootStatus: document.getElementById('bootStatus'),
   clearLoadoutButton: document.getElementById('clearLoadoutButton'),
+  itemsFoundCounter: document.getElementById('itemsFoundCounter'),
 };
 
 const SAVED_LOADOUTS_KEY = 'albion-helper.saved-loadouts';
@@ -738,6 +739,26 @@ function renderResultsPrompt(message) {
   elements.resultsEmptyState.textContent = message;
   elements.resultsEmptyState.hidden = false;
   elements.totalCost.textContent = 'No prices yet';
+  elements.itemsFoundCounter.hidden = true;
+}
+
+// How many equipped slots actually resolved to a real market price, out of how many
+// were priced at all. A slot with no listing anywhere still counts toward the total
+// (see optimizeLoadoutWithCities - every equipped item that resolves to a known
+// template always produces a slot row now), it just doesn't count as "found".
+function syncItemsFoundCounter(payload) {
+  const total = payload.slots.length;
+  const found = payload.slots.filter(slot => slot.best.cheapest_price != null).length;
+  elements.itemsFoundCounter.hidden = false;
+  elements.itemsFoundCounter.classList.toggle('is-complete', found === total);
+  elements.itemsFoundCounter.classList.toggle('is-empty', found === 0);
+  if (found === 0) {
+    elements.itemsFoundCounter.textContent = 'No items found';
+  } else if (found === total) {
+    elements.itemsFoundCounter.textContent = 'All items found';
+  } else {
+    elements.itemsFoundCounter.textContent = `${found}/${total} items found`;
+  }
 }
 
 function renderResults(payload) {
@@ -748,6 +769,7 @@ function renderResults(payload) {
     return;
   }
 
+  syncItemsFoundCounter(payload);
   elements.resultsBody.innerHTML = '';
   elements.resultsEmptyState.hidden = true;
   elements.resultsTable.hidden = false;

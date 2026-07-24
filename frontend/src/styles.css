@@ -758,6 +758,22 @@ button:disabled {
   color: hsl(var(--brass));
 }
 
+.items-found-counter {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: hsl(var(--ink-faint));
+}
+
+.items-found-counter.is-complete {
+  color: hsl(var(--verdigris));
+}
+
+.items-found-counter.is-empty {
+  color: hsl(var(--seal));
+}
+
 .compare-button {
   display: inline-flex;
   align-items: center;
