@@ -43,10 +43,22 @@ export function planBatches(uniqueNames) {
   return batches;
 }
 
-function batchUrl(host, batch, cities) {
+// Qualities below the requested floor are dropped by the API itself rather than
+// fetched and filtered client-side - fewer rows over the wire, and the "cheapest per
+// city" fold below never even sees a quality it shouldn't consider.
+function qualityRange(minQuality) {
+  const floor = Math.min(Math.max(Math.trunc(minQuality) || 1, 1), 5);
+  const values = [];
+  for (let quality = floor; quality <= 5; quality += 1) {
+    values.push(quality);
+  }
+  return values.join(',');
+}
+
+function batchUrl(host, batch, cities, minQuality) {
   return (
     `${host}/api/v2/stats/prices/${joinEncoded(batch)}.json` +
-    `?locations=${joinEncoded(cities)}&qualities=1,2,3,4,5`
+    `?locations=${joinEncoded(cities)}&qualities=${qualityRange(minQuality)}`
   );
 }
 
@@ -103,7 +115,7 @@ export async function fetchPrices(
   uniqueNames,
   region,
   cities,
-  { fetchImpl = globalThis.fetch, now = Date.now } = {},
+  { fetchImpl = globalThis.fetch, now = Date.now, minQuality = 1 } = {},
 ) {
   const host = regionHost(region);
   const uniqueList = dedupe(uniqueNames);
@@ -113,7 +125,7 @@ export async function fetchPrices(
   for (const batch of planBatches(uniqueList)) {
     let payload = [];
     try {
-      const response = await fetchImpl(batchUrl(host, batch, cityList));
+      const response = await fetchImpl(batchUrl(host, batch, cityList, minQuality));
       if (response.ok) {
         payload = await response.json();
       }

@@ -45,6 +45,7 @@ export async function optimizeLoadoutWithCities({
   region = 'americas',
   language = 'en',
   cities = null,
+  minQuality = 1,
   fetchOptions = {},
 }) {
   const selectedVariants = [];
@@ -79,7 +80,7 @@ export async function optimizeLoadoutWithCities({
       allCandidateNames.push(candidate.unique_name);
     }
   }
-  const priceMap = await fetchPrices(allCandidateNames, region, selectedCities, fetchOptions);
+  const priceMap = await fetchPrices(allCandidateNames, region, selectedCities, { minQuality, ...fetchOptions });
 
   const slots = [];
   let totalCost = 0;

@@ -74,8 +74,9 @@ export async function optimize({
   region = 'americas',
   language = 'en',
   cities = [],
+  minQuality = 1,
   fetchOptions = {},
 }) {
-  const result = await optimizeLoadoutWithCities({ loadout, region, language, cities, fetchOptions });
+  const result = await optimizeLoadoutWithCities({ loadout, region, language, cities, minQuality, fetchOptions });
   return detach(result);
 }

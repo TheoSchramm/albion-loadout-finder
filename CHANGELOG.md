@@ -23,6 +23,17 @@ Actions), so entries are grouped by date rather than by version number — there
 - Up to 10x quantity for potion/food slots, scaling the displayed price and total.
 - Export/import a loadout as a short copy-pasteable code.
 - A subtle separator between the Equipment and Search columns.
+- A "Minimum quality" filter next to Region/Language/Market city: prices below the selected
+  quality are excluded when comparing.
+
+### Changed
+
+- The saved-loadout selector no longer preselects a preset on page load (or right after
+  deleting one) — it starts on a neutral "Select a loadout..." placeholder, with Load/Edit/Delete
+  disabled until one is chosen.
+- Saving the current loadout while a preset is already loaded now updates that same preset in
+  place instead of creating a duplicate entry with a colliding id. Saving with no preset loaded
+  starts a fresh one, prefilled with a unique default title ("My loadout N").
 
 ### Fixed
 
@@ -30,6 +41,8 @@ Actions), so entries are grouped by date rather than by version number — there
   were excluded from their own tier/enchant price comparison.
 - Searching "cape" surfaced non-equipable items: faction Crests, the Arena Veteran's Banner, and
   decorative vanity skins.
+- The results table could visually spill past its card's rounded border on narrow viewports or
+  at high browser zoom; it now scrolls horizontally within its own card instead.
 
 ## 2026-07-23
 

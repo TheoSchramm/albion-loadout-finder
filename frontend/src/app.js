@@ -13,6 +13,7 @@ const state = {
   region: 'americas',
   language: 'en',
   marketCity: 'all',
+  minQuality: 1,
   loadout: new Map(),
   savedLoadouts: [],
   selectedSavedLoadoutId: '',
@@ -31,6 +32,7 @@ const elements = {
   regionSelect: document.getElementById('regionSelect'),
   languageSelect: document.getElementById('languageSelect'),
   marketCitySelect: document.getElementById('marketCitySelect'),
+  minQualitySelect: document.getElementById('minQualitySelect'),
   refreshButton: document.getElementById('refreshButton'),
   slotList: document.getElementById('slotList'),
   totalCost: document.getElementById('totalCost'),
@@ -269,10 +271,23 @@ function renderConfig() {
   });
 
   renderMarketCityOptions();
+  renderMinQualityOptions();
 
   elements.regionSelect.value = state.region;
   elements.languageSelect.value = state.language;
   elements.marketCitySelect.value = state.marketCity;
+  elements.minQualitySelect.value = String(state.minQuality);
+}
+
+function renderMinQualityOptions() {
+  elements.minQualitySelect.innerHTML = '';
+  state.config.qualities.forEach(({ value, label }) => {
+    const option = document.createElement('option');
+    option.value = String(value);
+    option.textContent = value === 1 ? label : `${label} or better`;
+    elements.minQualitySelect.append(option);
+  });
+  elements.minQualitySelect.value = String(state.minQuality);
 }
 
 function renderMarketCityOptions() {
@@ -509,9 +524,14 @@ function renderSavedLoadoutOptions() {
   }
 
   elements.savedLoadoutSelect.disabled = false;
-  elements.loadSavedLoadoutButton.disabled = false;
-  elements.editSavedLoadoutButton.disabled = false;
-  elements.deleteSavedLoadoutButton.disabled = false;
+
+  // No preset is preselected - not even the most recently updated one - so a fresh
+  // page load (or a delete that leaves the list non-empty) shows a neutral
+  // "pick one" state rather than silently acting as if the user had chosen one.
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = 'Select a loadout...';
+  elements.savedLoadoutSelect.append(placeholder);
 
   state.savedLoadouts
     .slice()
@@ -523,10 +543,24 @@ function renderSavedLoadoutOptions() {
       elements.savedLoadoutSelect.append(option);
     });
 
-  if (!state.savedLoadouts.some(entry => entry.id === currentSelection)) {
-    state.selectedSavedLoadoutId = state.savedLoadouts[0].id;
-  }
+  const hasSelection = Boolean(currentSelection) && state.savedLoadouts.some(entry => entry.id === currentSelection);
+  state.selectedSavedLoadoutId = hasSelection ? currentSelection : '';
   elements.savedLoadoutSelect.value = state.selectedSavedLoadoutId;
+
+  elements.loadSavedLoadoutButton.disabled = !hasSelection;
+  elements.editSavedLoadoutButton.disabled = !hasSelection;
+  elements.deleteSavedLoadoutButton.disabled = !hasSelection;
+}
+
+// "My loadout N" for whatever N isn't already taken, so a brand-new save never
+// silently collides with an existing title and needs no typing to submit.
+function nextLoadoutPlaceholderTitle() {
+  const existingTitles = new Set(state.savedLoadouts.map(entry => entry.title.toLowerCase()));
+  let n = state.savedLoadouts.length + 1;
+  while (existingTitles.has(`my loadout ${n}`.toLowerCase())) {
+    n += 1;
+  }
+  return `My loadout ${n}`;
 }
 
 function openSaveLoadoutDialog(mode = 'create') {
@@ -544,13 +578,27 @@ function openSaveLoadoutDialog(mode = 'create') {
     elements.saveLoadoutSubmit.textContent = 'Save changes';
   } else {
     state.saveModalMode = 'create';
+    // A preset that's currently loaded (or was just saved) stays the save target by
+    // id, not by re-typing its title - so tweaking gear and hitting Save updates that
+    // same entry instead of leaving it behind and creating a lookalike duplicate.
+    const activeEntry = state.savedLoadouts.find(entry => entry.id === state.activePresetId);
     elements.saveLoadoutTitle.textContent = 'Save current loadout';
-    elements.saveLoadoutHint.textContent = 'Give it a title. Description is optional.';
-    elements.saveLoadoutSubmit.textContent = 'Save loadout';
+    if (activeEntry) {
+      elements.saveLoadoutName.value = activeEntry.title;
+      elements.saveLoadoutDescription.value = activeEntry.description;
+      elements.saveLoadoutHint.textContent =
+        `This updates the currently loaded preset, "${activeEntry.title}". Change the title to save as a new preset instead.`;
+      elements.saveLoadoutSubmit.textContent = 'Save changes';
+    } else {
+      elements.saveLoadoutName.value = nextLoadoutPlaceholderTitle();
+      elements.saveLoadoutHint.textContent = 'Give it a title. Description is optional.';
+      elements.saveLoadoutSubmit.textContent = 'Save loadout';
+    }
   }
   elements.saveLoadoutModal.hidden = false;
   elements.saveLoadoutModal.setAttribute('aria-hidden', 'false');
   elements.saveLoadoutName.focus();
+  elements.saveLoadoutName.select();
 }
 
 function closeSaveLoadoutDialog() {
@@ -592,8 +640,33 @@ function saveCurrentLoadout(event) {
     return;
   }
 
+  // If a preset is already active (loaded, or saved earlier this session), Save
+  // updates that same entry by id - it does not matter whether the title changed,
+  // this is still "the same preset" getting new gear/title/description.
+  const activeIndex = state.savedLoadouts.findIndex(entry => entry.id === state.activePresetId);
+  if (activeIndex >= 0) {
+    const target = state.savedLoadouts[activeIndex];
+    target.title = title;
+    target.description = description;
+    target.updatedAt = new Date().toISOString();
+    target.region = state.region;
+    target.language = state.language;
+    target.marketCity = state.marketCity;
+    target.slots = getCurrentLoadoutSnapshot();
+    state.selectedSavedLoadoutId = target.id;
+    state.activePresetDescription = description;
+    if (!state.searchQuery.trim()) {
+      renderSearchPrompt(defaultSearchPrompt());
+    }
+    persistSavedLoadouts();
+    renderSavedLoadoutOptions();
+    closeSaveLoadoutDialog();
+    setStatus(`Updated "${title}"`);
+    return;
+  }
+
   const snapshot = {
-    id: state.selectedSavedLoadoutId || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     title,
     description,
     createdAt: new Date().toISOString(),
@@ -1235,6 +1308,7 @@ async function requestOptimization() {
         region: state.region,
         language: state.language,
         cities,
+        minQuality: state.minQuality,
       });
       const slotResult = slotPayload.slots[0];
       if (!slotResult) {
@@ -1273,7 +1347,7 @@ async function boot() {
   await loadCatalog(CATALOG_URL);
   state.config = getConfig();
   state.savedLoadouts = loadSavedLoadoutsFromStorage();
-  state.selectedSavedLoadoutId = state.savedLoadouts[0]?.id || '';
+  state.selectedSavedLoadoutId = '';
   renderConfig();
   renderInventory();
   renderSavedLoadoutOptions();
@@ -1312,6 +1386,11 @@ async function boot() {
   elements.marketCitySelect.addEventListener('change', event => {
     state.marketCity = event.target.value;
     markPricingDirty('Market city changed. Click Compare prices to refresh the market data.');
+  });
+
+  elements.minQualitySelect.addEventListener('change', event => {
+    state.minQuality = Number(event.target.value) || 1;
+    markPricingDirty('Minimum quality changed. Click Compare prices to refresh the market data.');
   });
 
   elements.refreshButton.addEventListener('click', () => {
@@ -1364,6 +1443,10 @@ async function boot() {
   elements.deleteSavedLoadoutButton.addEventListener('click', deleteSelectedSavedLoadout);
   elements.savedLoadoutSelect.addEventListener('change', event => {
     state.selectedSavedLoadoutId = event.target.value;
+    const hasSelection = Boolean(state.selectedSavedLoadoutId);
+    elements.loadSavedLoadoutButton.disabled = !hasSelection;
+    elements.editSavedLoadoutButton.disabled = !hasSelection;
+    elements.deleteSavedLoadoutButton.disabled = !hasSelection;
   });
 
   elements.searchInput.addEventListener('input', event => scheduleSearch(event.target.value));

@@ -834,10 +834,13 @@ button:disabled {
 
 .results-list {
   padding-right: 0.2rem;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .results-table {
   width: 100%;
+  min-width: 34rem;
   border-collapse: collapse;
   table-layout: fixed;
 }
