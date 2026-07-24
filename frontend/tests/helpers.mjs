@@ -7,6 +7,14 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
+// Every test file imports this module, so this makes "the suite never touches the
+// network" an enforced property rather than an assumption. Code under test that needs
+// HTTP takes an injected `fetchImpl`; anything reaching for the global has escaped its
+// seam, and CI would otherwise fail intermittently on someone else's rate limit.
+globalThis.fetch = () => {
+  throw new Error('tests must not use the network - inject a fetchImpl instead');
+};
+
 export const GOLDEN_DIR = path.join(HERE, 'golden');
 export const CATALOG_PATH = path.join(HERE, '..', 'src', 'data', 'items.catalog.json');
 
