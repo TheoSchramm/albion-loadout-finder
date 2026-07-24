@@ -1,3 +1,13 @@
+// Everything the app needs now runs in the browser - there is no backend. The lib
+// modules below are a direct port of the Flask app's domain logic, and lib/api.js keeps
+// the same five payload shapes the old HTTP endpoints returned.
+import { loadCatalog } from './lib/catalog.js';
+import { getConfig, getItem, getItems, optimize } from './lib/api.js';
+
+// Document-relative, so the app works unchanged from a GitHub Pages project subpath
+// (https://user.github.io/<repo>/) as well as from a domain root.
+const CATALOG_URL = new URL('./data/items.catalog.json', import.meta.url);
+
 const state = {
   config: null,
   region: 'americas',
@@ -13,6 +23,7 @@ const state = {
   selectedSlot: null,
   searchQuery: '',
   pricingDirty: true,
+  pricingInFlight: false,
   lastResultsPayload: null,
 };
 
@@ -46,27 +57,10 @@ const elements = {
   resultsBody: document.getElementById('resultsBody'),
   resultsEmptyState: document.getElementById('resultsEmptyState'),
   resultCardTemplate: document.getElementById('resultCardTemplate'),
+  bootStatus: document.getElementById('bootStatus'),
 };
 
 const SAVED_LOADOUTS_KEY = 'albion-helper.saved-loadouts';
-
-function apiUrl(path) {
-  return new URL(path, window.location.origin).toString();
-}
-
-async function requestJson(path, options = {}) {
-  const response = await fetch(apiUrl(path), {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
-    ...options,
-  });
-  if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
-  }
-  return response.json();
-}
 
 function formatSilver(value) {
   if (value > 999) {
@@ -574,7 +568,7 @@ async function loadSelectedSavedLoadout() {
   savedLoadout.slots.forEach(({ slot, item }) => {
     state.loadout.set(slot, item);
   });
-  await refreshLoadoutDisplayNames();
+  refreshLoadoutDisplayNames();
 
   state.activePresetId = savedLoadout.id;
   state.activePresetDescription = savedLoadout.description || '';
@@ -862,9 +856,7 @@ async function runSearch(slot, query) {
 
   elements.searchResults.innerHTML = '<div class="empty-state">Searching...</div>';
   try {
-    const payload = await requestJson(
-      `/api/items?query=${encodeURIComponent(query)}&lang=${encodeURIComponent(state.language)}&slot=${encodeURIComponent(slot)}`,
-    );
+    const payload = getItems({ query, lang: state.language, slot });
     if (state.selectedSlot !== slot) {
       return;
     }
@@ -910,28 +902,17 @@ function equip(slot, variant) {
   }
 }
 
-async function refreshLoadoutDisplayNames() {
-  const updates = await Promise.all(
-    Array.from(state.loadout.entries()).map(async ([slot, item]) => {
-      try {
-        const updated = await requestJson(`/api/item/${encodeURIComponent(item.unique_name)}?lang=${encodeURIComponent(state.language)}`);
-        return [slot, updated];
-      } catch {
-        return [slot, item];
-      }
-    }),
-  );
-
-  updates.forEach(([slot, item]) => {
-    state.loadout.set(slot, item);
+function refreshLoadoutDisplayNames() {
+  Array.from(state.loadout.entries()).forEach(([slot, item]) => {
+    // An unknown template keeps the item as-is rather than blanking the slot.
+    state.loadout.set(slot, getItem(item.unique_name, { lang: state.language }) || item);
   });
 }
 
-// Prices/cities/timestamps never change with language, only display text does -
-// re-fetch just the localized fields for every item shown in the last results
-// payload and re-render in place, rather than re-running the (network-heavy,
-// price-affecting) optimize call just to relabel text.
-async function refreshResultsDisplayNames() {
+// Prices, cities and timestamps do not depend on language - only display text does. So
+// relabel the already-fetched results in place instead of re-running the optimizer,
+// which would spend real API requests just to change wording.
+function refreshResultsDisplayNames() {
   if (!state.lastResultsPayload || !state.lastResultsPayload.slots.length) {
     return;
   }
@@ -942,17 +923,13 @@ async function refreshResultsDisplayNames() {
     slotResult.candidates.forEach(candidate => uniqueNames.add(candidate.unique_name));
   });
 
-  const entries = await Promise.all(
-    Array.from(uniqueNames).map(async uniqueName => {
-      try {
-        const updated = await requestJson(`/api/item/${encodeURIComponent(uniqueName)}?lang=${encodeURIComponent(state.language)}`);
-        return [uniqueName, updated];
-      } catch {
-        return [uniqueName, null];
-      }
-    }),
-  );
-  const updatesByName = new Map(entries.filter(([, updated]) => updated));
+  const updatesByName = new Map();
+  uniqueNames.forEach(uniqueName => {
+    const updated = getItem(uniqueName, { lang: state.language });
+    if (updated) {
+      updatesByName.set(uniqueName, updated);
+    }
+  });
 
   state.lastResultsPayload.slots.forEach(slotResult => {
     const selectedUpdate = updatesByName.get(slotResult.selected.unique_name);
@@ -978,14 +955,11 @@ async function requestOptimization() {
   }));
 
   setStatus('Fetching prices');
-  const payload = await requestJson('/api/optimize', {
-    method: 'POST',
-    body: JSON.stringify({
-      loadout,
-      region: state.region,
-      language: state.language,
-      cities: state.marketCity === 'all' ? [] : [state.marketCity],
-    }),
+  const payload = await optimize({
+    loadout,
+    region: state.region,
+    language: state.language,
+    cities: state.marketCity === 'all' ? [] : [state.marketCity],
   });
 
   state.pricingDirty = false;
@@ -996,7 +970,11 @@ async function requestOptimization() {
 
 async function boot() {
   setStatus('Loading');
-  state.config = await requestJson('/api/config');
+  // The catalog is a same-origin asset shipped by the same deploy as this file, so a
+  // failure here means a broken deploy or an offline user - both worth showing plainly
+  // rather than leaving a page that renders but silently does nothing.
+  await loadCatalog(CATALOG_URL);
+  state.config = getConfig();
   state.savedLoadouts = loadSavedLoadoutsFromStorage();
   state.selectedSavedLoadoutId = state.savedLoadouts[0]?.id || '';
   renderConfig();
@@ -1014,12 +992,13 @@ async function boot() {
     markPricingDirty('Region changed. Click Compare prices to refresh the market data.');
   });
 
-  elements.languageSelect.addEventListener('change', async event => {
+  elements.languageSelect.addEventListener('change', event => {
     state.language = event.target.value;
     // Language only changes display text, not prices/cities - unlike region/market city
     // changes, it must not clear the results table (markPricingDirty() would). Both the
     // loadout slots and any already-fetched results are relabeled in place instead.
-    await Promise.all([refreshLoadoutDisplayNames(), refreshResultsDisplayNames()]);
+    refreshLoadoutDisplayNames();
+    refreshResultsDisplayNames();
     syncSlotRows();
     setStatus('Language changed.');
     if (state.selectedSlot) {
@@ -1039,9 +1018,23 @@ async function boot() {
   });
 
   elements.refreshButton.addEventListener('click', () => {
-    requestOptimization().catch(error => {
-      setStatus(`Optimization failed: ${error.message}`);
-    });
+    // Price requests now leave the user's own browser, so the API's per-IP rate limit is
+    // theirs alone to exhaust. Impatient double-clicking used to cost the shared server a
+    // few requests; now it can lock the user out of their own pricing.
+    if (state.pricingInFlight) {
+      return;
+    }
+    state.pricingInFlight = true;
+    elements.refreshButton.disabled = true;
+    requestOptimization()
+      .catch(error => {
+        setStatus(`Optimization failed: ${error.message}`);
+        renderResultsPrompt(`Could not fetch prices: ${error.message}`);
+      })
+      .finally(() => {
+        state.pricingInFlight = false;
+        elements.refreshButton.disabled = false;
+      });
   });
 
   elements.saveLoadoutButton.addEventListener('click', () => {
@@ -1076,6 +1069,15 @@ async function boot() {
   });
 }
 
-boot().catch(error => {
-  setStatus(`Failed to load: ${error.message}`);
-});
+boot()
+  .then(() => {
+    elements.bootStatus.hidden = true;
+  })
+  .catch(error => {
+    setStatus(`Failed to load: ${error.message}`);
+    // Must be visible, not just logged: setStatus only writes to the console, so without
+    // this the page would render its empty shell and appear merely broken.
+    elements.bootStatus.hidden = false;
+    elements.bootStatus.classList.add('is-error');
+    elements.bootStatus.textContent = `Could not start: ${error.message}`;
+  });

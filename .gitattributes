@@ -1,0 +1,11 @@
+# Normalize to LF in the repo and in working copies. The golden fixtures are compared
+# byte-for-byte (dump_golden.py must be re-runnable with no diff), and CI runs on Linux
+# while development happens on Windows - letting autocrlf rewrite them would make that
+# comparison platform-dependent.
+* text=auto eol=lf
+
+# Binary-ish assets that must never be line-ending converted.
+*.png binary
+*.ico binary
+*.woff binary
+*.woff2 binary

@@ -1,0 +1,68 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Manual trigger. Also the escape hatch if the schedule below stops firing - GitHub
+  # disables scheduled workflows after 60 days of repository inactivity.
+  workflow_dispatch:
+  # Weekly catalog refresh. Item data changes with game patches, and the catalog
+  # committed to the repo is only the offline/dev fallback - this is what keeps the
+  # deployed site current without anyone committing anything.
+  schedule:
+    - cron: '17 5 * * 1'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  # Cancelling a Pages deployment mid-flight can leave the environment wedged.
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Order matters. Tests run against the COMMITTED catalog, which is in lockstep with
+      # the golden fixtures generated from the Python implementation - that is what proves
+      # the port is still correct. Only then is the catalog regenerated from live upstream,
+      # where build-catalog.mjs's own assertions (entry count within 20%, no divergent
+      # names per group, rank titles still parseable) are what validate the fresh data.
+      # Running them the other way round would compare live data against fixtures built
+      # from a different dump and fail for reasons unrelated to the code.
+      - name: Test against the pinned catalog
+        run: npm test
+
+      - name: Refresh the catalog from upstream
+        run: npm run build:catalog
+
+      - name: Build
+        run: npm run build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

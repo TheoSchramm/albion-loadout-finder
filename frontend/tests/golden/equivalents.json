@@ -1,0 +1,47 @@
+{
+  "2H_BOW|7|2": [
+    "T5_2H_BOW@4",
+    "T6_2H_BOW@3",
+    "T7_2H_BOW@2",
+    "T8_2H_BOW@1"
+  ],
+  "CAPE|4|2": [
+    "T4_CAPE@2",
+    "T5_CAPE@1",
+    "T6_CAPE"
+  ],
+  "CAPE|6|0": [
+    "T4_CAPE@2",
+    "T5_CAPE@1",
+    "T6_CAPE"
+  ],
+  "HEAD_PLATE|6|0": [
+    "T4_HEAD_PLATE@2",
+    "T5_HEAD_PLATE@1",
+    "T6_HEAD_PLATE"
+  ],
+  "MAIN_SWORD|4|2": [
+    "T4_MAIN_SWORD@2",
+    "T5_MAIN_SWORD@1",
+    "T6_MAIN_SWORD"
+  ],
+  "MAIN_SWORD|6|0": [
+    "T4_MAIN_SWORD@2",
+    "T5_MAIN_SWORD@1",
+    "T6_MAIN_SWORD"
+  ],
+  "MAIN_SWORD|8|4": [
+    "T8_MAIN_SWORD@4"
+  ],
+  "MEAL_STEW|6|0": [
+    "T6_MEAL_STEW"
+  ],
+  "MEAL_STEW|8|0": [
+    "T8_MEAL_STEW"
+  ],
+  "SHOES_LEATHER_SET2|5|1": [
+    "T4_SHOES_LEATHER_SET2@2",
+    "T5_SHOES_LEATHER_SET2@1",
+    "T6_SHOES_LEATHER_SET2"
+  ]
+}
