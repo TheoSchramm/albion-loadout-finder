@@ -31,11 +31,24 @@ git show <commit>^:backend/app_core.py > app_core.py
 
 ## They pin bugs on purpose
 
-Fixtures generated *before* any behavior was changed, so a parity failure can only mean
-"the port diverged" and never "the port fixed something". Most notably, `normalize_text`
-was ASCII-only, so a Russian, Chinese or Korean query normalized to `""` and matched
-everything — `search.json` shows those queries returning results byte-identical to an
-empty query.
+Fixtures were generated *before* any behavior was changed, so during the port a parity
+failure could only mean "the port diverged" and never "the port fixed something".
 
 If a fixture is updated to reflect an intentional behavior change, say so explicitly in
 the commit message, and change it in a commit that does nothing else.
+
+### Deviations from the original Python behavior
+
+Everything here still matches the Python implementation exactly, **except `search.json`**,
+which was regenerated once — see the "Phase 7" commit.
+
+The Python `normalize_text` was `[^a-z0-9]` over a lowercased string, which deleted every
+non-ASCII character. Russian, Chinese and Korean queries therefore normalized to `""`, and
+an empty query matches everything, so search returned the first 24 catalog entries
+unfiltered in three of the app's advertised languages. That is fixed, and 79 of the 360
+matrix entries changed as a result — all of them non-Latin or accented queries. No
+ASCII-only query changed.
+
+Because the fixture is now self-generated for those cases, `core.test.js` asserts the
+intended behavior directly (a non-Latin query must return a strict, non-empty subset of an
+empty query's results) rather than relying on the fixture alone, which would be circular.

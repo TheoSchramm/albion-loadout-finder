@@ -7,7 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { setCatalog, findDefinition, getCatalog } from '../src/lib/catalog.js';
-import { parseUniqueName, requestedVariantHint } from '../src/lib/text.js';
+import { normalizeText, parseUniqueName, requestedVariantHint } from '../src/lib/text.js';
 import { buildVariant, equivalentVariants, serializeVariant } from '../src/lib/items.js';
 import { searchItems } from '../src/lib/search.js';
 import { fetchPrices } from '../src/lib/prices.js';
@@ -308,6 +308,55 @@ test('optimize hands out detached objects, so best does not alias a candidate', 
   assert.ok(twin, 'best must also appear among the candidates');
   assert.notEqual(result.slots[0].best, twin, 'best must not be the same object as its candidate');
   assert.deepEqual(result.slots[0].best, twin, '...but must still carry identical values');
+});
+
+// --------------------------------------------- non-Latin search (fixed after the port)
+
+test('normalizeText keeps letters of every script, not just ASCII', () => {
+  assert.equal(normalizeText('Adept’s Sword!'), 'adeptssword');
+  assert.equal(normalizeText('Меч'), 'меч'); // Cyrillic survives
+  assert.equal(normalizeText('牛肉'), '牛肉'); // Han survives
+  assert.equal(normalizeText('검'), '검'); // Hangul survives
+  assert.equal(normalizeText('Épée'), 'épée'); // accents preserved, not deleted
+  // Composed and decomposed forms of the same text must compare equal.
+  assert.equal(normalizeText('é'), normalizeText('é'));
+});
+
+test('non-Latin queries filter results instead of matching everything', () => {
+  // The original ASCII-only normalizer reduced these to "", and an empty query matches
+  // every item - so search silently returned the first 24 catalog entries in three of
+  // the app's own advertised languages.
+  for (const [query, language, slot] of [
+    ['меч', 'ru', 'main_hand'],
+    ['牛肉', 'zh', 'food'],
+    // Korean item names are phonetic transliterations of the English ones, not native
+    // words - T4_MAIN_SWORD is "숙련자의 브로드소드", so "소드" (sword) matches and the
+    // native word "검" correctly matches nothing.
+    ['소드', 'ko', 'main_hand'],
+  ]) {
+    const results = searchItems(query, language, slot);
+    const everything = searchItems('', language, slot);
+    assert.ok(results.length > 0, `${language}: expected matches`);
+    assert.ok(results.length < everything.length, `${language}: expected a filtered subset`);
+    assert.notDeepEqual(
+      results.map((item) => item.unique_name),
+      everything.map((item) => item.unique_name),
+      `${language}: results must differ from an empty query`,
+    );
+  }
+});
+
+test('a Chinese query finds the right dish', () => {
+  const results = searchItems('牛肉', 'zh', 'food');
+  assert.ok(results.some((item) => item.unique_name === 'T8_MEAL_STEW'));
+});
+
+test('accented queries match, but accent folding is deliberately not implemented', () => {
+  assert.ok(searchItems('Épée', 'fr', 'main_hand').length > 0);
+  // "Epee" finding "Épée" would require stripping combining marks, which also makes
+  // Portuguese "Maça Pesada" contain "cape" and pushes real capes out of the result cap.
+  // Asserted so the tradeoff is a decision on record rather than an oversight.
+  assert.equal(searchItems('Epee', 'fr', 'main_hand').length, 0);
 });
 
 test('a network failure yields no data rather than a fabricated price', async () => {

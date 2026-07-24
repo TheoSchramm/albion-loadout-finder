@@ -3,17 +3,28 @@
 import { TEMPLATE_PREFIX_SLOTS } from './constants.js';
 
 /**
- * Fold a string down to comparable characters.
+ * Fold a string down to comparable characters: letters and digits in any script survive,
+ * everything else (spaces, punctuation, apostrophes) is dropped.
  *
- * NOTE: this is deliberately ASCII-only, matching the Python original exactly. It is
- * lossy for accented Latin ("Épée" -> "pe") and total for non-Latin scripts, where it
- * yields "" - and an empty normalized query matches *everything* (see matchesQuery), so
- * Russian/Chinese/Korean searches currently return the first 24 catalog entries
- * unfiltered. The golden fixtures pin that behavior; it is fixed separately so that a
- * parity mismatch during the port could never be confused with an intended change.
+ * The Python original was `[^a-z0-9]` over a lowercased string, which deleted every
+ * non-ASCII character. That made accented text lossy ("Épée" -> "pe") and non-Latin text
+ * empty - and an empty normalized query matches *everything* (see matchesQuery), so
+ * searching in Russian, Chinese or Korean silently returned the first 24 catalog entries
+ * unfiltered, in three of the app's own advertised languages.
+ *
+ * NFC only, deliberately. Composing means "é" typed as e + combining acute compares equal
+ * to a precomposed "é", which is a pure win. Going further to NFKD and stripping combining
+ * marks would additionally let "Epee" find "Épée" - tempting, but it also makes Portuguese
+ * "Maça Pesada" normalize to "macapesada", which *contains* "cape", so searching "cape" in
+ * Portuguese surfaces maces and pushes real capes out of the 24-result limit. Accent
+ * folding is a separate feature with that tradeoff to solve properly (match folded and
+ * unfolded forms separately), not a free improvement to bundle in here.
  */
 export function normalizeText(value) {
-  return String(value).toLowerCase().replace(/[^a-z0-9]+/g, '');
+  return String(value)
+    .toLowerCase()
+    .normalize('NFC')
+    .replace(/[^\p{L}\p{N}]+/gu, '');
 }
 
 // Matches the rank title the game bakes into item names ("Adept's Sword"). ASCII
