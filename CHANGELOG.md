@@ -37,8 +37,9 @@ Actions), so entries are grouped by date rather than by version number — there
 - Selecting an empty slot now immediately lists every item available for it, instead of
   requiring the user to start typing first.
 - The copy-to-clipboard button in the results table moved from its own trailing column to sit
-  right next to the item name. The same applies to each row in the expanded equivalent-options
-  list, whose price/city/quality/age columns shift left to fill the freed space.
+  right next to the item name, with no gap between them regardless of how short the name is.
+  The same applies to each row in the expanded equivalent-options list, whose price/city/quality/
+  age columns shift left to fill the freed space.
 
 ### Fixed
 

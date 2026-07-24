@@ -940,7 +940,7 @@ button:disabled {
 .result-card-name {
   display: block;
   min-width: 0;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   font-size: 1rem;
   font-weight: 600;
   white-space: nowrap;
@@ -1118,7 +1118,7 @@ button:disabled {
 
 .option-line-name {
   min-width: 0;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
