@@ -1088,7 +1088,7 @@ button:disabled {
 
 .option-line {
   display: grid;
-  grid-template-columns: minmax(4rem, 1fr) minmax(1rem, auto) 5.5rem 6rem 5.5rem 4.5rem 1.75rem;
+  grid-template-columns: minmax(4rem, 1fr) minmax(1rem, auto) 5.5rem 6rem 5.5rem 4.5rem;
   align-items: center;
   column-gap: 0.6rem;
   padding: 0.4rem 0;
@@ -1102,8 +1102,16 @@ button:disabled {
   border-bottom: none;
 }
 
+.option-line-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
 .option-line-name {
   min-width: 0;
+  flex: 1 1 auto;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1152,6 +1160,7 @@ button:disabled {
 
 .option-line-copy-button {
   display: grid;
+  flex-shrink: 0;
   place-items: center;
   width: 1.5rem;
   height: 1.5rem;

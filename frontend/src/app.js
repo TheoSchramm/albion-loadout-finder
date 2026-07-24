@@ -993,6 +993,9 @@ function buildResultCardFragment(slotResult) {
       const line = document.createElement('div');
       line.className = `option-line${candidate.unique_name === slotResult.best.unique_name ? ' is-best' : ''}`;
 
+      const nameRow = document.createElement('span');
+      nameRow.className = 'option-line-name-row';
+
       const nameSpan = document.createElement('span');
       nameSpan.className = 'option-line-name';
       nameSpan.textContent = `${candidate.display_name} · ${variantLabel(candidate)}`;
@@ -1041,7 +1044,8 @@ function buildResultCardFragment(slotResult) {
         copyLineButton.disabled = true;
       }
 
-      line.append(nameSpan, leader, priceSpan, citySpan, qualitySpan, freshnessSpan, copyLineButton);
+      nameRow.append(nameSpan, copyLineButton);
+      line.append(nameRow, leader, priceSpan, citySpan, qualitySpan, freshnessSpan);
       options.append(line);
     });
 
