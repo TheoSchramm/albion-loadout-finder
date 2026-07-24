@@ -59,6 +59,8 @@ const elements = {
   resultCardTemplate: document.getElementById('resultCardTemplate'),
   bootStatus: document.getElementById('bootStatus'),
   clearLoadoutButton: document.getElementById('clearLoadoutButton'),
+  exportLoadoutButton: document.getElementById('exportLoadoutButton'),
+  importLoadoutButton: document.getElementById('importLoadoutButton'),
   itemsFoundCounter: document.getElementById('itemsFoundCounter'),
 };
 
@@ -395,6 +397,41 @@ function getCurrentLoadoutSnapshot() {
   return Array.from(state.loadout.entries()).map(([slot, item]) => ({
     slot,
     item,
+  }));
+}
+
+// A loadout code is just the [slot, unique_name, quantity?] tuples, base64-encoded -
+// not the full serialized item (display name, image URL, slot label...), since all of
+// that is re-derivable from unique_name via getItem() and would only bloat the string
+// someone has to paste. quantity is omitted entirely when it's 1, the common case.
+// unique_name/slot are always plain ASCII, so no unicode-safe encoding step is needed.
+const LOADOUT_CODE_PREFIX = 'ALB1:';
+
+function encodeLoadoutCode() {
+  const entries = Array.from(state.loadout.entries()).map(([slot, item]) =>
+    item.quantity > 1 ? [slot, item.unique_name, item.quantity] : [slot, item.unique_name],
+  );
+  return LOADOUT_CODE_PREFIX + window.btoa(JSON.stringify(entries));
+}
+
+function decodeLoadoutCode(code) {
+  const trimmed = code.trim();
+  if (!trimmed.startsWith(LOADOUT_CODE_PREFIX)) {
+    throw new Error('not a loadout code');
+  }
+  let entries;
+  try {
+    entries = JSON.parse(window.atob(trimmed.slice(LOADOUT_CODE_PREFIX.length)));
+  } catch {
+    throw new Error('could not be decoded');
+  }
+  if (!Array.isArray(entries)) {
+    throw new Error('malformed loadout code');
+  }
+  return entries.map(([slot, uniqueName, quantity]) => ({
+    slot,
+    uniqueName,
+    quantity: Number.isInteger(quantity) && quantity > 1 ? quantity : 1,
   }));
 }
 
@@ -954,6 +991,71 @@ function clearLoadout() {
   markPricingDirty(); // also calls syncSlotRows(), which redraws every slot as empty
 }
 
+async function copyLoadoutCode() {
+  if (!state.loadout.size) {
+    window.alert('Equip at least one item first.');
+    return;
+  }
+  const code = encodeLoadoutCode();
+  try {
+    await navigator.clipboard.writeText(code);
+    setStatus('Loadout code copied to clipboard.');
+  } catch {
+    // Clipboard access can be denied (permissions, insecure context); a prompt with
+    // the text pre-selected is a plain fallback that still lets the user copy it.
+    window.prompt('Copy this loadout code:', code);
+  }
+}
+
+function importLoadoutCode() {
+  const input = window.prompt('Paste a loadout code:');
+  if (!input) {
+    return;
+  }
+
+  let entries;
+  try {
+    entries = decodeLoadoutCode(input);
+  } catch (error) {
+    window.alert(`Could not read that loadout code (${error.message}).`);
+    return;
+  }
+
+  if (state.loadout.size && !window.confirm('Replace the current loadout with the imported one?')) {
+    return;
+  }
+
+  const knownSlots = new Set(state.config.slots.map(entry => entry.key));
+  const resolved = [];
+  let skipped = 0;
+  entries.forEach(({ slot, uniqueName, quantity }) => {
+    const item = knownSlots.has(slot) ? getItem(uniqueName, { lang: state.language }) : null;
+    if (item) {
+      resolved.push([slot, { ...item, quantity }]);
+    } else {
+      skipped += 1;
+    }
+  });
+
+  if (!resolved.length) {
+    window.alert('None of the items in that code could be recognized.');
+    return;
+  }
+
+  state.loadout.clear();
+  resolved.forEach(([slot, item]) => state.loadout.set(slot, item));
+  applyTwoHandedRule();
+  state.activePresetId = '';
+  state.activePresetDescription = '';
+  if (!state.searchQuery.trim()) {
+    renderSearchPrompt(defaultSearchPrompt());
+  }
+
+  const itemWord = resolved.length === 1 ? 'item' : 'items';
+  const skippedNote = skipped ? ` (${skipped} not recognized)` : '';
+  markPricingDirty(`Imported ${resolved.length} ${itemWord}${skippedNote}. Click Compare prices to refresh market data.`);
+}
+
 function markPricingDirty(message = 'Loadout changed. Click Compare prices to refresh market data.') {
   state.pricingDirty = true;
   state.lastResultsPayload = null;
@@ -1177,6 +1279,12 @@ async function boot() {
   });
 
   elements.clearLoadoutButton.addEventListener('click', clearLoadout);
+  elements.exportLoadoutButton.addEventListener('click', () => {
+    copyLoadoutCode().catch(error => {
+      setStatus(`Could not copy loadout code: ${error.message}`);
+    });
+  });
+  elements.importLoadoutButton.addEventListener('click', importLoadoutCode);
 
   elements.saveLoadoutButton.addEventListener('click', () => {
     openSaveLoadoutDialog('create');
