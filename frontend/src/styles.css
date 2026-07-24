@@ -438,6 +438,8 @@ button:disabled {
 
 .search-column {
   height: 30rem;
+  padding-left: var(--space-4);
+  border-left: 1px solid hsl(var(--rule));
 }
 
 .column-heading {
@@ -1232,6 +1234,10 @@ button:disabled {
 
   .search-column {
     height: 24rem;
+    padding-left: 0;
+    padding-top: var(--space-4);
+    border-left: none;
+    border-top: 1px solid hsl(var(--rule));
   }
 }
 
