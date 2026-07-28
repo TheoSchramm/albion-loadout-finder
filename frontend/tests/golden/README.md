@@ -71,6 +71,15 @@ starting with `CAPE_` (which does not match `CAPEITEM_*`, since character 5 is `
 not `_`); the catalog lost 10 templates (12 entries) and 10 of 360 search matrix entries
 changed - again only the `cape` query and the unfiltered `""` listing.
 
+**`search.json`** ("browse without a cap" commit) - the 24-result cap was applied to the
+unfiltered `""` listing exactly like a real search, so browsing a slot's items without
+typing a query silently truncated it (main_hand has 137 distinct templates; only 24 were
+ever reachable without already knowing an item's name). The cap is now only applied when
+there is an actual query; an empty query returns every match. 14 of the 360 matrix entries
+changed (the `""` listing for every language, plus `chest`/`feet`/`head`/`main_hand`/`mount`
+under `en`) and 1 of 12 deep payloads (`|en|mount`); every other query, including all
+non-empty per-slot browsing, is unaffected.
+
 **`optimize.json`** ("show all alternatives" commit) - `optimizeLoadoutWithCities` used to
 drop any candidate, and any whole slot, with no real market listing. Changed to always
 return every equipped slot and every IP-equivalent candidate; unpriced ones carry
