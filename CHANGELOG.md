@@ -9,6 +9,14 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ## [Unreleased]
 
+## 2026-07-28
+
+### Changed
+
+- Standardized on "loadout" throughout the UI. The sidebar section was still labeled
+  "Presets" while every button, placeholder and status message already said "loadout"; one
+  save-dialog hint also said "preset". (#4)
+
 ## 2026-07-24
 
 ### Added

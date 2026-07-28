@@ -600,7 +600,7 @@ function openSaveLoadoutDialog(mode = 'create') {
       elements.saveLoadoutName.value = activeEntry.title;
       elements.saveLoadoutDescription.value = activeEntry.description;
       elements.saveLoadoutHint.textContent =
-        `This updates the currently loaded preset, "${activeEntry.title}". Change the title to save as a new preset instead.`;
+        `This updates the currently loaded loadout, "${activeEntry.title}". Change the title to save as a new loadout instead.`;
       elements.saveLoadoutSubmit.textContent = 'Save changes';
     } else {
       elements.saveLoadoutName.value = nextLoadoutPlaceholderTitle();
