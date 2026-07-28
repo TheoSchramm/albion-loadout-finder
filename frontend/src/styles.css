@@ -205,6 +205,31 @@ button {
   gap: var(--space-2);
 }
 
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px solid hsl(var(--rule));
+}
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: hsl(var(--ink-faint));
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.github-link:hover,
+.github-link:focus-visible {
+  color: hsl(var(--ink));
+}
+
+.github-link svg {
+  flex-shrink: 0;
+}
+
 .eyebrow {
   font-family: var(--font-mono);
   font-size: 0.66rem;

@@ -9,6 +9,13 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ## [Unreleased]
 
+## 2026-07-28
+
+### Added
+
+- A "View on GitHub" link at the bottom of the sidebar, so players can find the repository
+  to open issues, suggest features, or follow development without hunting for the URL. (#9)
+
 ## 2026-07-24
 
 ### Added
