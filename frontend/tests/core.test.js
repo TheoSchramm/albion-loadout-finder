@@ -358,6 +358,37 @@ test('zero prices are treated as no listing, never as free', async () => {
   assert.deepEqual(prices.get('T4_CAPE'), {});
 });
 
+test('food/potion prices still resolve when the minimum quality filter excludes Normal', async () => {
+  // Mirrors the real AODP API: a "qualities" floor above 1 returns zero rows for an item
+  // that has never been listed above Normal, which is all food/potions ever are.
+  const fetchImpl = async (url) => {
+    const items = decodeURIComponent(url.split('/prices/')[1].split('.json')[0]).split(',');
+    const city = decodeURIComponent(url.split('locations=')[1].split('&')[0]).split(',')[0];
+    const requestedQualities = decodeURIComponent(url.split('qualities=')[1]).split(',').map(Number);
+    if (!requestedQualities.includes(1)) {
+      return { ok: true, json: async () => [] };
+    }
+    return {
+      ok: true,
+      json: async () =>
+        items.map((item) => ({
+          item_id: item,
+          city,
+          quality: 1,
+          sell_price_min: 500,
+          buy_price_max: 0,
+          sell_price_min_date: '2026-01-01T00:00:00',
+        })),
+    };
+  };
+  const result = await optimizeLoadoutWithCities({
+    loadout: [{ slot: 'food', unique_name: 'T8_MEAL_STEW' }],
+    minQuality: 4,
+    fetchOptions: { fetchImpl, now: () => 1753000000000 },
+  });
+  assert.equal(result.slots[0].best.cheapest_price, 500);
+});
+
 test('price requests send no headers, avoiding a CORS preflight per batch', async () => {
   const calls = [];
   const fetchImpl = async (url, options) => {

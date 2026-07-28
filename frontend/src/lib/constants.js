@@ -78,6 +78,13 @@ export const SLOTS = Object.freeze([
   "potion"
 ]);
 
+// Food and potions are only ever listed on the market at Normal quality - the game has no
+// higher-quality consumables, unlike gear. Requesting a "qualities=2,3,4,5" floor for them
+// (as the minimum-quality filter does for everything else) would always return zero rows,
+// not a narrower result, so pricing code must query these slots at their own floor of 1
+// regardless of the user's selected minimum quality.
+export const SLOTS_WITHOUT_QUALITY = Object.freeze(["food", "potion"]);
+
 export const SLOT_LABELS = Object.freeze({
   "head": "Head",
   "chest": "Chest",

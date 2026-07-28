@@ -1,6 +1,6 @@
 // Pick the cheapest IP-equivalent variant for each equipped slot.
 
-import { qualityLabel } from './constants.js';
+import { qualityLabel, SLOTS_WITHOUT_QUALITY } from './constants.js';
 import { parseUniqueName } from './text.js';
 import { citiesForRegion, priceQueryUrl } from './urls.js';
 import { findDefinition } from './catalog.js';
@@ -73,14 +73,31 @@ export async function optimizeLoadoutWithCities({
   }
 
   // One request wave for every candidate of every slot, so the whole loadout costs the
-  // same number of API calls as a single slot would.
+  // same number of API calls as a single slot would. Food/potion candidates are pulled
+  // out into their own wave at a fixed quality floor of 1 - they never list above Normal,
+  // so applying the user's minQuality filter to them would silently zero out their only
+  // real data instead of narrowing it.
   const allCandidateNames = [];
+  const qualityFreeNames = new Set();
   for (const variant of selectedVariants) {
+    const isQualityFree = SLOTS_WITHOUT_QUALITY.includes(variant.slot);
     for (const candidate of equivalentVariants(variant)) {
       allCandidateNames.push(candidate.unique_name);
+      if (isQualityFree) {
+        qualityFreeNames.add(candidate.unique_name);
+      }
     }
   }
-  const priceMap = await fetchPrices(allCandidateNames, region, selectedCities, { minQuality, ...fetchOptions });
+  const standardNames = allCandidateNames.filter((name) => !qualityFreeNames.has(name));
+  const [standardPrices, qualityFreePrices] = await Promise.all([
+    standardNames.length
+      ? fetchPrices(standardNames, region, selectedCities, { minQuality, ...fetchOptions })
+      : Promise.resolve(new Map()),
+    qualityFreeNames.size
+      ? fetchPrices([...qualityFreeNames], region, selectedCities, { ...fetchOptions, minQuality: 1 })
+      : Promise.resolve(new Map()),
+  ]);
+  const priceMap = new Map([...standardPrices, ...qualityFreePrices]);
 
   const slots = [];
   let totalCost = 0;

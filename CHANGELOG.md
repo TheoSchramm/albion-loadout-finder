@@ -9,6 +9,15 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ## [Unreleased]
 
+## 2026-07-28
+
+### Fixed
+
+- Food and potion prices no longer disappear when the minimum quality filter is set above
+  Normal. Those items are never listed above Normal quality, so the filter used to zero out
+  their only real data instead of narrowing it; they're now always queried at their own
+  floor regardless of the selected minimum quality. (#3)
+
 ## 2026-07-24
 
 ### Added
