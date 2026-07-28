@@ -16,6 +16,9 @@ Actions), so entries are grouped by date rather than by version number — there
 - City and quality names in the "Market city" and "Minimum quality" dropdowns are now
   colored to match their in-game colors, both in the open list and the closed selector,
   matching how they're already shown throughout the results table. (#7)
+- A flag icon on the Language selector (Brazilian flag for Portuguese, since that's the
+  only Portuguese Albion ships), and a neutral globe icon on the Region selector - regions
+  are server clusters, not single countries, so no one flag fits all three.
 
 ## 2026-07-24
 

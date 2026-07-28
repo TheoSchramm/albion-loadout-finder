@@ -250,6 +250,19 @@ button {
   width: 100%;
 }
 
+/* Region/Language show a leading icon (flag for language, a neutral globe for region -
+   these are server clusters, not single countries, so no one flag fits) as a background
+   image rather than markup: a native <select>'s closed box can host one via CSS, but its
+   <option> list cannot render images in any browser, so this is as close as a plain
+   <select> gets. app.js sets background-image per selection; this only reserves the
+   room and fixes the icon's position/size. */
+.select-with-icon {
+  background-repeat: no-repeat;
+  background-position: 0.7rem center;
+  background-size: 1.15rem 0.85rem;
+  padding-left: 2.35rem;
+}
+
 select,
 input[type="search"],
 input[type="text"] {

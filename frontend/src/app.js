@@ -113,6 +113,92 @@ function qualityColor(qualityLabel) {
   return QUALITY_COLORS[qualityLabel] || '';
 }
 
+function svgDataUri(svg) {
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
+// One flat-color flag per supported language, simplified (no coats of arms, trigrams,
+// etc.) since these render at ~16px in a <select>. "pt" is Brazilian Portuguese - the
+// only Portuguese Albion ships - so it gets the Brazilian flag, not Portugal's.
+const LANGUAGE_FLAG_ICONS = {
+  en: svgDataUri(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14">' +
+      '<rect width="20" height="14" fill="#00247d"/>' +
+      '<path d="M0 0L20 14M20 0L0 14" stroke="#fff" stroke-width="3"/>' +
+      '<path d="M0 0L20 14M20 0L0 14" stroke="#cf142b" stroke-width="1.2"/>' +
+      '<path d="M10 0V14M0 7H20" stroke="#fff" stroke-width="5"/>' +
+      '<path d="M10 0V14M0 7H20" stroke="#cf142b" stroke-width="2.4"/>' +
+      '</svg>',
+  ),
+  de: svgDataUri(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14">' +
+      '<rect width="20" height="4.67" fill="#000"/>' +
+      '<rect y="4.67" width="20" height="4.67" fill="#dd0000"/>' +
+      '<rect y="9.33" width="20" height="4.67" fill="#ffce00"/>' +
+      '</svg>',
+  ),
+  fr: svgDataUri(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14">' +
+      '<rect width="6.67" height="14" fill="#0055a4"/>' +
+      '<rect x="6.67" width="6.67" height="14" fill="#fff"/>' +
+      '<rect x="13.33" width="6.67" height="14" fill="#ef4135"/>' +
+      '</svg>',
+  ),
+  pt: svgDataUri(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14">' +
+      '<rect width="20" height="14" fill="#009739"/>' +
+      '<polygon points="10,1.5 18.5,7 10,12.5 1.5,7" fill="#fedd00"/>' +
+      '<circle cx="10" cy="7" r="3.2" fill="#012169"/>' +
+      '</svg>',
+  ),
+  es: svgDataUri(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14">' +
+      '<rect width="20" height="14" fill="#aa151b"/>' +
+      '<rect y="3.5" width="20" height="7" fill="#f1bf00"/>' +
+      '</svg>',
+  ),
+  ru: svgDataUri(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14">' +
+      '<rect width="20" height="4.67" fill="#fff"/>' +
+      '<rect y="4.67" width="20" height="4.67" fill="#0039a6"/>' +
+      '<rect y="9.33" width="20" height="4.67" fill="#d52b1e"/>' +
+      '</svg>',
+  ),
+  zh: svgDataUri(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14">' +
+      '<rect width="20" height="14" fill="#de2910"/>' +
+      '<circle cx="4" cy="3.5" r="1.6" fill="#ffde00"/>' +
+      '<circle cx="7.6" cy="1.8" r="0.6" fill="#ffde00"/>' +
+      '<circle cx="8.6" cy="3.6" r="0.6" fill="#ffde00"/>' +
+      '<circle cx="8.2" cy="5.8" r="0.6" fill="#ffde00"/>' +
+      '<circle cx="6.6" cy="6.8" r="0.6" fill="#ffde00"/>' +
+      '</svg>',
+  ),
+  ko: svgDataUri(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14">' +
+      '<rect width="20" height="14" fill="#fff"/>' +
+      '<circle cx="10" cy="7" r="3.5" fill="#c60c30"/>' +
+      '<path d="M10 3.5a1.75 1.75 0 000 3.5 1.75 1.75 0 010 3.5 3.5 3.5 0 000-7z" fill="#003478"/>' +
+      '</svg>',
+  ),
+};
+
+// Americas/Asia/Europe are server clusters, not single countries, so region gets one
+// neutral globe icon rather than a flag that would misrepresent an entire continent.
+const REGION_ICON = svgDataUri(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">' +
+    '<circle cx="10" cy="10" r="8" fill="none" stroke="#a89f8c" stroke-width="1.4"/>' +
+    '<ellipse cx="10" cy="10" rx="3.2" ry="8" fill="none" stroke="#a89f8c" stroke-width="1.2"/>' +
+    '<line x1="2" y1="10" x2="18" y2="10" stroke="#a89f8c" stroke-width="1.2"/>' +
+    '<line x1="3.2" y1="5.5" x2="16.8" y2="5.5" stroke="#a89f8c" stroke-width="1"/>' +
+    '<line x1="3.2" y1="14.5" x2="16.8" y2="14.5" stroke="#a89f8c" stroke-width="1"/>' +
+    '</svg>',
+);
+
+function syncLanguageSelectIcon() {
+  elements.languageSelect.style.backgroundImage = LANGUAGE_FLAG_ICONS[state.language] || 'none';
+}
+
 // Colors the closed <select> box to match its current choice, not just the open dropdown -
 // most browsers render an <option>'s color/background only while the list is open, so
 // without this the city/quality colors would be invisible until the user clicks in.
@@ -268,6 +354,7 @@ function renderConfig() {
     option.textContent = region.label;
     elements.regionSelect.append(option);
   });
+  elements.regionSelect.style.backgroundImage = REGION_ICON;
 
   elements.languageSelect.innerHTML = '';
   state.config.languages.forEach(language => {
@@ -284,6 +371,7 @@ function renderConfig() {
   elements.languageSelect.value = state.language;
   elements.marketCitySelect.value = state.marketCity;
   elements.minQualitySelect.value = String(state.minQuality);
+  syncLanguageSelectIcon();
 }
 
 function renderMinQualityOptions() {
@@ -1394,6 +1482,7 @@ async function boot() {
 
   elements.languageSelect.addEventListener('change', event => {
     state.language = event.target.value;
+    syncLanguageSelectIcon();
     // Language only changes display text, not prices/cities - unlike region/market city
     // changes, it must not clear the results table (markPricingDirty() would). Both the
     // loadout slots and any already-fetched results are relabeled in place instead.
