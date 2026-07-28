@@ -9,6 +9,14 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ## [Unreleased]
 
+## 2026-07-28
+
+### Added
+
+- City and quality names in the "Market city" and "Minimum quality" dropdowns are now
+  colored to match their in-game colors, both in the open list and the closed selector,
+  matching how they're already shown throughout the results table. (#7)
+
 ## 2026-07-24
 
 ### Added

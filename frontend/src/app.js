@@ -113,6 +113,13 @@ function qualityColor(qualityLabel) {
   return QUALITY_COLORS[qualityLabel] || '';
 }
 
+// Colors the closed <select> box to match its current choice, not just the open dropdown -
+// most browsers render an <option>'s color/background only while the list is open, so
+// without this the city/quality colors would be invisible until the user clicks in.
+function syncSelectColor(selectEl, color) {
+  selectEl.style.color = color || '';
+}
+
 async function copyMarketAlias(button, text) {
   try {
     await navigator.clipboard.writeText(text);
@@ -285,9 +292,12 @@ function renderMinQualityOptions() {
     const option = document.createElement('option');
     option.value = String(value);
     option.textContent = value === 1 ? label : `${label}`;
+    option.style.color = qualityColor(label);
     elements.minQualitySelect.append(option);
   });
   elements.minQualitySelect.value = String(state.minQuality);
+  const selectedQuality = state.config.qualities.find(({ value }) => value === state.minQuality);
+  syncSelectColor(elements.minQualitySelect, selectedQuality ? qualityColor(selectedQuality.label) : '');
 }
 
 function renderMarketCityOptions() {
@@ -304,6 +314,7 @@ function renderMarketCityOptions() {
       const option = document.createElement('option');
       option.value = city;
       option.textContent = city;
+      option.style.color = cityColor(city);
       elements.marketCitySelect.append(option);
     });
   }
@@ -312,6 +323,7 @@ function renderMarketCityOptions() {
     state.marketCity = 'all';
   }
   elements.marketCitySelect.value = state.marketCity;
+  syncSelectColor(elements.marketCitySelect, cityColor(state.marketCity));
 }
 
 function renderInventory() {
@@ -1402,11 +1414,14 @@ async function boot() {
 
   elements.marketCitySelect.addEventListener('change', event => {
     state.marketCity = event.target.value;
+    syncSelectColor(elements.marketCitySelect, cityColor(state.marketCity));
     markPricingDirty('Market city changed. Click Compare prices to refresh the market data.');
   });
 
   elements.minQualitySelect.addEventListener('change', event => {
     state.minQuality = Number(event.target.value) || 1;
+    const selectedQuality = state.config.qualities.find(({ value }) => value === state.minQuality);
+    syncSelectColor(elements.minQualitySelect, selectedQuality ? qualityColor(selectedQuality.label) : '');
     markPricingDirty('Minimum quality changed. Click Compare prices to refresh the market data.');
   });
 
