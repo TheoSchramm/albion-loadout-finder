@@ -305,6 +305,20 @@ test('getItem resolves external-catalog items, not just the hardcoded ones', () 
   assert.equal(getItem('T4_NOT_A_TEMPLATE'), null);
 });
 
+test('browsing a slot with no query lists every item, not just the first 24', () => {
+  // main_hand has 137 distinct templates. The 24-result cap exists to keep a *searched*
+  // result list short; an empty query is "browse everything for this slot", and used to
+  // be truncated by the same cap, hiding most of the catalog from anyone who didn't
+  // already know an item's name to search for.
+  const results = searchItems('', 'en', 'main_hand');
+  assert.ok(results.length > 24, `expected more than 24 results, got ${results.length}`);
+});
+
+test('a search with an actual query is still capped at 24 results', () => {
+  const results = searchItems('sword', 'en', 'main_hand');
+  assert.ok(results.length <= 24, `expected the 24-result cap to still apply, got ${results.length}`);
+});
+
 test('tier hint respects Python word-boundary semantics for non-Latin text', () => {
   // JS \b is ASCII-only, so a literal port would find a tier hint here where Python
   // finds none, silently selecting a different variant.

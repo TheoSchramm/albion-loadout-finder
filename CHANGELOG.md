@@ -9,6 +9,13 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ## [Unreleased]
 
+## 2026-07-28
+
+### Fixed
+
+- Browsing an equipment slot with no search term now lists every available item instead of
+  only the first 24. The 24-result cap is still applied once you actually type a query. (#2)
+
 ## 2026-07-24
 
 ### Added
