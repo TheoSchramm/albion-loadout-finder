@@ -9,6 +9,14 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ## [Unreleased]
 
+## 2026-07-28
+
+### Changed
+
+- The saved-loadout dropdown now shows only the title. Its description (if any) shows as
+  a separate line below the dropdown for whichever loadout is currently selected, instead
+  of being appended into the option text ("Title — description"). (#6)
+
 ## 2026-07-24
 
 ### Added
