@@ -9,6 +9,13 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ## [Unreleased]
 
+## 2026-07-28
+
+### Added
+
+- A "Sort" control for saved loadouts, next to the loadout dropdown: "Recently updated"
+  (the previous, only, behavior) or "A–Z" by title. The choice persists across reloads. (#5)
+
 ## 2026-07-24
 
 ### Added

@@ -46,6 +46,13 @@
         <div class="sidebar-section">
           <p class="eyebrow">Presets</p>
           <div class="loadout-tools">
+            <label class="loadout-sort-control">
+              Sort
+              <select id="savedLoadoutSortSelect" aria-label="Sort saved loadouts">
+                <option value="recent">Recently updated</option>
+                <option value="alpha">A&ndash;Z</option>
+              </select>
+            </label>
             <select id="savedLoadoutSelect" aria-label="Saved loadouts"></select>
             <div class="loadout-tools-buttons">
               <button id="loadSavedLoadoutButton" class="small-button" type="button">Load</button>
