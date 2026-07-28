@@ -9,6 +9,14 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ## [Unreleased]
 
+## 2026-07-28
+
+### Changed
+
+- The Load/Save/Edit/Delete/Export/Import loadout buttons now each carry their own icon,
+  and Save/Load/Delete each have a distinct accent color (brass/verdigris/red) instead of
+  four of the six buttons all looking identical. (#8)
+
 ## 2026-07-24
 
 ### Added

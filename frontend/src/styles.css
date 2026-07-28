@@ -329,6 +329,10 @@ button:disabled {
 }
 
 .small-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
   padding: 0.5rem 0.7rem;
   border-radius: var(--radius-sm);
   background: hsl(var(--paper-dim));
@@ -339,6 +343,10 @@ button:disabled {
   white-space: nowrap;
 }
 
+.small-button .material-symbols-rounded {
+  font-size: 1rem;
+}
+
 .small-button:hover:not(:disabled) {
   border-color: hsl(var(--brass));
   color: hsl(var(--brass));
@@ -346,6 +354,30 @@ button:disabled {
 
 .small-button:disabled {
   opacity: 0.4;
+}
+
+/* Load/Save/Edit/Delete used to be four visually identical buttons in a row - only
+   Delete stood out. Save (the primary action) gets the brass accent, Load (bringing a
+   different loadout in) gets verdigris, Edit stays neutral, Delete keeps the existing
+   danger color - four distinguishable colors instead of one plus a lone red. */
+.small-button-primary {
+  color: hsl(var(--brass));
+  border-color: hsl(var(--brass) / 0.5);
+}
+
+.small-button-primary:hover:not(:disabled) {
+  border-color: hsl(var(--brass));
+  color: hsl(var(--brass));
+}
+
+.small-button-accent {
+  color: hsl(var(--verdigris));
+  border-color: hsl(var(--verdigris) / 0.5);
+}
+
+.small-button-accent:hover:not(:disabled) {
+  border-color: hsl(var(--verdigris));
+  color: hsl(var(--verdigris));
 }
 
 .small-button-danger {
