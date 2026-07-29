@@ -9,6 +9,12 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ## [Unreleased]
 
+### Fixed
+
+- The price comparison table's item icon now renders at the quality that was actually
+  found cheapest (e.g. an Excellent-quality gold border), instead of always the plain
+  Normal-quality icon regardless of which quality the listing was actually found at.
+
 ## 2026-07-29
 
 ### Added

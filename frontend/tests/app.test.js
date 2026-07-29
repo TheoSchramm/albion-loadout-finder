@@ -521,6 +521,47 @@ test('swapping to a different tier/enchant hides the stale icon instead of showi
   assert.equal(slotSpinner.hidden, true);
 });
 
+// ---------------------------------------------------------------------------- result-card-icon-quality
+
+test('the price comparison card shows the icon at the quality that was actually found cheapest', async () => {
+  // Regression: the result card's icon always came from serializeVariant()'s image_url,
+  // which is permanently rendered at quality=1 (Normal) since building a variant has no
+  // notion of a market listing - so the icon never reflected which quality was actually
+  // cheapest, even once a real listing was found.
+  const dom = await bootApp();
+  const { document, window } = { document: dom.window.document, window: dom.window };
+
+  await equipFirstSearchResult(dom, 'head', 'hood');
+
+  const equippedIconSrc = document.querySelector('.slot-row.is-filled .slot-row-image').getAttribute('src');
+  const equippedUniqueName = decodeURIComponent(new URL(equippedIconSrc).pathname.split('/').pop().replace('.png', ''));
+
+  globalThis.fetch = async (url) => {
+    if (String(url).includes('/api/v2/stats/prices/')) {
+      return {
+        ok: true,
+        json: async () => [
+          {
+            item_id: equippedUniqueName,
+            city: 'Caerleon',
+            quality: 3,
+            sell_price_min: 1234,
+            sell_price_min_date: '2026-01-01T00:00:00',
+          },
+        ],
+      };
+    }
+    throw new Error(`unexpected fetch for ${url}`);
+  };
+
+  click(dom, 'refreshButton');
+  await waitFor(() => document.querySelector('.result-card-image'));
+  await waitFor(() => new URL(document.querySelector('.result-card-image').getAttribute('src')).searchParams.get('quality') === '3');
+
+  const iconUrl = new URL(document.querySelector('.result-card-image').getAttribute('src'));
+  assert.equal(iconUrl.searchParams.get('quality'), '3', 'the icon should render at the quality that was actually found cheapest');
+});
+
 // ---------------------------------------------------------------------------- import-creates-new-loadout
 
 test('importing a loadout code creates a new saved loadout instead of just replacing the working gear', async () => {
