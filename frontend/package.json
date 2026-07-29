@@ -9,5 +9,8 @@
     "check:catalog": "node scripts/build-catalog.mjs --check",
     "test": "node --test \"tests/**/*.test.js\"",
     "lint": "node scripts/lint.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1"
   }
 }

@@ -41,7 +41,7 @@ frontend/
     build-catalog.mjs     # builds data/items.catalog.json from ao-bin-dumps
     dev-server.mjs        # static dev server on :5173
     lint.mjs              # no-op placeholder
-  tests/                  # node:test suite, zero dependencies
+  tests/                  # node:test suite. No runtime dependencies; jsdom is a devDependency for DOM-level tests only
     golden/               # frozen fixtures recording the original Python behavior
 .github/workflows/pages.yml  # test -> refresh catalog -> build -> deploy to Pages
 ```
@@ -50,7 +50,7 @@ frontend/
 
 ```bash
 cd frontend
-npm test                  # node:test suite (45 tests). No network - see below.
+npm test                  # node:test suite (73 tests). No network - see below.
 npm run dev               # static server on http://127.0.0.1:5173
 npm run build             # src/ -> dist/ plus Pages files and guards
 npm run build:catalog     # regenerate the item catalog from live upstream
@@ -148,16 +148,22 @@ targeted exclusion here** rather than narrowing the prefix allowlist itself.
 
 ## Testing
 
-`npm test` runs `node:test` with zero dependencies, in three layers:
+`npm test` runs `node:test`, in four layers:
 
 1. **Parity** (`parity.test.js`) — asserts against `tests/golden/`, generated from the Python implementation.
    Covers the full search matrix, serialized items, equivalents, URLs, batch boundaries, and optimizer output.
 2. **Ported unit tests** (`core.test.js`) — the original Python suite, 1:1, with names mirrored.
 3. **Port-specific guards** — hazards that exist only because this is browser JavaScript.
+4. **DOM-level regression tests** (`app.test.js`) — `app.js` itself (event wiring, DOM state, localStorage),
+   using `jsdom`. `app.js` is a singleton module (top-level `state`/`elements`, `boot()` auto-invoked at the
+   bottom) rather than something you can call fresh per test, so each test dynamically imports the real,
+   unmodified file via a cache-busting query string against its own jsdom document — see `bootApp()` at the top
+   of the file. This is the *only* place `jsdom` is used; layers 1–3 stay dependency-free.
 
-**The suite never touches the network**, and that is enforced: `tests/helpers.mjs` replaces `globalThis.fetch`
+**The suite never touches the real network**, and that is enforced: `tests/helpers.mjs` replaces `globalThis.fetch`
 with a throw. Code needing HTTP takes an injected `fetchImpl`. If you add a test that hits the network, it will
-fail — inject a fake instead.
+fail — inject a fake instead. `app.test.js`'s `bootApp()` re-enables `fetch` only to serve the real catalog file
+straight off disk, since `app.js` calls `loadCatalog()` unconditionally at boot.
 
 The fixtures **pin the original behavior including its bugs**, so a parity failure can only mean "the port
 diverged". If you intentionally change behavior, regenerate the affected fixture in a commit that does nothing
