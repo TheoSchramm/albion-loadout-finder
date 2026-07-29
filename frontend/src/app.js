@@ -1703,6 +1703,14 @@ async function boot() {
     elements.loadSavedLoadoutButton.disabled = !hasSelection;
     elements.editSavedLoadoutButton.disabled = !hasSelection;
     elements.deleteSavedLoadoutButton.disabled = !hasSelection;
+    // Picking a loadout from the dropdown loads it immediately - the "Load" button stays
+    // around for re-loading the same selection on demand (discarding unsaved gear changes
+    // without having to reselect it), not as the only way to load one.
+    if (hasSelection) {
+      loadSelectedSavedLoadout().catch(error => {
+        setStatus(`Could not load saved loadout: ${error.message}`);
+      });
+    }
   });
 
   elements.searchInput.addEventListener('input', event => scheduleSearch(event.target.value));

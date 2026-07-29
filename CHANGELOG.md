@@ -32,6 +32,9 @@ Actions), so entries are grouped by date rather than by version number — there
 - The Load/Save/Edit/Delete/Export/Import loadout buttons now each carry their own icon,
   and Save/Load/Delete each have a distinct accent color (brass/verdigris/red) instead of
   four of the six buttons all looking identical. (#8)
+- Picking a loadout from the saved-loadout dropdown now loads it immediately, instead of
+  requiring a separate click on "Load". The "Load" button stays, for re-loading the same
+  selection on demand (discarding unsaved gear changes) without reselecting it.
 
 ### Fixed
 
