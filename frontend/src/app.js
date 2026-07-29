@@ -650,6 +650,7 @@ function loadIcon(image, spinner, src, { onLoad, onError } = {}) {
   if (!src) {
     if (spinner) spinner.hidden = true;
     image.removeAttribute('src');
+    image.style.visibility = '';
     image.onload = null;
     image.onerror = null;
     return;
@@ -660,13 +661,19 @@ function loadIcon(image, spinner, src, { onLoad, onError } = {}) {
     return;
   }
   if (spinner) spinner.hidden = false;
+  // Swapping variants (e.g. a 4.1 bow for a 4.2 one) reassigns `src` on the same <img> -
+  // browsers keep painting the previous frame until the new one decodes, so without this
+  // the spinner would spin on top of the stale icon instead of the new one loading in.
+  image.style.visibility = 'hidden';
   image.onload = () => {
     if (spinner) spinner.hidden = true;
+    image.style.visibility = '';
     onLoad?.();
   };
   image.onerror = () => {
     if (spinner) spinner.hidden = true;
     image.removeAttribute('src');
+    image.style.visibility = '';
     onError?.();
   };
   image.src = src;

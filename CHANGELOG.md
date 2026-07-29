@@ -25,7 +25,9 @@ Actions), so entries are grouped by date rather than by version number — there
   by native speakers.
 - Item icons (equipped slots, search results, and the price comparison table) now show
   a loading spinner while their image is still fetching, and a fallback icon if it fails
-  to load, instead of a blank tile in both cases.
+  to load, instead of a blank tile in both cases. Swapping an icon for a different one
+  (e.g. picking a different tier/enchant) now hides the old icon while the new one loads,
+  instead of spinning over the stale image.
 
 ### Changed
 

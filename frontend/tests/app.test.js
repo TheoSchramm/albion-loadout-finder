@@ -469,3 +469,39 @@ test('equipping an item shows a loading spinner on the slot icon, and an unrelat
   headRow.querySelector('.slot-row-image').dispatchEvent(new window.Event('load'));
   assert.equal(slotSpinner.hidden, true, 'the spinner should hide once the slot icon finishes loading');
 });
+
+test('swapping to a different tier/enchant hides the stale icon instead of showing the spinner over it', async () => {
+  // Reassigning <img src> to a new URL doesn't clear the previously painted frame until
+  // the new one decodes, so without explicitly hiding the image the spinner would just
+  // spin on top of the old (now-wrong) icon - e.g. swapping a T2 item for a T3 one.
+  const dom = await bootApp();
+  const { document, window } = { document: dom.window.document, window: dom.window };
+
+  slotRow(dom, 'head').querySelector('.slot-row-main').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  document.getElementById('searchInput').value = 'hood';
+  document.getElementById('searchInput').dispatchEvent(new window.Event('input', { bubbles: true }));
+  await waitFor(() => document.querySelectorAll('.result-row').length > 0);
+  const firstRow = document.querySelector('.result-row');
+  firstRow.querySelector('.result-row-use').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+
+  const headRow = slotRow(dom, 'head');
+  const slotImage = headRow.querySelector('.slot-row-image');
+  const slotSpinner = headRow.querySelector('.slot-row-spinner');
+  slotImage.dispatchEvent(new window.Event('load'));
+  const firstSrc = slotImage.getAttribute('src');
+  assert.equal(slotImage.style.visibility, '', 'the icon should be visible once loaded');
+
+  const tierSelect = firstRow.querySelector('.result-row-tier');
+  const otherTier = [...tierSelect.options].find((o) => o.value !== tierSelect.value);
+  tierSelect.value = otherTier.value;
+  tierSelect.dispatchEvent(new window.Event('change', { bubbles: true }));
+  firstRow.querySelector('.result-row-use').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+
+  assert.notEqual(slotImage.getAttribute('src'), firstSrc, 'sanity check: the swap should target a different image');
+  assert.equal(slotSpinner.hidden, false, 'the spinner should show while the new icon loads');
+  assert.equal(slotImage.style.visibility, 'hidden', 'the stale icon must be hidden while the new one loads, not left showing under the spinner');
+
+  slotImage.dispatchEvent(new window.Event('load'));
+  assert.equal(slotImage.style.visibility, '', 'the new icon should become visible once it finishes loading');
+  assert.equal(slotSpinner.hidden, true);
+});
