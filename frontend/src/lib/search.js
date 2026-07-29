@@ -102,6 +102,11 @@ function groupSearchResults(candidates, query, slot, language, limit) {
  * original did. That measures at single-digit milliseconds and sits behind the existing
  * 160 ms input debounce, so an index would add cache-invalidation complexity for no
  * perceptible gain.
+ *
+ * An empty query is "browse everything for this slot", not a search, and is not capped:
+ * the limit exists to keep a *searched* result list short, not to truncate the catalog a
+ * user is scrolling through with no query typed. A slot like main_hand has 137 distinct
+ * templates, all of which should be reachable without typing a name first.
  */
 export function searchItems(query, language = 'en', slot = null, limit = DEFAULT_LIMIT) {
   const languageKey = String(language).toLowerCase();
@@ -120,5 +125,6 @@ export function searchItems(query, language = 'en', slot = null, limit = DEFAULT
     image_url: entry.image_url,
     two_handed: entry.two_handed,
   }));
-  return groupSearchResults(candidates, query, slot, languageKey, limit);
+  const effectiveLimit = query && query.trim() ? limit : Infinity;
+  return groupSearchResults(candidates, query, slot, languageKey, effectiveLimit);
 }
