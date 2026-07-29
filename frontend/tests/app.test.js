@@ -361,7 +361,9 @@ test('clicking an already-selected slot deselects it and shows the loadout descr
   assert.equal(document.getElementById('searchTitle').textContent, 'Select a slot');
   assert.ok(document.getElementById('searchInput').disabled);
   assert.equal(headRow.classList.contains('is-selected'), false);
-  assert.equal(document.getElementById('searchResults').textContent.trim(), 'Fast mount, no armor.');
+  // Labeled with the loadout's own title, so it's clear where this text is coming from.
+  assert.equal(document.querySelector('#searchResults .empty-state-title').textContent, 'Alpha Build');
+  assert.equal(document.querySelector('#searchResults p:last-child').textContent, 'Fast mount, no armor.');
 });
 
 // ---------------------------------------------------------------------------- filters-not-per-loadout

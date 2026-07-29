@@ -855,13 +855,34 @@ button:disabled {
   color: hsl(var(--ink-faint));
 }
 
+.empty-state p {
+  margin: 0;
+}
+
+.empty-state-title {
+  margin-bottom: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: hsl(var(--ink-soft));
+}
+
 /* search column: always visible, no drawer/overlay - selecting a slot updates
    this column in place so searching never requires leaving the current view */
 
 .builder-column input[type="search"] {
   flex: 0 0 auto;
   width: 100%;
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.search-input-separator {
+  flex: 0 0 auto;
+  border: none;
+  border-top: 1px solid hsl(var(--rule));
+  margin: 0 0 var(--space-3);
 }
 
 .search-results {

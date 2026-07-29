@@ -14,6 +14,10 @@ Actions), so entries are grouped by date rather than by version number — there
 - Region, Language, Market city, and Minimum quality now persist across page reloads,
   the same way saved loadouts already do - previously they silently reset to the
   defaults (Americas/English/All cities/Normal) every time the page was reopened.
+- A subtle separator under the search input, matching the existing one between the
+  Equipment and Search columns.
+- When no slot is selected, the loaded loadout's description now shows under its own
+  title, so it's clear which loadout that text belongs to instead of unlabeled text.
 
 ### Fixed
 
