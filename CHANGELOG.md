@@ -9,6 +9,14 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ## [Unreleased]
 
+### Fixed
+
+- Loading a saved loadout no longer changes the Region, Language, or Market city filters.
+  Those used to be saved as a frozen snapshot alongside each loadout and silently
+  reapplied on load, so switching loadouts could change what you were comparing prices
+  against even though you never touched those dropdowns. They're now app-level settings
+  that stay put across loadout switches.
+
 ## 2026-07-29
 
 ### Added

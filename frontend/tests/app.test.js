@@ -340,3 +340,29 @@ test('clicking an already-selected slot deselects it and shows the loadout descr
   assert.equal(headRow.classList.contains('is-selected'), false);
   assert.equal(document.getElementById('searchResults').textContent.trim(), 'Fast mount, no armor.');
 });
+
+// ---------------------------------------------------------------------------- filters-not-per-loadout
+
+test('loading a saved loadout does not change Region/Language/Market city', async () => {
+  // Regression: saved loadouts used to carry a frozen snapshot of Region/Language/Market
+  // city and silently reapply it on load, so switching loadouts could change what you were
+  // comparing prices against even though you never touched those dropdowns.
+  const dom = await bootApp();
+  const { document } = dom.window;
+
+  saveLoadoutAs(dom, 'Alpha Build');
+
+  clickOption(dom, 'regionSelect', 'europe');
+  clickOption(dom, 'languageSelect', 'de');
+  document.getElementById('marketCitySelect').value = 'Caerleon';
+  document.getElementById('marketCitySelect').dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+
+  saveLoadoutAs(dom, 'Bravo Build');
+
+  selectSavedLoadout(dom, 'Alpha Build');
+
+  const selectedValue = (rootId) => document.querySelector(`#${rootId} [aria-selected="true"]`)?.dataset.value;
+  assert.equal(selectedValue('regionSelect'), 'europe');
+  assert.equal(selectedValue('languageSelect'), 'de');
+  assert.equal(document.getElementById('marketCitySelect').value, 'Caerleon');
+});
