@@ -70,6 +70,10 @@ Actions), so entries are grouped by date rather than by version number — there
   own hint ("Change the title to save as a new preset instead"). Changing the title now
   does save a new entry, leaving the original untouched; saving with the title unchanged
   still updates in place.
+- Food and potion prices no longer disappear when the minimum quality filter is set above
+  Normal. Those items are never listed above Normal quality, so the filter used to zero out
+  their only real data instead of narrowing it; they're now always queried at their own
+  floor regardless of the selected minimum quality. (#3)
 
 ## 2026-07-24
 
