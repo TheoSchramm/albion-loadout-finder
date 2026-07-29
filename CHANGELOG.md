@@ -9,6 +9,22 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ## [Unreleased]
 
+## 2026-07-29
+
+### Added
+
+- Clicking an already-selected equipment slot now deselects it, instead of only being
+  able to switch to a different slot. With no slot selected, the search panel shows the
+  loaded loadout's own description again (previously only reachable before picking any
+  slot at all, which the app did automatically on page load - see below).
+
+### Changed
+
+- The app no longer auto-selects the first equipment slot on page load, and loading a
+  saved loadout no longer keeps whatever slot was selected before it - both now start
+  with no slot selected, showing the loaded loadout's description (or the generic hint)
+  instead of immediately jumping into a slot's item list.
+
 ## 2026-07-28
 
 ### Added

@@ -572,7 +572,13 @@ function renderInventory() {
     label.textContent = slotInfo.label;
     mainButton.setAttribute('aria-label', `${slotInfo.label} slot`);
 
-    mainButton.addEventListener('click', () => selectSlot(slotInfo.key));
+    mainButton.addEventListener('click', () => {
+      if (state.selectedSlot === slotInfo.key) {
+        deselectSlot();
+      } else {
+        selectSlot(slotInfo.key);
+      }
+    });
 
     clearButton.addEventListener('click', event => {
       event.stopPropagation();
@@ -639,9 +645,9 @@ function defaultSearchPrompt() {
 
 // The "nothing typed yet" view: list every item available for the selected slot (an
 // empty query matches everything - see matchesQuery() in text.js) rather than making
-// the user type a letter just to see what's on offer. Only falls back to the generic
-// hint when no slot is selected at all, which is rare (a slot is auto-selected on
-// boot and stays selected across most actions).
+// the user type a letter just to see what's on offer. Falls back to the generic hint (or
+// a loaded loadout's own description) when no slot is selected - the default on boot and
+// after loading a loadout, and reachable any time via deselectSlot().
 function showIdleSearchView() {
   if (state.selectedSlot) {
     runSearch(state.selectedSlot, '');
@@ -663,6 +669,21 @@ function selectSlot(slot) {
   showIdleSearchView();
   syncSlotRows();
   elements.searchInput.focus();
+}
+
+// Clears the slot selection, dropping back to the idle view - the loaded loadout's own
+// description (via defaultSearchPrompt()) instead of a slot's item list. Reached by
+// clicking the already-selected slot again, by boot() (no slot selected by default), and
+// by loadSelectedSavedLoadout() (loading a loadout doesn't keep whatever was selected
+// before it).
+function deselectSlot() {
+  state.selectedSlot = null;
+  state.searchQuery = '';
+  elements.searchInput.value = '';
+  elements.searchInput.disabled = true;
+  elements.searchTitle.textContent = 'Select a slot';
+  showIdleSearchView();
+  syncSlotRows();
 }
 
 function getCurrentLoadoutSnapshot() {
@@ -1009,9 +1030,9 @@ async function loadSelectedSavedLoadout() {
 
   state.activePresetId = savedLoadout.id;
   state.activePresetDescription = savedLoadout.description || '';
-  if (!state.searchQuery.trim()) {
-    showIdleSearchView();
-  }
+  // Starts with no slot selected, showing this loadout's own description, rather than
+  // silently re-running a search left over from whatever was selected before loading.
+  deselectSlot();
 
   applyTwoHandedRule();
   markPricingDirty(`Loaded "${savedLoadout.title}". Click Compare prices to refresh market data.`);
@@ -1644,9 +1665,9 @@ async function boot() {
   renderSavedLoadoutOptions();
   setStatus('Ready');
 
-  if (state.config.slots.length) {
-    selectSlot(state.config.slots[0].key);
-  }
+  // Starts with no slot selected, showing the generic hint (or a loaded loadout's own
+  // description, once one is loaded) instead of auto-picking the first slot.
+  deselectSlot();
 
   elements.regionSelect.addEventListener('change', event => {
     state.region = event.target.value;
