@@ -564,7 +564,13 @@ function renderInventory() {
     label.textContent = slotInfo.label;
     mainButton.setAttribute('aria-label', `${slotInfo.label} slot`);
 
-    mainButton.addEventListener('click', () => selectSlot(slotInfo.key));
+    mainButton.addEventListener('click', () => {
+      if (state.selectedSlot === slotInfo.key) {
+        deselectSlot();
+      } else {
+        selectSlot(slotInfo.key);
+      }
+    });
 
     clearButton.addEventListener('click', event => {
       event.stopPropagation();
@@ -655,6 +661,19 @@ function selectSlot(slot) {
   showIdleSearchView();
   syncSlotRows();
   elements.searchInput.focus();
+}
+
+// Clicking the already-selected slot again clears the selection instead of re-searching
+// it - the only way back to the idle view, which shows the loaded loadout's own
+// description (via defaultSearchPrompt()) instead of a slot's item list.
+function deselectSlot() {
+  state.selectedSlot = null;
+  state.searchQuery = '';
+  elements.searchInput.value = '';
+  elements.searchInput.disabled = true;
+  elements.searchTitle.textContent = 'Select a slot';
+  showIdleSearchView();
+  syncSlotRows();
 }
 
 function getCurrentLoadoutSnapshot() {

@@ -9,6 +9,15 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ## [Unreleased]
 
+## 2026-07-29
+
+### Added
+
+- Clicking an already-selected equipment slot now deselects it, instead of only being
+  able to switch to a different slot. With no slot selected, the search panel shows the
+  loaded loadout's own description again (previously only reachable before picking any
+  slot at all, which the app does automatically on page load).
+
 ## 2026-07-28
 
 ### Added
