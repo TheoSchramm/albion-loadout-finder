@@ -18,6 +18,23 @@ const CATALOG_URL = new URL('./data/items.catalog.json', import.meta.url);
 // plain elements so each row can hold an icon. It mimics just enough of <select>'s API
 // (`.value` get/set, `addEventListener('change', ...)` with `event.target.value`) that the
 // rest of app.js reads and writes it exactly like the native control it replaces.
+// An option can carry an image icon (`icon`, a CSS background-image value) or a Material
+// Symbols glyph (`iconGlyph`, e.g. "shield" - for a value with no dedicated artwork)
+// interchangeably; this applies whichever is present to a shared icon element so both the
+// closed trigger and the open list render either kind the same way.
+function applyOptionIcon(iconEl, option) {
+  const hasIcon = Boolean(option.icon || option.iconGlyph);
+  iconEl.hidden = !hasIcon;
+  iconEl.classList.toggle('material-symbols-rounded', Boolean(option.iconGlyph));
+  if (option.iconGlyph) {
+    iconEl.textContent = option.iconGlyph;
+    iconEl.style.backgroundImage = 'none';
+  } else {
+    iconEl.textContent = '';
+    iconEl.style.backgroundImage = option.icon || 'none';
+  }
+}
+
 function createIconSelect(root) {
   const trigger = root.querySelector('.icon-select-trigger');
   const triggerIcon = root.querySelector('.icon-select-icon');
@@ -50,9 +67,9 @@ function createIconSelect(root) {
   }
 
   function applySelection(option) {
-    triggerIcon.hidden = !option.icon;
-    triggerIcon.style.backgroundImage = option.icon || 'none';
+    applyOptionIcon(triggerIcon, option);
     triggerLabel.textContent = option.label;
+    triggerLabel.style.color = option.color || '';
     list.querySelectorAll('[role="option"]').forEach((node) => {
       node.setAttribute('aria-selected', String(node.dataset.value === option.value));
       node.classList.toggle('is-selected', node.dataset.value === option.value);
@@ -118,14 +135,15 @@ function createIconSelect(root) {
         item.setAttribute('aria-selected', 'false');
         item.tabIndex = -1;
         item.dataset.value = option.value;
-        if (option.icon) {
+        if (option.icon || option.iconGlyph) {
           const icon = document.createElement('span');
           icon.className = 'icon-select-option-icon';
-          icon.style.backgroundImage = option.icon;
+          applyOptionIcon(icon, option);
           item.append(icon);
         }
         const label = document.createElement('span');
         label.textContent = option.label;
+        if (option.color) label.style.color = option.color;
         item.append(label);
         item.addEventListener('click', () => {
           choose(option.value);
@@ -206,7 +224,7 @@ function applyStaticTranslations() {
 const elements = {
   regionSelect: createIconSelect(document.getElementById('regionSelect')),
   languageSelect: createIconSelect(document.getElementById('languageSelect')),
-  marketCitySelect: document.getElementById('marketCitySelect'),
+  marketCitySelect: createIconSelect(document.getElementById('marketCitySelect')),
   minQualitySelect: document.getElementById('minQualitySelect'),
   refreshButton: document.getElementById('refreshButton'),
   slotList: document.getElementById('slotList'),
@@ -423,17 +441,34 @@ const LANGUAGE_FLAG_ICONS = {
   ),
 };
 
-// Americas/Asia/Europe are server clusters, not single countries, so region gets one
-// neutral globe icon rather than a flag that would misrepresent an entire continent.
-const REGION_ICON = svgDataUri(
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">' +
-    '<circle cx="10" cy="10" r="8" fill="none" stroke="#a89f8c" stroke-width="1.4"/>' +
-    '<ellipse cx="10" cy="10" rx="3.2" ry="8" fill="none" stroke="#a89f8c" stroke-width="1.2"/>' +
-    '<line x1="2" y1="10" x2="18" y2="10" stroke="#a89f8c" stroke-width="1.2"/>' +
-    '<line x1="3.2" y1="5.5" x2="16.8" y2="5.5" stroke="#a89f8c" stroke-width="1"/>' +
-    '<line x1="3.2" y1="14.5" x2="16.8" y2="14.5" stroke="#a89f8c" stroke-width="1"/>' +
-    '</svg>',
-);
+// Document-relative (see CATALOG_URL above) so these resolve correctly from a GitHub
+// Pages project subpath too, not just a domain root.
+function imageIconUrl(relativePath) {
+  return `url("${new URL(relativePath, import.meta.url)}")`;
+}
+
+// Americas/Asia/Europe are server clusters, not single countries, but each still gets its
+// own continent artwork rather than a single generic icon shared by all three.
+const REGION_ICONS = {
+  americas: imageIconUrl('./icons/regions/americas.png'),
+  asia: imageIconUrl('./icons/regions/asia.png'),
+  europe: imageIconUrl('./icons/regions/europe.png'),
+};
+
+// One crest per home city. Brecilien has no dedicated crest artwork - it's the Outlands
+// hub, not a home city - so it falls back to a neutral shield glyph (see CITY_ICON_GLYPHS)
+// instead of a missing image.
+const CITY_ICONS = {
+  Bridgewatch: imageIconUrl('./icons/cities/bridgewatch.png'),
+  Caerleon: imageIconUrl('./icons/cities/caerleon.png'),
+  FortSterling: imageIconUrl('./icons/cities/fortsterling.png'),
+  Lymhurst: imageIconUrl('./icons/cities/lymhurst.png'),
+  Martlock: imageIconUrl('./icons/cities/martlock.png'),
+  Thetford: imageIconUrl('./icons/cities/thetford.png'),
+};
+const CITY_ICON_GLYPHS = {
+  Brecilien: 'shield',
+};
 
 // Colors the closed <select> box to match its current choice, not just the open dropdown -
 // most browsers render an <option>'s color/background only while the list is open, so
@@ -588,7 +623,7 @@ function renderConfig() {
     Object.entries(state.config.regions).map(([key, region]) => ({
       value: key,
       label: region.label,
-      icon: REGION_ICON,
+      icon: REGION_ICONS[key],
     })),
   );
 
@@ -625,28 +660,24 @@ function renderMinQualityOptions() {
 
 function renderMarketCityOptions() {
   const region = state.config.regions[state.region];
-  elements.marketCitySelect.innerHTML = '';
+  const cities = region ? region.cities : [];
 
-  const allOption = document.createElement('option');
-  allOption.value = 'all';
-  allOption.textContent = T('allCitiesOption');
-  elements.marketCitySelect.append(allOption);
+  const options = [
+    { value: 'all', label: T('allCitiesOption') },
+    ...cities.map(city => ({
+      value: city,
+      label: city,
+      icon: CITY_ICONS[city],
+      iconGlyph: CITY_ICON_GLYPHS[city],
+      color: cityColor(city),
+    })),
+  ];
+  elements.marketCitySelect.setOptions(options);
 
-  if (region) {
-    region.cities.forEach(city => {
-      const option = document.createElement('option');
-      option.value = city;
-      option.textContent = city;
-      option.style.color = cityColor(city);
-      elements.marketCitySelect.append(option);
-    });
-  }
-
-  if (![...elements.marketCitySelect.options].some(option => option.value === state.marketCity)) {
+  if (!options.some(option => option.value === state.marketCity)) {
     state.marketCity = 'all';
   }
   elements.marketCitySelect.value = state.marketCity;
-  syncSelectColor(elements.marketCitySelect, cityColor(state.marketCity));
 }
 
 function renderInventory() {
@@ -1881,7 +1912,6 @@ async function boot() {
 
   elements.marketCitySelect.addEventListener('change', event => {
     state.marketCity = event.target.value;
-    syncSelectColor(elements.marketCitySelect, cityColor(state.marketCity));
     persistFilters();
     markPricingDirty(T('marketCityChangedHint'));
   });

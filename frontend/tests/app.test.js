@@ -196,12 +196,34 @@ test('Language select icon changes when switching language (#7)', async () => {
 test('Market city and Minimum quality options are colored (#7)', async () => {
   const dom = await bootApp();
   const { document } = dom.window;
-  const cityOption = [...document.getElementById('marketCitySelect').options].find((o) => o.value === 'Caerleon');
+  const cityOption = document.querySelector('#marketCitySelect [data-value="Caerleon"] span:last-child');
   const qualityOption = [...document.getElementById('minQualitySelect').options].find((o) => o.value === '2');
   assert.ok(cityOption, 'expected a Caerleon option for the default region');
   assert.notEqual(cityOption.style.color, '', 'city option should carry an inline color');
   assert.ok(qualityOption, 'expected a Good (2) quality option');
   assert.notEqual(qualityOption.style.color, '', 'quality option should carry an inline color');
+});
+
+test('each region gets its own icon, not one shared icon', async () => {
+  const dom = await bootApp();
+  const { document, window } = { document: dom.window.document, window: dom.window };
+  const regionIcon = document.querySelector('#regionSelect .icon-select-icon');
+  const before = regionIcon.style.backgroundImage;
+  clickOption(dom, 'regionSelect', 'europe');
+  assert.notEqual(regionIcon.style.backgroundImage, before, 'the region icon should change with the selected region');
+  assert.match(regionIcon.style.backgroundImage, /europe\.png/);
+});
+
+test('Market city options carry a crest icon per city, and a shield glyph for Brecilien', async () => {
+  const dom = await bootApp();
+  const { document } = dom.window;
+  const caerleonIcon = document.querySelector('#marketCitySelect [data-value="Caerleon"] .icon-select-option-icon');
+  const brecilienIcon = document.querySelector('#marketCitySelect [data-value="Brecilien"] .icon-select-option-icon');
+  assert.ok(caerleonIcon, 'expected an icon element for Caerleon');
+  assert.match(caerleonIcon.style.backgroundImage, /caerleon\.png/);
+  assert.ok(brecilienIcon, 'expected an icon element for Brecilien');
+  assert.ok(brecilienIcon.classList.contains('material-symbols-rounded'), 'Brecilien has no crest artwork - it should fall back to a glyph');
+  assert.equal(brecilienIcon.textContent, 'shield');
 });
 
 test('picking a Region/Language option closes the dropdown and it does not reopen (#7 regression)', async () => {
@@ -432,7 +454,7 @@ test('switching language retranslates the Minimum quality and Market city dropdo
 
   const qualityOptionAfter = [...document.getElementById('minQualitySelect').options].find((o) => o.value === '2');
   assert.equal(qualityOptionAfter.textContent, 'Gut');
-  assert.equal(document.getElementById('marketCitySelect').options[0].textContent, 'Alle Städte');
+  assert.equal(document.querySelector('#marketCitySelect [data-value="all"]').textContent, 'Alle Städte');
 });
 
 // ---------------------------------------------------------------------------- icon-loading-placeholder
@@ -536,9 +558,7 @@ test('Region/Language/Market city/Minimum quality persist across a page reload',
 
   clickOption(dom1, 'regionSelect', 'europe');
   clickOption(dom1, 'languageSelect', 'de');
-  const marketCitySelect1 = dom1.window.document.getElementById('marketCitySelect');
-  marketCitySelect1.value = 'Lymhurst';
-  marketCitySelect1.dispatchEvent(new dom1.window.Event('change', { bubbles: true }));
+  clickOption(dom1, 'marketCitySelect', 'Lymhurst');
   const minQualitySelect1 = dom1.window.document.getElementById('minQualitySelect');
   minQualitySelect1.value = '3';
   minQualitySelect1.dispatchEvent(new dom1.window.Event('change', { bubbles: true }));
@@ -554,7 +574,7 @@ test('Region/Language/Market city/Minimum quality persist across a page reload',
   const selectedValue = (rootId) => document2.querySelector(`#${rootId} [aria-selected="true"]`)?.dataset.value;
   assert.equal(selectedValue('regionSelect'), 'europe');
   assert.equal(selectedValue('languageSelect'), 'de');
-  assert.equal(document2.getElementById('marketCitySelect').value, 'Lymhurst');
+  assert.equal(selectedValue('marketCitySelect'), 'Lymhurst');
   assert.equal(document2.getElementById('minQualitySelect').value, '3');
 });
 
