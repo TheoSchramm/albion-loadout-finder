@@ -114,6 +114,21 @@ function clickOption(dom, iconSelectRootId, optionValue) {
   option.querySelector('span:last-child').dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
 }
 
+/** Selects a slot, searches for `query`, and equips the first search result. */
+async function equipFirstSearchResult(dom, slotKey, query) {
+  const { document, window } = dom.window;
+  slotRow(dom, slotKey).querySelector('.slot-row-main').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  document.getElementById('searchInput').value = query;
+  document.getElementById('searchInput').dispatchEvent(new window.Event('input', { bubbles: true }));
+  await waitFor(() => document.querySelectorAll('.result-row').length > 0);
+  document.querySelector('.result-row-use').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+}
+
+function savedLoadoutTitles(dom) {
+  const select = dom.window.document.getElementById('savedLoadoutSelect');
+  return [...select.options].filter((o) => o.value !== '').map((o) => o.textContent);
+}
+
 // ---------------------------------------------------------------------------- issue #9
 
 test('sidebar has a link to the GitHub repository (#9)', async () => {
@@ -504,4 +519,64 @@ test('swapping to a different tier/enchant hides the stale icon instead of showi
   slotImage.dispatchEvent(new window.Event('load'));
   assert.equal(slotImage.style.visibility, '', 'the new icon should become visible once it finishes loading');
   assert.equal(slotSpinner.hidden, true);
+});
+
+// ---------------------------------------------------------------------------- import-creates-new-loadout
+
+test('importing a loadout code creates a new saved loadout instead of just replacing the working gear', async () => {
+  const dom = await bootApp();
+  const { document, window } = { document: dom.window.document, window: dom.window };
+
+  await equipFirstSearchResult(dom, 'head', 'hood');
+
+  // jsdom has no Clipboard API, so copyLoadoutCode() falls into its prompt() fallback -
+  // capture the code it would have copied from the prompt's default value.
+  let exportedCode = null;
+  window.prompt = (_message, defaultValue) => {
+    exportedCode = defaultValue ?? null;
+    return null;
+  };
+  click(dom, 'exportLoadoutButton');
+  assert.ok(exportedCode, 'expected the export prompt fallback to carry the loadout code');
+
+  assert.deepEqual(savedLoadoutTitles(dom), [], 'sanity check: nothing saved yet');
+
+  window.prompt = () => exportedCode;
+  click(dom, 'importLoadoutButton');
+
+  assert.deepEqual(savedLoadoutTitles(dom), ['Imported loadout 1']);
+  assert.match(document.getElementById('savedLoadoutSelect').value, /.+/, 'the new loadout should be selected');
+
+  // Importing again must add a second entry, not overwrite the first.
+  click(dom, 'importLoadoutButton');
+  assert.deepEqual(savedLoadoutTitles(dom), ['Imported loadout 2', 'Imported loadout 1']);
+});
+
+// ---------------------------------------------------------------------------- export-copy-feedback
+
+test('Export shows a checkmark and "Copied!" label after a successful copy, then reverts', async () => {
+  const dom = await bootApp();
+  const { document, window } = { document: dom.window.document, window: dom.window };
+
+  await equipFirstSearchResult(dom, 'head', 'hood');
+
+  Object.defineProperty(window.navigator, 'clipboard', {
+    value: { writeText: async () => {} },
+    configurable: true,
+  });
+
+  const exportButton = document.getElementById('exportLoadoutButton');
+  const icon = exportButton.querySelector('.material-symbols-rounded');
+  const label = exportButton.querySelector('[data-i18n]');
+  assert.equal(icon.textContent, 'ios_share');
+  assert.equal(label.textContent, 'Export');
+
+  click(dom, 'exportLoadoutButton');
+  // copyLoadoutCode() awaits navigator.clipboard.writeText() before flashing feedback.
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.equal(icon.textContent, 'check');
+  assert.equal(label.textContent, 'Copied!');
+  assert.ok(exportButton.classList.contains('is-copied'));
 });

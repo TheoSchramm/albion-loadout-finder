@@ -940,14 +940,17 @@ function renderSavedLoadoutOptions() {
 
 // "My loadout N" for whatever N isn't already taken, so a brand-new save never
 // silently collides with an existing title and needs no typing to submit.
-function nextLoadoutPlaceholderTitle() {
-  const prefix = T('defaultLoadoutTitlePrefix');
+function nextAvailableLoadoutTitle(prefix) {
   const existingTitles = new Set(state.savedLoadouts.map(entry => entry.title.toLowerCase()));
   let n = state.savedLoadouts.length + 1;
   while (existingTitles.has(`${prefix} ${n}`.toLowerCase())) {
     n += 1;
   }
   return `${prefix} ${n}`;
+}
+
+function nextLoadoutPlaceholderTitle() {
+  return nextAvailableLoadoutTitle(T('defaultLoadoutTitlePrefix'));
 }
 
 function openSaveLoadoutDialog(mode = 'create') {
@@ -1475,6 +1478,25 @@ function clearLoadout() {
   markPricingDirty(); // also calls syncSlotRows(), which redraws every slot as empty
 }
 
+// Briefly swaps a labeled button's icon and text for a checkmark + "Copied!", the same
+// feedback copyMarketAlias() gives icon-only copy buttons, adapted for one with a visible
+// label so the confirmation doesn't rely on a status line the user might not be looking at.
+function flashCopiedFeedback(button) {
+  const icon = button.querySelector('.material-symbols-rounded');
+  const label = button.querySelector('[data-i18n]');
+  const originalIcon = icon.textContent;
+  const originalLabel = label ? label.textContent : null;
+  icon.textContent = 'check';
+  if (label) label.textContent = T('copiedFeedback');
+  button.classList.add('is-copied');
+  clearTimeout(button.copyResetTimer);
+  button.copyResetTimer = setTimeout(() => {
+    icon.textContent = originalIcon;
+    if (label) label.textContent = originalLabel;
+    button.classList.remove('is-copied');
+  }, 1500);
+}
+
 async function copyLoadoutCode() {
   if (!state.loadout.size) {
     window.alert(T('equipAnItemFirst'));
@@ -1484,6 +1506,7 @@ async function copyLoadoutCode() {
   try {
     await navigator.clipboard.writeText(code);
     setStatus(T('loadoutCodeCopied'));
+    flashCopiedFeedback(elements.exportLoadoutButton);
   } catch {
     // Clipboard access can be denied (permissions, insecure context); a prompt with
     // the text pre-selected is a plain fallback that still lets the user copy it.
@@ -1529,15 +1552,33 @@ function importLoadoutCode() {
   state.loadout.clear();
   resolved.forEach(([slot, item]) => state.loadout.set(slot, item));
   applyTwoHandedRule();
-  state.activePresetId = '';
+
+  // An imported code has no title of its own, so it becomes a new saved loadout right
+  // away instead of just replacing the unsaved working gear, where it would be lost the
+  // next time a different loadout is loaded.
+  const title = nextAvailableLoadoutTitle(T('importedLoadoutTitlePrefix'));
+  const snapshot = {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    title,
+    description: '',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    slots: getCurrentLoadoutSnapshot(),
+  };
+  state.savedLoadouts.unshift(snapshot);
+  state.selectedSavedLoadoutId = snapshot.id;
+  state.activePresetId = snapshot.id;
   state.activePresetDescription = '';
+  persistSavedLoadouts();
+  renderSavedLoadoutOptions();
+
   if (!state.searchQuery.trim()) {
     showIdleSearchView();
   }
 
   const itemWord = T(resolved.length === 1 ? 'itemWordSingular' : 'itemWordPlural');
   const skippedNote = skipped ? T('notRecognizedNote', { count: skipped }) : '';
-  markPricingDirty(T('importedItemsStatus', { count: resolved.length, itemWord, skippedNote }));
+  markPricingDirty(T('importedLoadoutStatus', { title, count: resolved.length, itemWord, skippedNote }));
 }
 
 function markPricingDirty(message = T('loadoutChangedHint')) {

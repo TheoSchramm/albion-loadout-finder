@@ -28,6 +28,11 @@ Actions), so entries are grouped by date rather than by version number — there
   to load, instead of a blank tile in both cases. Swapping an icon for a different one
   (e.g. picking a different tier/enchant) now hides the old icon while the new one loads,
   instead of spinning over the stale image.
+- Importing a loadout code now saves it as a new loadout right away (titled "Imported
+  loadout N"), instead of only replacing the currently equipped gear with nothing to
+  come back to once a different loadout is loaded.
+- Export now flashes a checkmark and "Copied!" directly on the button after a successful
+  copy, instead of relying only on the easy-to-miss status line.
 
 ### Changed
 
