@@ -320,6 +320,14 @@ button {
   display: none;
 }
 
+/* Region continent artwork is portrait (176x240), not the wide flag-shaped aspect the
+   shared box above is sized for - a bit bigger reads much better. */
+#regionSelect .icon-select-icon,
+#regionSelect .icon-select-option-icon {
+  width: 1.3rem;
+  height: 1.7rem;
+}
+
 /* A glyph icon (e.g. Brecilien's shield, which has no dedicated crest artwork) shares the
    same box as an image icon, but needs centering and its own font size instead of a
    background image. */
