@@ -921,12 +921,16 @@ function saveCurrentLoadout(event) {
     return;
   }
 
-  // If a preset is already active (loaded, or saved earlier this session), Save
-  // updates that same entry by id - it does not matter whether the title changed,
-  // this is still "the same preset" getting new gear/title/description.
+  // If a preset is already active (loaded, or saved earlier this session) AND the title
+  // wasn't changed, Save updates that same entry by id - same name means "the same
+  // preset" getting new gear/description. Changing the title falls through to the
+  // create-new-entry code below instead, per the dialog's own hint text ("Change the
+  // title to save as a new preset instead").
   const activeIndex = state.savedLoadouts.findIndex(entry => entry.id === state.activePresetId);
-  if (activeIndex >= 0) {
-    const target = state.savedLoadouts[activeIndex];
+  const activeEntry = activeIndex >= 0 ? state.savedLoadouts[activeIndex] : null;
+  const isRenamingActiveEntry = activeEntry && activeEntry.title.toLowerCase() === title.toLowerCase();
+  if (isRenamingActiveEntry) {
+    const target = activeEntry;
     target.title = title;
     target.description = description;
     target.updatedAt = new Date().toISOString();
