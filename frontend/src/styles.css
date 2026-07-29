@@ -238,7 +238,8 @@ button {
   gap: var(--space-3);
 }
 
-.config-controls label {
+.config-controls label,
+.icon-select-field {
   display: grid;
   gap: var(--space-1);
   color: hsl(var(--ink-faint));

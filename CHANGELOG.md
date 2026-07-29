@@ -23,6 +23,15 @@ Actions), so entries are grouped by date rather than by version number — there
   the open option list too, not just the closed control - no browser renders an image
   inside a native `<option>`.
 
+### Fixed
+
+- Picking a Region/Language option immediately reopened the dropdown instead of staying
+  closed. The `<label>` wrapped both the trigger button and the option list, and clicking
+  a plain (non-form-control) element inside a `<label>` makes the browser also fire a
+  synthetic click on the label's associated control right after - reopening it the instant
+  it closed. Region and Language now use a `<label for>` that only references the trigger,
+  with the option list moved outside the label entirely.
+
 ## 2026-07-24
 
 ### Added
