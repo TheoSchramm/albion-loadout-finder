@@ -9,6 +9,14 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ## [Unreleased]
 
+### Added
+
+- The Language selector now also translates the app's own interface - labels, buttons,
+  hints, and status/confirmation messages - not just item and catalog names. Covers all
+  8 supported languages (English, German, French, Portuguese, Spanish, Russian, Chinese,
+  Korean); translations beyond English are an LLM-produced first pass, not yet reviewed
+  by native speakers.
+
 ### Fixed
 
 - Loading a saved loadout no longer changes the Region, Language, or Market city filters.

@@ -366,3 +366,48 @@ test('loading a saved loadout does not change Region/Language/Market city', asyn
   assert.equal(selectedValue('languageSelect'), 'de');
   assert.equal(document.getElementById('marketCitySelect').value, 'Caerleon');
 });
+
+// ---------------------------------------------------------------------------- localize-ui-text
+
+test('switching language retranslates static UI text (data-i18n) in place', async () => {
+  const dom = await bootApp();
+  const { document } = dom.window;
+
+  const saveLabel = () => document.querySelector('#saveLoadoutButton [data-i18n]').textContent;
+  assert.equal(saveLabel(), 'Save');
+  clickOption(dom, 'languageSelect', 'de');
+  assert.equal(saveLabel(), 'Speichern');
+  assert.match(document.querySelector('.github-link').textContent, /Auf GitHub/);
+});
+
+test('switching language retranslates the equipment slot labels and "Add to X" heading', async () => {
+  const dom = await bootApp();
+  const { document, window } = { document: dom.window.document, window: dom.window };
+
+  slotRow(dom, 'head').querySelector('.slot-row-main').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  assert.equal(document.getElementById('searchTitle').textContent, 'Add to Head');
+
+  clickOption(dom, 'languageSelect', 'de');
+  assert.equal(document.getElementById('searchTitle').textContent, 'Zu Kopf hinzufügen');
+  // renderInventory() rebuilds the slot list from scratch on a language change, so the row
+  // element must be re-queried rather than reusing the one captured before the switch.
+  assert.equal(slotRow(dom, 'head').querySelector('.slot-row-label').textContent, 'Kopf');
+});
+
+test('switching language retranslates the Minimum quality and Market city dropdown options', async () => {
+  // Regression: renderMinQualityOptions()/renderMarketCityOptions() rebuild these
+  // <select>s from state.config with translated labels, but the language-change handler
+  // originally never called them - so the two dropdowns silently stayed in English while
+  // every other control switched language.
+  const dom = await bootApp();
+  const { document } = dom.window;
+
+  const qualityOptionBefore = [...document.getElementById('minQualitySelect').options].find((o) => o.value === '2');
+  assert.equal(qualityOptionBefore.textContent, 'Good');
+
+  clickOption(dom, 'languageSelect', 'de');
+
+  const qualityOptionAfter = [...document.getElementById('minQualitySelect').options].find((o) => o.value === '2');
+  assert.equal(qualityOptionAfter.textContent, 'Gut');
+  assert.equal(document.getElementById('marketCitySelect').options[0].textContent, 'Alle Städte');
+});
