@@ -56,6 +56,9 @@ Actions), so entries are grouped by date rather than by version number — there
 - Picking a loadout from the saved-loadout dropdown now loads it immediately, instead of
   requiring a separate click on "Load". The "Load" button stays, for re-loading the same
   selection on demand (discarding unsaved gear changes) without reselecting it.
+- Standardized on "loadout" throughout the UI. The sidebar section was still labeled
+  "Presets" while every button, placeholder and status message already said "loadout"; one
+  save-dialog hint also said "preset". (#4)
 
 ### Fixed
 
