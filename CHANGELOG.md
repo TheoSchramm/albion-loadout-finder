@@ -41,6 +41,11 @@ Actions), so entries are grouped by date rather than by version number — there
   synthetic click on the label's associated control right after - reopening it the instant
   it closed. Region and Language now use a `<label for>` that only references the trigger,
   with the option list moved outside the label entirely.
+- Saving with a changed title while a loadout was already loaded silently renamed and
+  overwrote that loadout instead of creating a new one, contradicting the save dialog's
+  own hint ("Change the title to save as a new preset instead"). Changing the title now
+  does save a new entry, leaving the original untouched; saving with the title unchanged
+  still updates in place.
 
 ## 2026-07-24
 
