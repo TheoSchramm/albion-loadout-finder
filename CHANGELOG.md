@@ -15,6 +15,13 @@ Actions), so entries are grouped by date rather than by version number — there
   the same way saved loadouts already do - previously they silently reset to the
   defaults (Americas/English/All cities/Normal) every time the page was reopened.
 
+### Changed
+
+- Removed the saved-loadout description line that showed under the dropdown in the
+  sidebar - the description is still saved and editable from the Save/Edit dialog, just
+  no longer shown there. Its 180-character limit is also gone; descriptions can now be
+  as long as you like.
+
 ### Fixed
 
 - The price comparison table's item icon now renders at the quality that was actually

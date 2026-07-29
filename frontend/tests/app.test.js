@@ -239,7 +239,7 @@ test('loadout action buttons have icons and distinct accent classes (#8)', async
 
 // ---------------------------------------------------------------------------- issue #6
 
-test('saved-loadout dropdown shows only the title; description shows separately (#6)', async () => {
+test('saved-loadout dropdown shows only the title, not "title — description" (#6)', async () => {
   const dom = await bootApp();
   const { document } = dom.window;
 
@@ -250,8 +250,6 @@ test('saved-loadout dropdown shows only the title; description shows separately 
 
   const option = [...document.getElementById('savedLoadoutSelect').options].find((o) => o.textContent.includes('PvP Build'));
   assert.equal(option.textContent, 'PvP Build', 'the option text must be the title alone, not "title — description"');
-  assert.equal(document.getElementById('savedLoadoutDescriptionHint').textContent, 'Fast mount, no armor.');
-  assert.equal(document.getElementById('savedLoadoutDescriptionHint').hidden, false);
 });
 
 // ---------------------------------------------------------------------------- issue #5
