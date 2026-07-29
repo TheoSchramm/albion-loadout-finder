@@ -341,7 +341,8 @@ button {
   justify-content: center;
   font-size: 0.85rem;
   line-height: 1;
-  color: hsl(var(--ink-faint));
+  /* Matches the city crest icons, which are white line art. */
+  color: #fff;
   font-variation-settings: 'FILL' 1;
 }
 
