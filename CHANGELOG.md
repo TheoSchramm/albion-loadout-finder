@@ -13,6 +13,7 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ### Added
 
+- A favicon.
 - Clicking an already-selected equipment slot now deselects it, instead of only being
   able to switch to a different slot. With no slot selected, the search panel shows the
   loaded loadout's own description again (previously only reachable before picking any
