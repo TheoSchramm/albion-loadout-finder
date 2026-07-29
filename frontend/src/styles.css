@@ -507,6 +507,11 @@ button:disabled {
   color: hsl(var(--verdigris));
 }
 
+.small-button.is-copied {
+  color: hsl(var(--verdigris));
+  border-color: hsl(var(--verdigris) / 0.5);
+}
+
 .small-button-danger {
   color: hsl(var(--seal));
   border-color: hsl(var(--seal) / 0.4);

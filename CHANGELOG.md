@@ -16,6 +16,11 @@ Actions), so entries are grouped by date rather than by version number — there
   8 supported languages (English, German, French, Portuguese, Spanish, Russian, Chinese,
   Korean); translations beyond English are an LLM-produced first pass, not yet reviewed
   by native speakers.
+- Importing a loadout code now saves it as a new loadout right away (titled "Imported
+  loadout N"), instead of only replacing the currently equipped gear with nothing to
+  come back to once a different loadout is loaded.
+- Export now flashes a checkmark and "Copied!" directly on the button after a successful
+  copy, instead of relying only on the easy-to-miss status line.
 
 ### Fixed
 
