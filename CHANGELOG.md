@@ -22,6 +22,10 @@ Actions), so entries are grouped by date rather than by version number — there
   are now a small custom dropdown rather than a native `<select>`, so the icon shows in
   the open option list too, not just the closed control - no browser renders an image
   inside a native `<option>`.
+- A "View on GitHub" link at the bottom of the sidebar, so players can find the repository
+  to open issues, suggest features, or follow development without hunting for the URL. (#9)
+- A disclaimer under the "Compare prices" button noting that prices are only a suggestion
+  and may not be accurate, and to verify them in-game before acting on them.
 
 ### Fixed
 

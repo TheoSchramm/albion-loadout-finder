@@ -205,6 +205,31 @@ button {
   gap: var(--space-2);
 }
 
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px solid hsl(var(--rule));
+}
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: hsl(var(--ink-faint));
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.github-link:hover,
+.github-link:focus-visible {
+  color: hsl(var(--ink));
+}
+
+.github-link svg {
+  flex-shrink: 0;
+}
+
 .eyebrow {
   font-family: var(--font-mono);
   font-size: 0.66rem;
@@ -934,6 +959,25 @@ button:disabled {
 
 .compare-button .material-symbols-rounded {
   font-size: 1rem;
+}
+
+.price-disclaimer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid hsl(var(--rule));
+  border-radius: var(--radius-sm);
+  background: hsl(var(--paper-dim));
+  color: hsl(var(--ink-faint));
+  font-size: 0.78rem;
+}
+
+.price-disclaimer .material-symbols-rounded {
+  flex: 0 0 auto;
+  font-size: 1.05rem;
+  color: hsl(var(--brass));
 }
 
 /* compact results table: every priced slot is one scannable row (icon, item,
