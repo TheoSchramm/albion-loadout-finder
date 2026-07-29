@@ -27,6 +27,12 @@ Actions), so entries are grouped by date rather than by version number — there
 - A disclaimer under the "Compare prices" button noting that prices are only a suggestion
   and may not be accurate, and to verify them in-game before acting on them.
 
+### Changed
+
+- The Load/Save/Edit/Delete/Export/Import loadout buttons now each carry their own icon,
+  and Save/Load/Delete each have a distinct accent color (brass/verdigris/red) instead of
+  four of the six buttons all looking identical. (#8)
+
 ### Fixed
 
 - Picking a Region/Language option immediately reopened the dropdown instead of staying

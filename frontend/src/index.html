@@ -74,16 +74,30 @@
           <div class="loadout-tools">
             <select id="savedLoadoutSelect" aria-label="Saved loadouts"></select>
             <div class="loadout-tools-buttons">
-              <button id="loadSavedLoadoutButton" class="small-button" type="button">Load</button>
-              <button id="saveLoadoutButton" class="small-button" type="button">Save</button>
-              <button id="editSavedLoadoutButton" class="small-button" type="button">Edit</button>
-              <button id="deleteSavedLoadoutButton" class="small-button small-button-danger" type="button">Delete</button>
+              <button id="loadSavedLoadoutButton" class="small-button small-button-accent" type="button">
+                <span class="material-symbols-rounded" aria-hidden="true">folder_open</span>
+                Load
+              </button>
+              <button id="saveLoadoutButton" class="small-button small-button-primary" type="button">
+                <span class="material-symbols-rounded" aria-hidden="true">save</span>
+                Save
+              </button>
+              <button id="editSavedLoadoutButton" class="small-button" type="button">
+                <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+                Edit
+              </button>
+              <button id="deleteSavedLoadoutButton" class="small-button small-button-danger" type="button">
+                <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+                Delete
+              </button>
             </div>
             <div class="loadout-tools-buttons">
               <button id="exportLoadoutButton" class="small-button" type="button" title="Copy the current loadout as a code you can share">
+                <span class="material-symbols-rounded" aria-hidden="true">ios_share</span>
                 Export
               </button>
               <button id="importLoadoutButton" class="small-button" type="button" title="Paste a loadout code to load it">
+                <span class="material-symbols-rounded" aria-hidden="true">content_paste</span>
                 Import
               </button>
             </div>
