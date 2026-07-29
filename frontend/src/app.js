@@ -1411,8 +1411,11 @@ function buildResultCardFragment(slotResult) {
 
   // slotResult.best.image_url is always rendered at quality=1 (serializeVariant() has no
   // notion of a found market listing) - once a price search actually finds one, show the
-  // icon at that quality's border instead of always the plain Normal one.
-  const iconQuality = slotResult.best.cheapest_quality || 1;
+  // icon at that quality's border instead of always the plain Normal one. With no listing
+  // found, fall back to queried_min_quality (the floor actually searched) rather than a
+  // fixed 1 - a filter set above Normal never even looked at quality=1, so implying it did
+  // would be as misleading as the api_url bug this mirrors.
+  const iconQuality = slotResult.best.cheapest_quality ?? slotResult.best.queried_min_quality;
   loadIcon(image, spinner, itemImageUrl(slotResult.best.unique_name, iconQuality, 'en'), {
     onError: () => {
       fallback.hidden = false;

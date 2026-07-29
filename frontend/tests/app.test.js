@@ -633,6 +633,34 @@ test('the price comparison card shows the icon at the quality that was actually 
   assert.equal(iconUrl.searchParams.get('quality'), '3', 'the icon should render at the quality that was actually found cheapest');
 });
 
+test('with no market data, the icon falls back to the quality actually queried, not a fixed Normal', async () => {
+  // Regression: cheapest_quality is null when nothing was found, and the icon used to
+  // fall back to a hardcoded quality=1 regardless of the Minimum quality filter - the
+  // same bug the api_url link had, mirrored in the icon.
+  const dom = await bootApp();
+  const { document, window } = { document: dom.window.document, window: dom.window };
+
+  const minQualitySelect = document.getElementById('minQualitySelect');
+  minQualitySelect.value = '3';
+  minQualitySelect.dispatchEvent(new window.Event('change', { bubbles: true }));
+
+  await equipFirstSearchResult(dom, 'head', 'hood');
+
+  globalThis.fetch = async (url) => {
+    if (String(url).includes('/api/v2/stats/prices/')) {
+      return { ok: true, json: async () => [] };
+    }
+    throw new Error(`unexpected fetch for ${url}`);
+  };
+
+  click(dom, 'refreshButton');
+  await waitFor(() => document.querySelector('.result-card-image'));
+  await waitFor(() => new URL(document.querySelector('.result-card-image').getAttribute('src')).searchParams.get('quality') === '3');
+
+  const iconUrl = new URL(document.querySelector('.result-card-image').getAttribute('src'));
+  assert.equal(iconUrl.searchParams.get('quality'), '3', 'with no listing found, the icon should reflect the filter that was actually queried');
+});
+
 // ---------------------------------------------------------------------------- import-creates-new-loadout
 
 test('importing a loadout code creates a new saved loadout instead of just replacing the working gear', async () => {

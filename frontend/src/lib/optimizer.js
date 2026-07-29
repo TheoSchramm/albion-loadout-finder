@@ -123,6 +123,10 @@ export async function optimizeLoadoutWithCities({
         cheapest_quality_label: best ? qualityLabel(best.data.quality) : null,
         updated_at: best ? best.data.updated_at : '',
         api_url: priceQueryUrl(candidate.unique_name, region, selectedCities, candidateMinQuality),
+        // The floor actually queried for this candidate - lets a consumer with no real
+        // listing (cheapest_quality: null) still reflect the real search instead of
+        // guessing a fixed quality that may not even have been queried.
+        queried_min_quality: candidateMinQuality,
       };
       candidatePayloads.push(payload);
       if (best && (cheapest === null || payload.cheapest_price < cheapest.cheapest_price)) {

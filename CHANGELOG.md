@@ -43,6 +43,10 @@ Actions), so entries are grouped by date rather than by version number — there
   queried (the Minimum quality filter, or a fixed floor of 1 for food/potion items) instead
   of always linking to a fixed quality=1 query - most noticeable on an item with no market
   data, where the link used to imply only Normal quality was ever checked.
+- With no market data found, the result-card icon now falls back to the quality that was
+  actually queried (the Minimum quality filter, or a fixed floor of 1 for food/potion
+  items) instead of always the plain Normal-quality icon - the same bug as the "inspect
+  this query" link above, in the icon.
 
 ## 2026-07-29
 
