@@ -411,3 +411,97 @@ test('switching language retranslates the Minimum quality and Market city dropdo
   assert.equal(qualityOptionAfter.textContent, 'Gut');
   assert.equal(document.getElementById('marketCitySelect').options[0].textContent, 'Alle Städte');
 });
+
+// ---------------------------------------------------------------------------- icon-loading-placeholder
+
+test('a search result icon shows a spinner while its image loads, then a fallback icon on error', async () => {
+  const dom = await bootApp();
+  const { document, window } = { document: dom.window.document, window: dom.window };
+
+  slotRow(dom, 'head').querySelector('.slot-row-main').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  document.getElementById('searchInput').value = 'hood';
+  document.getElementById('searchInput').dispatchEvent(new window.Event('input', { bubbles: true }));
+  await waitFor(() => document.querySelectorAll('.result-row').length > 0);
+
+  const rows = [...document.querySelectorAll('.result-row')];
+  const [rowA, rowB] = rows;
+
+  const spinnerA = rowA.querySelector('.result-row-spinner');
+  const fallbackA = rowA.querySelector('.result-row-fallback');
+  assert.equal(spinnerA.hidden, false, 'spinner should be visible while the icon is still loading');
+  assert.equal(fallbackA.hidden, true, 'fallback icon must not show up before an actual load error');
+
+  rowA.querySelector('.result-row-image').dispatchEvent(new window.Event('load'));
+  assert.equal(spinnerA.hidden, true, 'spinner should hide once the image finishes loading');
+  assert.equal(fallbackA.hidden, true);
+
+  const spinnerB = rowB.querySelector('.result-row-spinner');
+  const fallbackB = rowB.querySelector('.result-row-fallback');
+  rowB.querySelector('.result-row-image').dispatchEvent(new window.Event('error'));
+  assert.equal(spinnerB.hidden, true, 'spinner should hide on a load error too');
+  assert.equal(fallbackB.hidden, false, 'the fallback icon should show up once loading the image fails');
+});
+
+test('equipping an item shows a loading spinner on the slot icon, and an unrelated re-sync does not restart it', async () => {
+  // Regression: loadIcon() used to unconditionally hide the spinner before checking
+  // whether the image src was already being requested, so any re-sync of the same slot
+  // row (equip() alone re-syncs slots more than once) hid a spinner that was still
+  // legitimately waiting on its image to load.
+  const dom = await bootApp();
+  const { document, window } = { document: dom.window.document, window: dom.window };
+
+  slotRow(dom, 'head').querySelector('.slot-row-main').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  document.getElementById('searchInput').value = 'hood';
+  document.getElementById('searchInput').dispatchEvent(new window.Event('input', { bubbles: true }));
+  await waitFor(() => document.querySelectorAll('.result-row').length > 0);
+  document.querySelector('.result-row-use').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+
+  const headRow = slotRow(dom, 'head');
+  const slotSpinner = headRow.querySelector('.slot-row-spinner');
+  assert.equal(slotSpinner.hidden, false, 'the slot icon should show a spinner while its image loads');
+
+  // Deselecting and reselecting the same slot re-runs syncSlotRows() on the same <img>
+  // without recreating it - the spinner must stay visible, not reset to hidden.
+  headRow.querySelector('.slot-row-main').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  headRow.querySelector('.slot-row-main').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  assert.equal(slotSpinner.hidden, false, 're-syncing the same row must not hide an in-flight spinner');
+
+  headRow.querySelector('.slot-row-image').dispatchEvent(new window.Event('load'));
+  assert.equal(slotSpinner.hidden, true, 'the spinner should hide once the slot icon finishes loading');
+});
+
+test('swapping to a different tier/enchant hides the stale icon instead of showing the spinner over it', async () => {
+  // Reassigning <img src> to a new URL doesn't clear the previously painted frame until
+  // the new one decodes, so without explicitly hiding the image the spinner would just
+  // spin on top of the old (now-wrong) icon - e.g. swapping a T2 item for a T3 one.
+  const dom = await bootApp();
+  const { document, window } = { document: dom.window.document, window: dom.window };
+
+  slotRow(dom, 'head').querySelector('.slot-row-main').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  document.getElementById('searchInput').value = 'hood';
+  document.getElementById('searchInput').dispatchEvent(new window.Event('input', { bubbles: true }));
+  await waitFor(() => document.querySelectorAll('.result-row').length > 0);
+  const firstRow = document.querySelector('.result-row');
+  firstRow.querySelector('.result-row-use').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+
+  const headRow = slotRow(dom, 'head');
+  const slotImage = headRow.querySelector('.slot-row-image');
+  const slotSpinner = headRow.querySelector('.slot-row-spinner');
+  slotImage.dispatchEvent(new window.Event('load'));
+  const firstSrc = slotImage.getAttribute('src');
+  assert.equal(slotImage.style.visibility, '', 'the icon should be visible once loaded');
+
+  const tierSelect = firstRow.querySelector('.result-row-tier');
+  const otherTier = [...tierSelect.options].find((o) => o.value !== tierSelect.value);
+  tierSelect.value = otherTier.value;
+  tierSelect.dispatchEvent(new window.Event('change', { bubbles: true }));
+  firstRow.querySelector('.result-row-use').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+
+  assert.notEqual(slotImage.getAttribute('src'), firstSrc, 'sanity check: the swap should target a different image');
+  assert.equal(slotSpinner.hidden, false, 'the spinner should show while the new icon loads');
+  assert.equal(slotImage.style.visibility, 'hidden', 'the stale icon must be hidden while the new one loads, not left showing under the spinner');
+
+  slotImage.dispatchEvent(new window.Event('load'));
+  assert.equal(slotImage.style.visibility, '', 'the new icon should become visible once it finishes loading');
+  assert.equal(slotSpinner.hidden, true);
+});

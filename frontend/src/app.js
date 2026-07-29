@@ -642,6 +642,43 @@ function renderInventory() {
   syncSlotRows();
 }
 
+// Shared by every item icon (slot tile, search result row, result card): shows `spinner`
+// while `src` is in flight, hides it on load or error, and skips re-requesting a URL the
+// image already has - reassigning the same `src` doesn't reliably refire `load`, which
+// would otherwise leave the spinner stuck on across a re-render of the same item.
+function loadIcon(image, spinner, src, { onLoad, onError } = {}) {
+  if (!src) {
+    if (spinner) spinner.hidden = true;
+    image.removeAttribute('src');
+    image.style.visibility = '';
+    image.onload = null;
+    image.onerror = null;
+    return;
+  }
+  if (image.getAttribute('src') === src) {
+    // Already requested (or resolved) - leave the current spinner/image state alone
+    // rather than restarting it, since reassigning the same src won't refire `load`.
+    return;
+  }
+  if (spinner) spinner.hidden = false;
+  // Swapping variants (e.g. a 4.1 bow for a 4.2 one) reassigns `src` on the same <img> -
+  // browsers keep painting the previous frame until the new one decodes, so without this
+  // the spinner would spin on top of the stale icon instead of the new one loading in.
+  image.style.visibility = 'hidden';
+  image.onload = () => {
+    if (spinner) spinner.hidden = true;
+    image.style.visibility = '';
+    onLoad?.();
+  };
+  image.onerror = () => {
+    if (spinner) spinner.hidden = true;
+    image.removeAttribute('src');
+    image.style.visibility = '';
+    onError?.();
+  };
+  image.src = src;
+}
+
 function syncSlotRows() {
   elements.slotList.querySelectorAll('.slot-row').forEach(row => {
     const slot = row.dataset.slot;
@@ -649,6 +686,7 @@ function syncSlotRows() {
     const mainButton = row.querySelector('.slot-row-main');
     const clearButton = row.querySelector('.slot-row-clear');
     const image = row.querySelector('.slot-row-image');
+    const spinner = row.querySelector('.slot-row-spinner');
     const label = row.querySelector('.slot-row-label');
     const quantityBadge = row.querySelector('.slot-row-quantity-badge');
     const locked = !isSlotAvailable(slot);
@@ -660,7 +698,7 @@ function syncSlotRows() {
 
     if (!selected) {
       row.classList.remove('is-filled');
-      image.removeAttribute('src');
+      loadIcon(image, spinner, null);
       image.alt = '';
       label.textContent = locked ? T('lockedSlot') : slotLabel(slot, state.language);
       row.removeAttribute('title');
@@ -669,7 +707,7 @@ function syncSlotRows() {
     }
 
     row.classList.add('is-filled');
-    image.src = selected.image_url;
+    loadIcon(image, spinner, selected.image_url);
     image.alt = selected.display_name;
     row.title = `${selected.display_name} - T${selected.tier}.${selected.enchantment} - ${selected.unique_name}`;
 
@@ -1141,21 +1179,19 @@ function findVariant(variants, tier, enchantment) {
 
 function syncResultPreview(row, variant) {
   const icon = row.querySelector('.result-row-image');
+  const spinner = row.querySelector('.result-row-spinner');
+  const fallback = row.querySelector('.result-row-fallback');
   const name = row.querySelector('.result-row-name');
   const meta = row.querySelector('.result-row-meta');
 
-  icon.src = variant.image_url;
+  fallback.hidden = true;
+  loadIcon(icon, spinner, variant.image_url, {
+    onError: () => {
+      fallback.hidden = false;
+      icon.alt = '';
+    },
+  });
   icon.alt = variant.display_name;
-  row.classList.add('has-image');
-
-  icon.onerror = () => {
-    row.classList.remove('has-image');
-    icon.removeAttribute('src');
-    icon.alt = '';
-  };
-  icon.onload = () => {
-    row.classList.add('has-image');
-  };
 
   name.textContent = variant.display_name;
   meta.textContent = `${variantLabel(variant)} · ${variant.slot_label}`;
@@ -1276,6 +1312,8 @@ function buildResultCardFragment(slotResult) {
   translateFragment(fragment);
   const row = fragment.querySelector('.result-card');
   const image = fragment.querySelector('.result-card-image');
+  const spinner = fragment.querySelector('.result-card-spinner');
+  const fallback = fragment.querySelector('.result-card-fallback');
   const name = fragment.querySelector('.result-card-name');
   const slotLabelEl = fragment.querySelector('.result-card-slot');
   const tierValue = fragment.querySelector('.result-card-tier-value');
@@ -1289,7 +1327,11 @@ function buildResultCardFragment(slotResult) {
   const optionsRow = fragment.querySelector('.result-card-options-row');
   const options = fragment.querySelector('.result-card-options');
 
-  image.src = slotResult.best.image_url;
+  loadIcon(image, spinner, slotResult.best.image_url, {
+    onError: () => {
+      fallback.hidden = false;
+    },
+  });
   image.alt = slotResult.best.display_name;
   name.textContent = slotResult.best.display_name;
   slotLabelEl.textContent = slotResult.selected.slot_label;
