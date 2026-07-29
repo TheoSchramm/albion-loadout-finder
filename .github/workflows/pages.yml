@@ -35,6 +35,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Install devDependencies (jsdom, for DOM-level tests)
+        run: npm ci
+
       # Order matters. Tests run against the COMMITTED catalog, which is in lockstep with
       # the golden fixtures generated from the Python implementation - that is what proves
       # the port is still correct. Only then is the catalog regenerated from live upstream,

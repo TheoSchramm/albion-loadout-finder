@@ -6,3 +6,6 @@ __pycache__/
 # `node scripts/build.mjs` and by CI before deploying. Committing it means a stale
 # copy can silently shadow src (backend/main.py prefers dist when it exists).
 frontend/dist/
+
+# devDependencies (jsdom, for DOM-level tests) - installed via package.json/package-lock.json.
+frontend/node_modules/
