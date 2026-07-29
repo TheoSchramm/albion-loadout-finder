@@ -31,6 +31,10 @@ Actions), so entries are grouped by date rather than by version number — there
 - The price comparison table's item icon now renders at the quality that was actually
   found cheapest (e.g. an Excellent-quality gold border), instead of always the plain
   Normal-quality icon regardless of which quality the listing was actually found at.
+- The "inspect this query" link on each result now shows the quality range actually
+  queried (the Minimum quality filter, or a fixed floor of 1 for food/potion items) instead
+  of always linking to a fixed quality=1 query - most noticeable on an item with no market
+  data, where the link used to imply only Normal quality was ever checked.
 
 ## 2026-07-29
 

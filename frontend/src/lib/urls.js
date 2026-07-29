@@ -36,16 +36,30 @@ export function itemImageUrl(uniqueName, quality = 1, locale = 'en') {
   return `${RENDER_HOST}/v1/item/${encodedName}.png?quality=${quality}&locale=${encodeURIComponent(locale)}`;
 }
 
+// Qualities below the requested floor are dropped by the API itself rather than fetched
+// and filtered client-side - fewer rows over the wire, and prices.js's "cheapest per
+// city" fold never even sees a quality it shouldn't consider.
+export function qualityRange(minQuality) {
+  const floor = Math.min(Math.max(Math.trunc(minQuality) || 1, 1), 5);
+  const values = [];
+  for (let quality = floor; quality <= 5; quality += 1) {
+    values.push(quality);
+  }
+  return values.join(',');
+}
+
 /**
  * The exact price-API request used for this item, so a user can open it and inspect the
- * raw JSON. Deliberately `qualities=1` even though the real fetch asks for all five -
- * this mirrors the Python original, whose link was always the quality-1 query.
+ * raw JSON. `minQuality` should be whatever floor was actually used for this candidate -
+ * the caller's Minimum quality filter, or a fixed floor of 1 for food/potion candidates,
+ * which never list above Normal - so the link reflects the real request made rather than
+ * a value fixed independently of it.
  */
-export function priceQueryUrl(uniqueName, region, cities) {
+export function priceQueryUrl(uniqueName, region, cities, minQuality = 1) {
   const host = regionHost(region);
   const cityList = dedupe(cities);
   return (
     `${host}/api/v2/stats/prices/${encodeURIComponent(uniqueName)}.json` +
-    `?locations=${joinEncoded(cityList)}&qualities=1`
+    `?locations=${joinEncoded(cityList)}&qualities=${qualityRange(minQuality)}`
   );
 }
