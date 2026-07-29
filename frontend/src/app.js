@@ -4,6 +4,7 @@
 import { loadCatalog } from './lib/catalog.js';
 import { getConfig, getItem, getItems, optimize } from './lib/api.js';
 import { slotLabel } from './lib/constants.js';
+import { itemImageUrl } from './lib/urls.js';
 import { t } from './i18n.js';
 
 // Document-relative, so the app works unchanged from a GitHub Pages project subpath
@@ -1372,7 +1373,11 @@ function buildResultCardFragment(slotResult) {
   const optionsRow = fragment.querySelector('.result-card-options-row');
   const options = fragment.querySelector('.result-card-options');
 
-  loadIcon(image, spinner, slotResult.best.image_url, {
+  // slotResult.best.image_url is always rendered at quality=1 (serializeVariant() has no
+  // notion of a found market listing) - once a price search actually finds one, show the
+  // icon at that quality's border instead of always the plain Normal one.
+  const iconQuality = slotResult.best.cheapest_quality || 1;
+  loadIcon(image, spinner, itemImageUrl(slotResult.best.unique_name, iconQuality, 'en'), {
     onError: () => {
       fallback.hidden = false;
     },
