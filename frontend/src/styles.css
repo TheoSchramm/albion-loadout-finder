@@ -774,6 +774,27 @@ button:disabled {
   display: none;
 }
 
+.slot-row-spinner,
+.result-row-spinner,
+.result-card-spinner {
+  border-radius: 50%;
+  border: 2px solid hsl(var(--ink) / 0.15);
+  border-top-color: hsl(var(--brass));
+  animation: icon-spin 0.7s linear infinite;
+}
+
+@keyframes icon-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.slot-row-spinner {
+  position: absolute;
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
 .slot-row-label {
   position: absolute;
   bottom: 0.4rem;
@@ -883,8 +904,10 @@ button:disabled {
   font-size: 1.6rem;
 }
 
-.result-row.has-image .result-row-fallback {
-  display: none;
+.result-row-spinner {
+  position: absolute;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .result-row-copy {
@@ -1104,6 +1127,7 @@ button:disabled {
 }
 
 .result-card-icon {
+  position: relative;
   display: grid;
   place-items: center;
   width: 2.75rem;
@@ -1118,6 +1142,18 @@ button:disabled {
   width: 84%;
   height: 84%;
   object-fit: contain;
+}
+
+.result-card-fallback {
+  position: absolute;
+  color: hsl(var(--ink-faint));
+  font-size: 1.3rem;
+}
+
+.result-card-spinner {
+  position: absolute;
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
 .result-card-copy {

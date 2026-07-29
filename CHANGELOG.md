@@ -9,22 +9,6 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ## [Unreleased]
 
-### Added
-
-- The Language selector now also translates the app's own interface - labels, buttons,
-  hints, and status/confirmation messages - not just item and catalog names. Covers all
-  8 supported languages (English, German, French, Portuguese, Spanish, Russian, Chinese,
-  Korean); translations beyond English are an LLM-produced first pass, not yet reviewed
-  by native speakers.
-
-### Fixed
-
-- Loading a saved loadout no longer changes the Region, Language, or Market city filters.
-  Those used to be saved as a frozen snapshot alongside each loadout and silently
-  reapplied on load, so switching loadouts could change what you were comparing prices
-  against even though you never touched those dropdowns. They're now app-level settings
-  that stay put across loadout switches.
-
 ## 2026-07-29
 
 ### Added
@@ -34,6 +18,14 @@ Actions), so entries are grouped by date rather than by version number — there
   able to switch to a different slot. With no slot selected, the search panel shows the
   loaded loadout's own description again (previously only reachable before picking any
   slot at all, which the app did automatically on page load - see below).
+- The Language selector now also translates the app's own interface - labels, buttons,
+  hints, and status/confirmation messages - not just item and catalog names. Covers all
+  8 supported languages (English, German, French, Portuguese, Spanish, Russian, Chinese,
+  Korean); translations beyond English are an LLM-produced first pass, not yet reviewed
+  by native speakers.
+- Item icons (equipped slots, search results, and the price comparison table) now show
+  a loading spinner while their image is still fetching, and a fallback icon if it fails
+  to load, instead of a blank tile in both cases.
 
 ### Changed
 
@@ -41,6 +33,14 @@ Actions), so entries are grouped by date rather than by version number — there
   saved loadout no longer keeps whatever slot was selected before it - both now start
   with no slot selected, showing the loaded loadout's description (or the generic hint)
   instead of immediately jumping into a slot's item list.
+
+### Fixed
+
+- Loading a saved loadout no longer changes the Region, Language, or Market city filters.
+  Those used to be saved as a frozen snapshot alongside each loadout and silently
+  reapplied on load, so switching loadouts could change what you were comparing prices
+  against even though you never touched those dropdowns. They're now app-level settings
+  that stay put across loadout switches.
 
 ## 2026-07-28
 
