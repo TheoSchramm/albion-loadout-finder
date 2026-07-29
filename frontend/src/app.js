@@ -244,9 +244,51 @@ const elements = {
 
 const SAVED_LOADOUTS_KEY = 'albion-helper.saved-loadouts';
 const LOADOUT_SORT_ORDER_KEY = 'albion-helper.loadout-sort-order';
+const FILTERS_KEY = 'albion-helper.filters';
 
 function loadLoadoutSortOrderFromStorage() {
   return window.localStorage.getItem(LOADOUT_SORT_ORDER_KEY) === 'alpha' ? 'alpha' : 'recent';
+}
+
+// Applies Region/Language/Market city/Minimum quality from a previous session, once
+// state.config is available to validate against - an unrecognized region/language (e.g.
+// from an older version of this app, or a hand-edited value) is ignored rather than
+// applied blindly. Market city isn't validated here: renderMarketCityOptions() already
+// falls back to "all" if the stored city doesn't belong to the restored region.
+function applyStoredFilters() {
+  let saved;
+  try {
+    saved = JSON.parse(window.localStorage.getItem(FILTERS_KEY) || 'null');
+  } catch {
+    saved = null;
+  }
+  if (!saved || typeof saved !== 'object') {
+    return;
+  }
+  if (typeof saved.region === 'string' && state.config.regions[saved.region]) {
+    state.region = saved.region;
+  }
+  if (typeof saved.language === 'string' && state.config.languages.includes(saved.language)) {
+    state.language = saved.language;
+  }
+  if (typeof saved.marketCity === 'string') {
+    state.marketCity = saved.marketCity;
+  }
+  if (state.config.qualities.some(({ value }) => value === saved.minQuality)) {
+    state.minQuality = saved.minQuality;
+  }
+}
+
+function persistFilters() {
+  window.localStorage.setItem(
+    FILTERS_KEY,
+    JSON.stringify({
+      region: state.region,
+      language: state.language,
+      marketCity: state.marketCity,
+      minQuality: state.minQuality,
+    }),
+  );
 }
 
 function formatSilver(value) {
@@ -1777,6 +1819,7 @@ async function boot() {
   // rather than leaving a page that renders but silently does nothing.
   await loadCatalog(CATALOG_URL);
   state.config = getConfig();
+  applyStoredFilters();
   state.savedLoadouts = loadSavedLoadoutsFromStorage();
   state.loadoutSortOrder = loadLoadoutSortOrderFromStorage();
   elements.savedLoadoutSortSelect.value = state.loadoutSortOrder;
@@ -1794,11 +1837,13 @@ async function boot() {
   elements.regionSelect.addEventListener('change', event => {
     state.region = event.target.value;
     renderMarketCityOptions();
+    persistFilters();
     markPricingDirty(T('regionChangedHint'));
   });
 
   elements.languageSelect.addEventListener('change', event => {
     state.language = event.target.value;
+    persistFilters();
     // Language only changes display text, not prices/cities - unlike region/market city
     // changes, it must not clear the results table (markPricingDirty() would). Both the
     // loadout slots and any already-fetched results are relabeled in place instead.
@@ -1827,6 +1872,7 @@ async function boot() {
   elements.marketCitySelect.addEventListener('change', event => {
     state.marketCity = event.target.value;
     syncSelectColor(elements.marketCitySelect, cityColor(state.marketCity));
+    persistFilters();
     markPricingDirty(T('marketCityChangedHint'));
   });
 
@@ -1834,6 +1880,7 @@ async function boot() {
     state.minQuality = Number(event.target.value) || 1;
     const selectedQuality = state.config.qualities.find(({ value }) => value === state.minQuality);
     syncSelectColor(elements.minQualitySelect, selectedQuality ? qualityColor(selectedQuality.label) : '');
+    persistFilters();
     markPricingDirty(T('minQualityChangedHint'));
   });
 
