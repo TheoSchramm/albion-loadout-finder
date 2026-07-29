@@ -102,3 +102,13 @@ filter - see the `#3` fix above) and builds the matching `qualities=` range. All
 default `minQuality=1`, so this is a uniform `qualities=1` -> `qualities=1,2,3,4,5`
 change throughout both files; `cases`, `item_image_url`, and `prices.fixture.json` are
 untouched.
+
+**`optimize.json`** ("icon quality fallback matches query" commit) - every candidate
+payload now carries a `queried_min_quality` field (the same floor `api_url` uses, from the
+fix above) so a consumer with no real listing (`cheapest_quality: null`) can still reflect
+the actual search instead of guessing a fixed quality. All 4 cases were run at the default
+`minQuality=1`, so `queried_min_quality` is `1` throughout; regenerated from the new code
+by re-running each case against `prices.fixture.json`, which is itself untouched. Key
+order shifted for every candidate object since the fixture was rewritten via
+`JSON.stringify` rather than hand-edited - only `queried_min_quality`'s presence and value
+are meaningful, not the surrounding order.
