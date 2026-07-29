@@ -3,6 +3,8 @@
 // the same five payload shapes the old HTTP endpoints returned.
 import { loadCatalog } from './lib/catalog.js';
 import { getConfig, getItem, getItems, optimize } from './lib/api.js';
+import { slotLabel } from './lib/constants.js';
+import { t } from './i18n.js';
 
 // Document-relative, so the app works unchanged from a GitHub Pages project subpath
 // (https://user.github.io/<repo>/) as well as from a domain root.
@@ -171,6 +173,35 @@ const state = {
   lastResultsPayload: null,
 };
 
+// Shorthand over i18n.js's t() that always uses the current UI language, since nearly
+// every call site in this file wants exactly that.
+function T(key, params = {}) {
+  return t(key, state.language, params);
+}
+
+// Applies every data-i18n[-*] hook under `root` to the current language. Called on the
+// whole document at boot and on every language change, and on template fragments right
+// after cloning - <template> content is inert until cloned, so it's invisible to a
+// document-wide pass, and each clone needs its own.
+function translateFragment(root) {
+  root.querySelectorAll('[data-i18n]').forEach((el) => {
+    el.textContent = T(el.dataset.i18n);
+  });
+  root.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+    el.placeholder = T(el.dataset.i18nPlaceholder);
+  });
+  root.querySelectorAll('[data-i18n-title]').forEach((el) => {
+    el.title = T(el.dataset.i18nTitle);
+  });
+  root.querySelectorAll('[data-i18n-aria-label]').forEach((el) => {
+    el.setAttribute('aria-label', T(el.dataset.i18nAriaLabel));
+  });
+}
+
+function applyStaticTranslations() {
+  translateFragment(document);
+}
+
 const elements = {
   regionSelect: createIconSelect(document.getElementById('regionSelect')),
   languageSelect: createIconSelect(document.getElementById('languageSelect')),
@@ -261,6 +292,23 @@ function cityColor(city) {
 
 function qualityColor(qualityLabel) {
   return QUALITY_COLORS[qualityLabel] || '';
+}
+
+// The English quality label (Normal/Good/Outstanding/Excellent/Masterpiece) is what the
+// domain layer stores and colors are keyed by (getConfig()'s payload is pinned in English
+// by parity.test.js, matching the original Python endpoint) - this only translates it for
+// display, wherever a quality name actually renders on screen.
+const QUALITY_LABEL_KEYS = {
+  Normal: 'qualityNormal',
+  Good: 'qualityGood',
+  Outstanding: 'qualityOutstanding',
+  Excellent: 'qualityExcellent',
+  Masterpiece: 'qualityMasterpiece',
+};
+
+function translatedQualityLabel(englishLabel) {
+  const key = QUALITY_LABEL_KEYS[englishLabel];
+  return key ? T(key) : englishLabel || '';
 }
 
 function svgDataUri(svg) {
@@ -363,7 +411,7 @@ async function copyMarketAlias(button, text) {
   const originalTitle = button.title;
   icon.textContent = 'check';
   button.classList.add('is-copied');
-  button.title = 'Copied!';
+  button.title = T('copiedFeedback');
   clearTimeout(button.copyResetTimer);
   button.copyResetTimer = setTimeout(() => {
     icon.textContent = originalIcon;
@@ -392,17 +440,17 @@ function parseMarketTimestamp(value) {
 function formatRelativeTime(date) {
   const diffMinutes = Math.round((Date.now() - date.getTime()) / 60000);
   if (diffMinutes < 1) {
-    return 'just now';
+    return T('justNow');
   }
   if (diffMinutes < 60) {
-    return `${diffMinutes}m ago`;
+    return T('minutesAgo', { count: diffMinutes });
   }
   const diffHours = Math.round(diffMinutes / 60);
   if (diffHours < 24) {
-    return `${diffHours}h ago`;
+    return T('hoursAgo', { count: diffHours });
   }
   const diffDays = Math.round(diffHours / 24);
-  return `${diffDays}d ago`;
+  return T('daysAgo', { count: diffDays });
 }
 
 // Returns true if this is a real, observed market price; false if no listing was found
@@ -411,13 +459,13 @@ function formatRelativeTime(date) {
 function syncUpdatedAt(element, isoValue) {
   const date = parseMarketTimestamp(isoValue);
   if (!date) {
-    element.textContent = 'no market data';
-    element.title = 'No real listing was found for this item on the market.';
+    element.textContent = T('noMarketData');
+    element.title = T('noRealListingTitle');
     element.classList.add('is-stale');
     return false;
   }
   element.textContent = formatRelativeTime(date);
-  element.title = `Last recorded ${date.toLocaleString()}`;
+  element.title = T('lastRecordedTitle', { date: date.toLocaleString() });
   element.classList.toggle('is-stale', Date.now() - date.getTime() > STALE_MARKET_DATA_MS);
   return true;
 }
@@ -426,18 +474,19 @@ function syncPriceValue(element, price, hasRealData, quantity = 1) {
   if (price == null) {
     element.textContent = '—';
     element.classList.add('is-estimate');
-    element.title = 'No real listing was found for this item on the market.';
+    element.title = T('noRealListingTitle');
     return;
   }
   const total = price * quantity;
   const suffix = quantity > 1 ? ` (×${quantity})` : '';
+  const silver = T('silverCurrency');
   element.textContent = hasRealData
-    ? `${formatSilver(total)} silver${suffix}`
-    : `~${formatSilver(total)} silver${suffix}`;
+    ? `${formatSilver(total)} ${silver}${suffix}`
+    : `~${formatSilver(total)} ${silver}${suffix}`;
   element.classList.toggle('is-estimate', !hasRealData);
   element.title = quantity > 1
-    ? `${formatSilver(price)} silver each × ${quantity}`
-    : hasRealData ? '' : 'This item has a price, but its listing timestamp could not be read.';
+    ? T('silverEachTimesQty', { price: formatSilver(price), qty: quantity })
+    : hasRealData ? '' : T('hasPriceNoTimestamp');
 }
 
 function setStatus(message) {
@@ -484,10 +533,10 @@ function applyTwoHandedRule() {
       selectSlot(nextAvailable.key);
     } else {
       state.selectedSlot = null;
-      elements.searchTitle.textContent = 'Select a slot';
+      elements.searchTitle.textContent = T('selectSlotHeading');
       elements.searchInput.value = '';
       elements.searchInput.disabled = true;
-      renderSearchPrompt('Pick a slot on the left to start searching.');
+      renderSearchPrompt(T('pickSlotHint'));
     }
   }
 }
@@ -523,7 +572,7 @@ function renderMinQualityOptions() {
   state.config.qualities.forEach(({ value, label }) => {
     const option = document.createElement('option');
     option.value = String(value);
-    option.textContent = value === 1 ? label : `${label}`;
+    option.textContent = translatedQualityLabel(label);
     option.style.color = qualityColor(label);
     elements.minQualitySelect.append(option);
   });
@@ -538,7 +587,7 @@ function renderMarketCityOptions() {
 
   const allOption = document.createElement('option');
   allOption.value = 'all';
-  allOption.textContent = 'All cities';
+  allOption.textContent = T('allCitiesOption');
   elements.marketCitySelect.append(allOption);
 
   if (region) {
@@ -562,15 +611,15 @@ function renderInventory() {
   elements.slotList.innerHTML = '';
   state.config.slots.forEach(slotInfo => {
     const fragment = elements.slotRowTemplate.content.cloneNode(true);
+    translateFragment(fragment);
     const row = fragment.querySelector('.slot-row');
     const mainButton = fragment.querySelector('.slot-row-main');
     const label = fragment.querySelector('.slot-row-label');
     const clearButton = fragment.querySelector('.slot-row-clear');
 
     row.dataset.slot = slotInfo.key;
-    row.dataset.label = slotInfo.label;
-    label.textContent = slotInfo.label;
-    mainButton.setAttribute('aria-label', `${slotInfo.label} slot`);
+    label.textContent = slotLabel(slotInfo.key, state.language);
+    mainButton.setAttribute('aria-label', T('slotAriaSuffix', { label: slotLabel(slotInfo.key, state.language) }));
 
     mainButton.addEventListener('click', () => {
       if (state.selectedSlot === slotInfo.key) {
@@ -613,7 +662,7 @@ function syncSlotRows() {
       row.classList.remove('is-filled');
       image.removeAttribute('src');
       image.alt = '';
-      label.textContent = locked ? 'Locked' : row.dataset.label || '';
+      label.textContent = locked ? T('lockedSlot') : slotLabel(slot, state.language);
       row.removeAttribute('title');
       quantityBadge.hidden = true;
       return;
@@ -640,7 +689,7 @@ function renderSearchPrompt(message) {
 // When nothing is being searched, show the loaded preset's own description (if
 // any) instead of the generic hint - a quick reminder of what this build is for.
 function defaultSearchPrompt() {
-  return state.activePresetDescription || 'Type to search the item database.';
+  return state.activePresetDescription || T('typeToSearch');
 }
 
 // The "nothing typed yet" view: list every item available for the selected slot (an
@@ -665,7 +714,7 @@ function selectSlot(slot) {
   elements.searchInput.value = '';
   elements.searchInput.disabled = false;
   const slotInfo = state.config.slots.find(entry => entry.key === slot);
-  elements.searchTitle.textContent = slotInfo ? `Add to ${slotInfo.label}` : 'Choose an item';
+  elements.searchTitle.textContent = slotInfo ? T('addToSlot', { label: slotLabel(slot, state.language) }) : T('chooseAnItem');
   showIdleSearchView();
   syncSlotRows();
   elements.searchInput.focus();
@@ -681,7 +730,7 @@ function deselectSlot() {
   state.searchQuery = '';
   elements.searchInput.value = '';
   elements.searchInput.disabled = true;
-  elements.searchTitle.textContent = 'Select a slot';
+  elements.searchTitle.textContent = T('selectSlotHeading');
   showIdleSearchView();
   syncSlotRows();
 }
@@ -710,16 +759,16 @@ function encodeLoadoutCode() {
 function decodeLoadoutCode(code) {
   const trimmed = code.trim();
   if (!trimmed.startsWith(LOADOUT_CODE_PREFIX)) {
-    throw new Error('not a loadout code');
+    throw new Error(T('notALoadoutCode'));
   }
   let entries;
   try {
     entries = JSON.parse(window.atob(trimmed.slice(LOADOUT_CODE_PREFIX.length)));
   } catch {
-    throw new Error('could not be decoded');
+    throw new Error(T('couldNotBeDecoded'));
   }
   if (!Array.isArray(entries)) {
-    throw new Error('malformed loadout code');
+    throw new Error(T('malformedLoadoutCode'));
   }
   return entries.map(([slot, uniqueName, quantity]) => ({
     slot,
@@ -816,7 +865,7 @@ function renderSavedLoadoutOptions() {
   if (!state.savedLoadouts.length) {
     const option = document.createElement('option');
     option.value = '';
-    option.textContent = 'No saved loadouts yet';
+    option.textContent = T('noSavedLoadoutsYet');
     elements.savedLoadoutSelect.append(option);
     elements.savedLoadoutSelect.disabled = true;
     elements.loadSavedLoadoutButton.disabled = true;
@@ -834,7 +883,7 @@ function renderSavedLoadoutOptions() {
   // "pick one" state rather than silently acting as if the user had chosen one.
   const placeholder = document.createElement('option');
   placeholder.value = '';
-  placeholder.textContent = 'Select a loadout...';
+  placeholder.textContent = T('selectALoadout');
   elements.savedLoadoutSelect.append(placeholder);
 
   sortSavedLoadouts(state.savedLoadouts, state.loadoutSortOrder).forEach(entry => {
@@ -857,12 +906,13 @@ function renderSavedLoadoutOptions() {
 // "My loadout N" for whatever N isn't already taken, so a brand-new save never
 // silently collides with an existing title and needs no typing to submit.
 function nextLoadoutPlaceholderTitle() {
+  const prefix = T('defaultLoadoutTitlePrefix');
   const existingTitles = new Set(state.savedLoadouts.map(entry => entry.title.toLowerCase()));
   let n = state.savedLoadouts.length + 1;
-  while (existingTitles.has(`my loadout ${n}`.toLowerCase())) {
+  while (existingTitles.has(`${prefix} ${n}`.toLowerCase())) {
     n += 1;
   }
-  return `My loadout ${n}`;
+  return `${prefix} ${n}`;
 }
 
 function openSaveLoadoutDialog(mode = 'create') {
@@ -875,26 +925,25 @@ function openSaveLoadoutDialog(mode = 'create') {
     state.saveModalMode = 'edit';
     elements.saveLoadoutName.value = target.title;
     elements.saveLoadoutDescription.value = target.description;
-    elements.saveLoadoutTitle.textContent = 'Edit loadout details';
-    elements.saveLoadoutHint.textContent = 'Update the title and description. The saved gear itself is not affected.';
-    elements.saveLoadoutSubmit.textContent = 'Save changes';
+    elements.saveLoadoutTitle.textContent = T('editLoadoutDetailsTitle');
+    elements.saveLoadoutHint.textContent = T('editLoadoutHint');
+    elements.saveLoadoutSubmit.textContent = T('saveChangesSubmit');
   } else {
     state.saveModalMode = 'create';
     // A preset that's currently loaded (or was just saved) stays the save target by
     // id, not by re-typing its title - so tweaking gear and hitting Save updates that
     // same entry instead of leaving it behind and creating a lookalike duplicate.
     const activeEntry = state.savedLoadouts.find(entry => entry.id === state.activePresetId);
-    elements.saveLoadoutTitle.textContent = 'Save current loadout';
+    elements.saveLoadoutTitle.textContent = T('saveCurrentLoadoutTitle');
     if (activeEntry) {
       elements.saveLoadoutName.value = activeEntry.title;
       elements.saveLoadoutDescription.value = activeEntry.description;
-      elements.saveLoadoutHint.textContent =
-        `This updates the currently loaded loadout, "${activeEntry.title}". Change the title to save as a new loadout instead.`;
-      elements.saveLoadoutSubmit.textContent = 'Save changes';
+      elements.saveLoadoutHint.textContent = T('updatesActiveLoadoutHint', { title: activeEntry.title });
+      elements.saveLoadoutSubmit.textContent = T('saveChangesSubmit');
     } else {
       elements.saveLoadoutName.value = nextLoadoutPlaceholderTitle();
-      elements.saveLoadoutHint.textContent = 'Give it a title. Description is optional.';
-      elements.saveLoadoutSubmit.textContent = 'Save loadout';
+      elements.saveLoadoutHint.textContent = T('saveLoadoutDefaultHint');
+      elements.saveLoadoutSubmit.textContent = T('saveLoadoutSubmit');
     }
   }
   elements.saveLoadoutModal.hidden = false;
@@ -923,7 +972,7 @@ function saveCurrentLoadout(event) {
       closeSaveLoadoutDialog();
       return;
     }
-    if (!window.confirm(`Save changes to "${target.title}"?`)) {
+    if (!window.confirm(T('saveChangesConfirm', { title: target.title }))) {
       return;
     }
     target.title = title;
@@ -938,7 +987,7 @@ function saveCurrentLoadout(event) {
     persistSavedLoadouts();
     renderSavedLoadoutOptions();
     closeSaveLoadoutDialog();
-    setStatus(`Updated "${title}"`);
+    setStatus(T('updatedLoadoutStatus', { title }));
     return;
   }
 
@@ -967,7 +1016,7 @@ function saveCurrentLoadout(event) {
     persistSavedLoadouts();
     renderSavedLoadoutOptions();
     closeSaveLoadoutDialog();
-    setStatus(`Updated "${title}"`);
+    setStatus(T('updatedLoadoutStatus', { title }));
     return;
   }
 
@@ -986,7 +1035,7 @@ function saveCurrentLoadout(event) {
   const titleKey = title.toLowerCase();
   const existingIndex = state.savedLoadouts.findIndex(entry => entry.title.toLowerCase() === titleKey);
   if (existingIndex >= 0) {
-    if (!window.confirm(`A loadout named "${state.savedLoadouts[existingIndex].title}" already exists. Overwrite it?`)) {
+    if (!window.confirm(T('overwriteLoadoutConfirm', { title: state.savedLoadouts[existingIndex].title }))) {
       return;
     }
     snapshot.id = state.savedLoadouts[existingIndex].id;
@@ -1007,7 +1056,7 @@ function saveCurrentLoadout(event) {
   persistSavedLoadouts();
   renderSavedLoadoutOptions();
   closeSaveLoadoutDialog();
-  setStatus(`Saved "${title}"`);
+  setStatus(T('savedLoadoutStatus', { title }));
 }
 
 async function loadSelectedSavedLoadout() {
@@ -1017,10 +1066,18 @@ async function loadSelectedSavedLoadout() {
     return;
   }
 
+  const languageChanged = Boolean(savedLoadout.language) && savedLoadout.language !== state.language;
   state.region = savedLoadout.region || state.region;
   state.language = savedLoadout.language || state.language;
   state.marketCity = savedLoadout.marketCity || state.marketCity;
   renderConfig();
+  // A loadout carries the language it was saved under, and loading it can silently switch
+  // the UI's language - the static chrome (labels, buttons, slot names) needs to follow,
+  // not just the item names refreshLoadoutDisplayNames() below already handles.
+  if (languageChanged) {
+    applyStaticTranslations();
+    renderInventory();
+  }
 
   state.loadout.clear();
   savedLoadout.slots.forEach(({ slot, item }) => {
@@ -1035,7 +1092,7 @@ async function loadSelectedSavedLoadout() {
   deselectSlot();
 
   applyTwoHandedRule();
-  markPricingDirty(`Loaded "${savedLoadout.title}". Click Compare prices to refresh market data.`);
+  markPricingDirty(T('loadedLoadoutStatus', { title: savedLoadout.title }));
 }
 
 function deleteSelectedSavedLoadout() {
@@ -1044,7 +1101,7 @@ function deleteSelectedSavedLoadout() {
     return;
   }
   const target = state.savedLoadouts.find(entry => entry.id === selectedId);
-  if (!window.confirm(`Delete "${target ? target.title : 'this loadout'}"? This cannot be undone.`)) {
+  if (!window.confirm(T('deleteLoadoutConfirm', { title: target ? target.title : T('thisLoadout') }))) {
     return;
   }
   const nextLoadouts = state.savedLoadouts.filter(entry => entry.id !== selectedId);
@@ -1059,7 +1116,7 @@ function deleteSelectedSavedLoadout() {
   }
   persistSavedLoadouts();
   renderSavedLoadoutOptions();
-  setStatus('Saved loadout removed');
+  setStatus(T('savedLoadoutRemoved'));
 }
 
 function variantLabel(variant) {
@@ -1177,7 +1234,7 @@ function renderResultsPrompt(message) {
   elements.resultsTable.hidden = true;
   elements.resultsEmptyState.textContent = message;
   elements.resultsEmptyState.hidden = false;
-  elements.totalCost.textContent = 'No prices yet';
+  elements.totalCost.textContent = T('noPricesYet');
   elements.itemsFoundCounter.hidden = true;
 }
 
@@ -1198,13 +1255,13 @@ function syncItemsFoundCounter(resolvedSlots, total = resolvedSlots.length) {
   elements.itemsFoundCounter.classList.toggle('is-empty', !stillChecking && found === 0);
 
   if (stillChecking) {
-    elements.itemsFoundCounter.textContent = `Checking market... ${found}/${total} found`;
+    elements.itemsFoundCounter.textContent = T('checkingMarket', { found, total });
   } else if (found === 0) {
-    elements.itemsFoundCounter.textContent = 'No items found';
+    elements.itemsFoundCounter.textContent = T('noItemsFound');
   } else if (found === total) {
-    elements.itemsFoundCounter.textContent = 'All items found';
+    elements.itemsFoundCounter.textContent = T('allItemsFound');
   } else {
-    elements.itemsFoundCounter.textContent = `${found}/${total} items found`;
+    elements.itemsFoundCounter.textContent = T('itemsFoundCount', { found, total });
   }
 }
 
@@ -1235,10 +1292,11 @@ function computeDisplayTotal(payload) {
 // (see requestOptimization()).
 function buildResultCardFragment(slotResult) {
   const fragment = elements.resultCardTemplate.content.cloneNode(true);
+  translateFragment(fragment);
   const row = fragment.querySelector('.result-card');
   const image = fragment.querySelector('.result-card-image');
   const name = fragment.querySelector('.result-card-name');
-  const slotLabel = fragment.querySelector('.result-card-slot');
+  const slotLabelEl = fragment.querySelector('.result-card-slot');
   const tierValue = fragment.querySelector('.result-card-tier-value');
   const quality = fragment.querySelector('.result-card-quality');
   const city = fragment.querySelector('.result-card-city');
@@ -1253,9 +1311,9 @@ function buildResultCardFragment(slotResult) {
   image.src = slotResult.best.image_url;
   image.alt = slotResult.best.display_name;
   name.textContent = slotResult.best.display_name;
-  slotLabel.textContent = slotResult.selected.slot_label;
+  slotLabelEl.textContent = slotResult.selected.slot_label;
   tierValue.textContent = variantLabel(slotResult.best);
-  quality.textContent = slotResult.best.cheapest_quality_label || '';
+  quality.textContent = translatedQualityLabel(slotResult.best.cheapest_quality_label);
   quality.style.color = qualityColor(slotResult.best.cheapest_quality_label);
   // No fallback to state.marketCity here: that's the user's *filter*, not where this
   // item is actually priced, and showing it next to a "no market data" price would
@@ -1281,7 +1339,7 @@ function buildResultCardFragment(slotResult) {
   // unpriced ones silently vanishing.
   if (slotResult.candidates.length > 1) {
     toggle.hidden = false;
-    toggle.title = `${slotResult.candidates.length} equivalent tier/enchant options`;
+    toggle.title = T('equivalentOptionsTitle', { count: slotResult.candidates.length });
     slotResult.candidates.forEach(candidate => {
       const line = document.createElement('div');
       line.className = `option-line${candidate.unique_name === slotResult.best.unique_name ? ' is-best' : ''}`;
@@ -1305,8 +1363,8 @@ function buildResultCardFragment(slotResult) {
       const priceSpan = document.createElement('span');
       priceSpan.className = 'option-line-price';
       priceSpan.textContent = hasCandidatePrice
-        ? `${pricePrefix}${formatSilver(candidate.cheapest_price)} silver`
-        : 'no data';
+        ? `${pricePrefix}${formatSilver(candidate.cheapest_price)} ${T('silverCurrency')}`
+        : T('noDataText');
       priceSpan.classList.toggle('is-estimate', hasCandidatePrice && !hasRealCandidatePrice);
 
       const citySpan = document.createElement('span');
@@ -1316,17 +1374,17 @@ function buildResultCardFragment(slotResult) {
 
       const qualitySpan = document.createElement('span');
       qualitySpan.className = 'option-line-quality';
-      qualitySpan.textContent = candidate.cheapest_quality_label || '';
+      qualitySpan.textContent = translatedQualityLabel(candidate.cheapest_quality_label);
       qualitySpan.style.color = qualityColor(candidate.cheapest_quality_label);
 
       const freshnessSpan = document.createElement('span');
       freshnessSpan.className = 'option-line-freshness';
-      freshnessSpan.textContent = hasRealCandidatePrice ? formatRelativeTime(candidateDate) : 'no data';
+      freshnessSpan.textContent = hasRealCandidatePrice ? formatRelativeTime(candidateDate) : T('noDataText');
 
       const copyLineButton = document.createElement('button');
       copyLineButton.type = 'button';
       copyLineButton.className = 'option-line-copy-button';
-      copyLineButton.title = 'Copy the in-game market search text for this item';
+      copyLineButton.title = T('copyMarketAliasTitle');
       copyLineButton.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">content_copy</span>';
       if (candidate.market_search_alias) {
         copyLineButton.addEventListener('click', event => {
@@ -1361,10 +1419,10 @@ function buildResultCardFragment(slotResult) {
 }
 
 function renderResults(payload) {
-  elements.totalCost.textContent = `${formatSilver(computeDisplayTotal(payload))} silver`;
+  elements.totalCost.textContent = `${formatSilver(computeDisplayTotal(payload))} ${T('silverCurrency')}`;
 
   if (!payload.slots.length) {
-    renderResultsPrompt('No priced slots yet.');
+    renderResultsPrompt(T('noPricedSlotsYet'));
     return;
   }
 
@@ -1382,7 +1440,7 @@ function clearLoadout() {
   if (!state.loadout.size) {
     return;
   }
-  if (!window.confirm('Clear all equipped items?')) {
+  if (!window.confirm(T('clearAllConfirm'))) {
     return;
   }
   state.loadout.clear();
@@ -1396,22 +1454,22 @@ function clearLoadout() {
 
 async function copyLoadoutCode() {
   if (!state.loadout.size) {
-    window.alert('Equip at least one item first.');
+    window.alert(T('equipAnItemFirst'));
     return;
   }
   const code = encodeLoadoutCode();
   try {
     await navigator.clipboard.writeText(code);
-    setStatus('Loadout code copied to clipboard.');
+    setStatus(T('loadoutCodeCopied'));
   } catch {
     // Clipboard access can be denied (permissions, insecure context); a prompt with
     // the text pre-selected is a plain fallback that still lets the user copy it.
-    window.prompt('Copy this loadout code:', code);
+    window.prompt(T('copyLoadoutCodePrompt'), code);
   }
 }
 
 function importLoadoutCode() {
-  const input = window.prompt('Paste a loadout code:');
+  const input = window.prompt(T('pasteLoadoutCodePrompt'));
   if (!input) {
     return;
   }
@@ -1420,11 +1478,11 @@ function importLoadoutCode() {
   try {
     entries = decodeLoadoutCode(input);
   } catch (error) {
-    window.alert(`Could not read that loadout code (${error.message}).`);
+    window.alert(T('couldNotReadLoadoutCode', { message: error.message }));
     return;
   }
 
-  if (state.loadout.size && !window.confirm('Replace the current loadout with the imported one?')) {
+  if (state.loadout.size && !window.confirm(T('replaceCurrentLoadoutConfirm'))) {
     return;
   }
 
@@ -1441,7 +1499,7 @@ function importLoadoutCode() {
   });
 
   if (!resolved.length) {
-    window.alert('None of the items in that code could be recognized.');
+    window.alert(T('noItemsRecognized'));
     return;
   }
 
@@ -1454,12 +1512,12 @@ function importLoadoutCode() {
     showIdleSearchView();
   }
 
-  const itemWord = resolved.length === 1 ? 'item' : 'items';
-  const skippedNote = skipped ? ` (${skipped} not recognized)` : '';
-  markPricingDirty(`Imported ${resolved.length} ${itemWord}${skippedNote}. Click Compare prices to refresh market data.`);
+  const itemWord = T(resolved.length === 1 ? 'itemWordSingular' : 'itemWordPlural');
+  const skippedNote = skipped ? T('notRecognizedNote', { count: skipped }) : '';
+  markPricingDirty(T('importedItemsStatus', { count: resolved.length, itemWord, skippedNote }));
 }
 
-function markPricingDirty(message = 'Loadout changed. Click Compare prices to refresh market data.') {
+function markPricingDirty(message = T('loadoutChangedHint')) {
   state.pricingDirty = true;
   state.lastResultsPayload = null;
   renderResultsPrompt(message);
@@ -1480,7 +1538,7 @@ function scheduleSearch(query) {
 // everything, so this lists every item available for the slot (capped at the usual
 // result limit) rather than requiring the user to type before seeing any options.
 async function runSearch(slot, query) {
-  elements.searchResults.innerHTML = '<div class="empty-state">Searching...</div>';
+  elements.searchResults.innerHTML = `<div class="empty-state">${T('searchingEllipsis')}</div>`;
   try {
     const payload = getItems({ query, lang: state.language, slot });
     if (state.selectedSlot !== slot) {
@@ -1488,9 +1546,7 @@ async function runSearch(slot, query) {
     }
     elements.searchResults.innerHTML = '';
     if (!payload.items.length) {
-      renderSearchPrompt(
-        query.trim() ? 'No matches found. Try another term or language.' : 'No items available for this slot.',
-      );
+      renderSearchPrompt(query.trim() ? T('noMatchesFound') : T('noItemsForSlot'));
       return;
     }
 
@@ -1498,6 +1554,7 @@ async function runSearch(slot, query) {
       const variants = sortVariants(Array.isArray(item.variants) && item.variants.length ? item.variants : [item]);
       const selectedVariant = findVariant(variants, item.tier, item.enchantment) || variants[0];
       const fragment = elements.resultRowTemplate.content.cloneNode(true);
+      translateFragment(fragment);
       const row = fragment.querySelector('.result-row');
       const useButton = fragment.querySelector('.result-row-use');
       const quantityField = fragment.querySelector('.result-row-quantity-field');
@@ -1526,7 +1583,7 @@ async function runSearch(slot, query) {
       elements.searchResults.append(fragment);
     });
   } catch (error) {
-    renderSearchPrompt(`Search failed: ${error.message}`);
+    renderSearchPrompt(T('searchFailed', { message: error.message }));
   }
 }
 
@@ -1539,7 +1596,7 @@ function equip(slot, variant, quantity = 1) {
   if (nextEmpty) {
     selectSlot(nextEmpty.key);
   } else {
-    renderSearchPrompt('All slots filled. Click Compare prices, or pick a slot on the left to change it.');
+    renderSearchPrompt(T('allSlotsFilledHint'));
   }
 }
 
@@ -1589,7 +1646,7 @@ function refreshResultsDisplayNames() {
 
 async function requestOptimization() {
   if (!state.loadout.size) {
-    setStatus('Equip at least one item first.');
+    setStatus(T('equipAnItemFirst'));
     return;
   }
 
@@ -1597,11 +1654,11 @@ async function requestOptimization() {
   const cities = state.marketCity === 'all' ? [] : [state.marketCity];
   const total = entries.length;
 
-  setStatus('Fetching prices');
+  setStatus(T('fetchingPrices'));
   elements.resultsBody.innerHTML = '';
   elements.resultsEmptyState.hidden = true;
   elements.resultsTable.hidden = false;
-  elements.totalCost.textContent = 'Fetching prices...';
+  elements.totalCost.textContent = `${T('fetchingPrices')}...`;
   syncItemsFoundCounter([], total);
 
   // Each equipped item is priced independently and its row is appended to the table the
@@ -1627,7 +1684,7 @@ async function requestOptimization() {
       resolvedSlots.push(slotResult);
       elements.resultsBody.append(buildResultCardFragment(slotResult));
       syncItemsFoundCounter(resolvedSlots, total);
-      elements.totalCost.textContent = `${formatSilver(computeDisplayTotalFromSlots(resolvedSlots))} silver`;
+      elements.totalCost.textContent = `${formatSilver(computeDisplayTotalFromSlots(resolvedSlots))} ${T('silverCurrency')}`;
     }),
   );
 
@@ -1650,7 +1707,7 @@ async function requestOptimization() {
 }
 
 async function boot() {
-  setStatus('Loading');
+  setStatus(T('loadingStatus'));
   // The catalog is a same-origin asset shipped by the same deploy as this file, so a
   // failure here means a broken deploy or an offline user - both worth showing plainly
   // rather than leaving a page that renders but silently does nothing.
@@ -1660,10 +1717,11 @@ async function boot() {
   state.loadoutSortOrder = loadLoadoutSortOrderFromStorage();
   elements.savedLoadoutSortSelect.value = state.loadoutSortOrder;
   state.selectedSavedLoadoutId = '';
+  applyStaticTranslations();
   renderConfig();
   renderInventory();
   renderSavedLoadoutOptions();
-  setStatus('Ready');
+  setStatus(T('readyStatus'));
 
   // Starts with no slot selected, showing the generic hint (or a loaded loadout's own
   // description, once one is loaded) instead of auto-picking the first slot.
@@ -1672,7 +1730,7 @@ async function boot() {
   elements.regionSelect.addEventListener('change', event => {
     state.region = event.target.value;
     renderMarketCityOptions();
-    markPricingDirty('Region changed. Click Compare prices to refresh the market data.');
+    markPricingDirty(T('regionChangedHint'));
   });
 
   elements.languageSelect.addEventListener('change', event => {
@@ -1680,32 +1738,39 @@ async function boot() {
     // Language only changes display text, not prices/cities - unlike region/market city
     // changes, it must not clear the results table (markPricingDirty() would). Both the
     // loadout slots and any already-fetched results are relabeled in place instead.
+    applyStaticTranslations();
+    renderInventory();
+    renderMarketCityOptions();
+    renderMinQualityOptions();
+    renderSavedLoadoutOptions();
     refreshLoadoutDisplayNames();
     refreshResultsDisplayNames();
     syncSlotRows();
-    setStatus('Language changed.');
+    setStatus(T('languageChangedStatus'));
     if (state.selectedSlot) {
-      const slotInfo = state.config.slots.find(entry => entry.key === state.selectedSlot);
-      elements.searchTitle.textContent = slotInfo ? `Add to ${slotInfo.label}` : 'Choose an item';
+      elements.searchTitle.textContent = T('addToSlot', { label: slotLabel(state.selectedSlot, state.language) });
       if (state.searchQuery.trim()) {
         scheduleSearch(state.searchQuery);
       } else {
         showIdleSearchView();
       }
+    } else {
+      elements.searchTitle.textContent = T('selectSlotHeading');
+      showIdleSearchView();
     }
   });
 
   elements.marketCitySelect.addEventListener('change', event => {
     state.marketCity = event.target.value;
     syncSelectColor(elements.marketCitySelect, cityColor(state.marketCity));
-    markPricingDirty('Market city changed. Click Compare prices to refresh the market data.');
+    markPricingDirty(T('marketCityChangedHint'));
   });
 
   elements.minQualitySelect.addEventListener('change', event => {
     state.minQuality = Number(event.target.value) || 1;
     const selectedQuality = state.config.qualities.find(({ value }) => value === state.minQuality);
     syncSelectColor(elements.minQualitySelect, selectedQuality ? qualityColor(selectedQuality.label) : '');
-    markPricingDirty('Minimum quality changed. Click Compare prices to refresh the market data.');
+    markPricingDirty(T('minQualityChangedHint'));
   });
 
   elements.refreshButton.addEventListener('click', () => {
@@ -1719,8 +1784,8 @@ async function boot() {
     elements.refreshButton.disabled = true;
     requestOptimization()
       .catch(error => {
-        setStatus(`Optimization failed: ${error.message}`);
-        renderResultsPrompt(`Could not fetch prices: ${error.message}`);
+        setStatus(T('optimizationFailed', { message: error.message }));
+        renderResultsPrompt(T('couldNotFetchPrices', { message: error.message }));
       })
       .finally(() => {
         state.pricingInFlight = false;
@@ -1731,7 +1796,7 @@ async function boot() {
   elements.clearLoadoutButton.addEventListener('click', clearLoadout);
   elements.exportLoadoutButton.addEventListener('click', () => {
     copyLoadoutCode().catch(error => {
-      setStatus(`Could not copy loadout code: ${error.message}`);
+      setStatus(T('couldNotCopyLoadoutCode', { message: error.message }));
     });
   });
   elements.importLoadoutButton.addEventListener('click', importLoadoutCode);
@@ -1752,7 +1817,7 @@ async function boot() {
   elements.saveLoadoutForm.addEventListener('submit', saveCurrentLoadout);
   elements.loadSavedLoadoutButton.addEventListener('click', () => {
     loadSelectedSavedLoadout().catch(error => {
-      setStatus(`Could not load saved loadout: ${error.message}`);
+      setStatus(T('couldNotLoadSavedLoadout', { message: error.message }));
     });
   });
   elements.deleteSavedLoadoutButton.addEventListener('click', deleteSelectedSavedLoadout);
@@ -1773,7 +1838,7 @@ async function boot() {
     // without having to reselect it), not as the only way to load one.
     if (hasSelection) {
       loadSelectedSavedLoadout().catch(error => {
-        setStatus(`Could not load saved loadout: ${error.message}`);
+        setStatus(T('couldNotLoadSavedLoadout', { message: error.message }));
       });
     }
   });
@@ -1791,10 +1856,10 @@ boot()
     elements.bootStatus.hidden = true;
   })
   .catch(error => {
-    setStatus(`Failed to load: ${error.message}`);
+    setStatus(T('failedToLoad', { message: error.message }));
     // Must be visible, not just logged: setStatus only writes to the console, so without
     // this the page would render its empty shell and appear merely broken.
     elements.bootStatus.hidden = false;
     elements.bootStatus.classList.add('is-error');
-    elements.bootStatus.textContent = `Could not start: ${error.message}`;
+    elements.bootStatus.textContent = T('couldNotStart', { message: error.message });
   });
