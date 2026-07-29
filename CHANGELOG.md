@@ -9,6 +9,12 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ## [Unreleased]
 
+### Added
+
+- Region, Language, Market city, and Minimum quality now persist across page reloads,
+  the same way saved loadouts already do - previously they silently reset to the
+  defaults (Americas/English/All cities/Normal) every time the page was reopened.
+
 ## 2026-07-29
 
 ### Added

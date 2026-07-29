@@ -46,8 +46,12 @@ function waitFor(predicate, { timeout = 5000, interval = 10 } = {}) {
  * `navigator` is the only global Node itself predefines (as a getter-only property, hence
  * defineProperty rather than assignment); document/window/localStorage/EventTarget/Event
  * are app.js's other bare-global dependencies and are safe to assign directly.
+ *
+ * `seedLocalStorage` pre-populates the fresh window's localStorage before app.js boots -
+ * each jsdom instance otherwise has its own isolated storage, so this is how a test
+ * simulates "closing and reopening the page" against the same persisted data.
  */
-async function bootApp() {
+async function bootApp({ seedLocalStorage } = {}) {
   const dom = new JSDOM(INDEX_HTML, { url: 'http://localhost/' });
   const { window } = dom;
 
@@ -58,6 +62,10 @@ async function bootApp() {
   globalThis.EventTarget = window.EventTarget;
   globalThis.Event = window.Event;
   window.confirm = () => true;
+
+  if (seedLocalStorage) {
+    Object.entries(seedLocalStorage).forEach(([key, value]) => window.localStorage.setItem(key, value));
+  }
 
   globalThis.fetch = async (url) => {
     if (String(url).includes('items.catalog.json')) {
@@ -519,6 +527,49 @@ test('swapping to a different tier/enchant hides the stale icon instead of showi
   slotImage.dispatchEvent(new window.Event('load'));
   assert.equal(slotImage.style.visibility, '', 'the new icon should become visible once it finishes loading');
   assert.equal(slotSpinner.hidden, true);
+});
+
+// ---------------------------------------------------------------------------- filters-persist-across-reload
+
+test('Region/Language/Market city/Minimum quality persist across a page reload', async () => {
+  const dom1 = await bootApp();
+
+  clickOption(dom1, 'regionSelect', 'europe');
+  clickOption(dom1, 'languageSelect', 'de');
+  const marketCitySelect1 = dom1.window.document.getElementById('marketCitySelect');
+  marketCitySelect1.value = 'Lymhurst';
+  marketCitySelect1.dispatchEvent(new dom1.window.Event('change', { bubbles: true }));
+  const minQualitySelect1 = dom1.window.document.getElementById('minQualitySelect');
+  minQualitySelect1.value = '3';
+  minQualitySelect1.dispatchEvent(new dom1.window.Event('change', { bubbles: true }));
+
+  const stored = dom1.window.localStorage.getItem('albion-helper.filters');
+  assert.ok(stored, 'expected the filters to be persisted to localStorage');
+
+  // A fresh jsdom window has its own isolated storage - seed it with what the first
+  // "session" wrote, simulating the same browser storage surviving a reload.
+  const dom2 = await bootApp({ seedLocalStorage: { 'albion-helper.filters': stored } });
+  const { document: document2 } = dom2.window;
+
+  const selectedValue = (rootId) => document2.querySelector(`#${rootId} [aria-selected="true"]`)?.dataset.value;
+  assert.equal(selectedValue('regionSelect'), 'europe');
+  assert.equal(selectedValue('languageSelect'), 'de');
+  assert.equal(document2.getElementById('marketCitySelect').value, 'Lymhurst');
+  assert.equal(document2.getElementById('minQualitySelect').value, '3');
+});
+
+test('an invalid or unrecognized stored filter is ignored rather than applied blindly', async () => {
+  const dom = await bootApp({
+    seedLocalStorage: {
+      'albion-helper.filters': JSON.stringify({ region: 'not-a-real-region', language: 'xx', marketCity: 'Caerleon', minQuality: 99 }),
+    },
+  });
+  const { document } = dom.window;
+
+  const selectedValue = (rootId) => document.querySelector(`#${rootId} [aria-selected="true"]`)?.dataset.value;
+  assert.equal(selectedValue('regionSelect'), 'americas', 'an unrecognized region must fall back to the default');
+  assert.equal(selectedValue('languageSelect'), 'en', 'an unrecognized language must fall back to the default');
+  assert.equal(document.getElementById('minQualitySelect').value, '1', 'an out-of-range quality must fall back to the default');
 });
 
 // ---------------------------------------------------------------------------- import-creates-new-loadout
