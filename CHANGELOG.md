@@ -9,6 +9,29 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ## [Unreleased]
 
+## 2026-07-28
+
+### Added
+
+- City and quality names in the "Market city" and "Minimum quality" dropdowns are now
+  colored to match their in-game colors, both in the open list and the closed selector,
+  matching how they're already shown throughout the results table. (#7)
+- A flag icon on the Language selector (Brazilian flag for Portuguese, since that's the
+  only Portuguese Albion ships), and a neutral globe icon on the Region selector - regions
+  are server clusters, not single countries, so no one flag fits all three. Both selectors
+  are now a small custom dropdown rather than a native `<select>`, so the icon shows in
+  the open option list too, not just the closed control - no browser renders an image
+  inside a native `<option>`.
+
+### Fixed
+
+- Picking a Region/Language option immediately reopened the dropdown instead of staying
+  closed. The `<label>` wrapped both the trigger button and the option list, and clicking
+  a plain (non-form-control) element inside a `<label>` makes the browser also fire a
+  synthetic click on the label's associated control right after - reopening it the instant
+  it closed. Region and Language now use a `<label for>` that only references the trigger,
+  with the option list moved outside the label entirely.
+
 ## 2026-07-24
 
 ### Added

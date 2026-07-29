@@ -8,6 +8,148 @@ import { getConfig, getItem, getItems, optimize } from './lib/api.js';
 // (https://user.github.io/<repo>/) as well as from a domain root.
 const CATALOG_URL = new URL('./data/items.catalog.json', import.meta.url);
 
+// A native <select>'s closed box can carry a background-image icon, but no browser lets
+// its open <option> list render one - so a per-option flag/globe icon (rather than just
+// on the closed control) needs its own widget instead of a real <select>. This is a
+// minimal listbox: a trigger button plus an absolutely-positioned option list, built from
+// plain elements so each row can hold an icon. It mimics just enough of <select>'s API
+// (`.value` get/set, `addEventListener('change', ...)` with `event.target.value`) that the
+// rest of app.js reads and writes it exactly like the native control it replaces.
+function createIconSelect(root) {
+  const trigger = root.querySelector('.icon-select-trigger');
+  const triggerIcon = root.querySelector('.icon-select-icon');
+  const triggerLabel = root.querySelector('.icon-select-label');
+  const list = root.querySelector('.icon-select-list');
+  const target = new EventTarget();
+  let options = [];
+  let value = '';
+
+  function onDocumentClick(event) {
+    if (!root.contains(event.target)) close();
+  }
+
+  function close() {
+    if (list.hidden) return;
+    list.hidden = true;
+    root.classList.remove('is-open');
+    trigger.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('click', onDocumentClick, true);
+  }
+
+  function open() {
+    if (trigger.disabled || !list.hidden) return;
+    list.hidden = false;
+    root.classList.add('is-open');
+    trigger.setAttribute('aria-expanded', 'true');
+    document.addEventListener('click', onDocumentClick, true);
+    const current = list.querySelector('[aria-selected="true"]') || list.firstElementChild;
+    current?.focus();
+  }
+
+  function applySelection(option) {
+    triggerIcon.hidden = !option.icon;
+    triggerIcon.style.backgroundImage = option.icon || 'none';
+    triggerLabel.textContent = option.label;
+    list.querySelectorAll('[role="option"]').forEach((node) => {
+      node.setAttribute('aria-selected', String(node.dataset.value === option.value));
+      node.classList.toggle('is-selected', node.dataset.value === option.value);
+    });
+  }
+
+  // Mirrors a real <select>: programmatic `.value =` never fires 'change', only picking
+  // an option (click or keyboard) does.
+  function choose(nextValue) {
+    const option = options.find((entry) => entry.value === nextValue);
+    if (!option) return;
+    const changed = value !== nextValue;
+    value = nextValue;
+    applySelection(option);
+    close();
+    if (changed) {
+      const event = new Event('change');
+      Object.defineProperty(event, 'target', { value: wrapper, configurable: true });
+      target.dispatchEvent(event);
+    }
+  }
+
+  trigger.addEventListener('click', () => (list.hidden ? open() : close()));
+  trigger.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      open();
+    }
+  });
+
+  list.addEventListener('keydown', (event) => {
+    const items = [...list.querySelectorAll('[role="option"]')];
+    const currentIndex = items.indexOf(document.activeElement);
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      (items[currentIndex + 1] || items[0])?.focus();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      (items[currentIndex - 1] || items[items.length - 1])?.focus();
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      const focused = document.activeElement;
+      if (focused?.dataset?.value !== undefined) {
+        choose(focused.dataset.value);
+        trigger.focus();
+      }
+    } else if (event.key === 'Escape') {
+      close();
+      trigger.focus();
+    } else if (event.key === 'Tab') {
+      close();
+    }
+  });
+
+  const wrapper = {
+    setOptions(nextOptions) {
+      options = nextOptions;
+      list.innerHTML = '';
+      options.forEach((option) => {
+        const item = document.createElement('li');
+        item.className = 'icon-select-option';
+        item.setAttribute('role', 'option');
+        item.setAttribute('aria-selected', 'false');
+        item.tabIndex = -1;
+        item.dataset.value = option.value;
+        if (option.icon) {
+          const icon = document.createElement('span');
+          icon.className = 'icon-select-option-icon';
+          icon.style.backgroundImage = option.icon;
+          item.append(icon);
+        }
+        const label = document.createElement('span');
+        label.textContent = option.label;
+        item.append(label);
+        item.addEventListener('click', () => {
+          choose(option.value);
+          trigger.focus();
+        });
+        list.append(item);
+      });
+    },
+    get value() {
+      return value;
+    },
+    set value(nextValue) {
+      const option = options.find((entry) => entry.value === nextValue);
+      if (option) {
+        value = nextValue;
+        applySelection(option);
+      }
+    },
+    set disabled(isDisabled) {
+      trigger.disabled = Boolean(isDisabled);
+    },
+    addEventListener: (type, listener) => target.addEventListener(type, listener),
+    removeEventListener: (type, listener) => target.removeEventListener(type, listener),
+  };
+  return wrapper;
+}
+
 const state = {
   config: null,
   region: 'americas',
@@ -29,8 +171,8 @@ const state = {
 };
 
 const elements = {
-  regionSelect: document.getElementById('regionSelect'),
-  languageSelect: document.getElementById('languageSelect'),
+  regionSelect: createIconSelect(document.getElementById('regionSelect')),
+  languageSelect: createIconSelect(document.getElementById('languageSelect')),
   marketCitySelect: document.getElementById('marketCitySelect'),
   minQualitySelect: document.getElementById('minQualitySelect'),
   refreshButton: document.getElementById('refreshButton'),
@@ -111,6 +253,95 @@ function cityColor(city) {
 
 function qualityColor(qualityLabel) {
   return QUALITY_COLORS[qualityLabel] || '';
+}
+
+function svgDataUri(svg) {
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+
+// One flat-color flag per supported language, simplified (no coats of arms, trigrams,
+// etc.) since these render at ~16px in a <select>. "pt" is Brazilian Portuguese - the
+// only Portuguese Albion ships - so it gets the Brazilian flag, not Portugal's.
+const LANGUAGE_FLAG_ICONS = {
+  en: svgDataUri(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14">' +
+      '<rect width="20" height="14" fill="#00247d"/>' +
+      '<path d="M0 0L20 14M20 0L0 14" stroke="#fff" stroke-width="3"/>' +
+      '<path d="M0 0L20 14M20 0L0 14" stroke="#cf142b" stroke-width="1.2"/>' +
+      '<path d="M10 0V14M0 7H20" stroke="#fff" stroke-width="5"/>' +
+      '<path d="M10 0V14M0 7H20" stroke="#cf142b" stroke-width="2.4"/>' +
+      '</svg>',
+  ),
+  de: svgDataUri(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14">' +
+      '<rect width="20" height="4.67" fill="#000"/>' +
+      '<rect y="4.67" width="20" height="4.67" fill="#dd0000"/>' +
+      '<rect y="9.33" width="20" height="4.67" fill="#ffce00"/>' +
+      '</svg>',
+  ),
+  fr: svgDataUri(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14">' +
+      '<rect width="6.67" height="14" fill="#0055a4"/>' +
+      '<rect x="6.67" width="6.67" height="14" fill="#fff"/>' +
+      '<rect x="13.33" width="6.67" height="14" fill="#ef4135"/>' +
+      '</svg>',
+  ),
+  pt: svgDataUri(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14">' +
+      '<rect width="20" height="14" fill="#009739"/>' +
+      '<polygon points="10,1.5 18.5,7 10,12.5 1.5,7" fill="#fedd00"/>' +
+      '<circle cx="10" cy="7" r="3.2" fill="#012169"/>' +
+      '</svg>',
+  ),
+  es: svgDataUri(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14">' +
+      '<rect width="20" height="14" fill="#aa151b"/>' +
+      '<rect y="3.5" width="20" height="7" fill="#f1bf00"/>' +
+      '</svg>',
+  ),
+  ru: svgDataUri(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14">' +
+      '<rect width="20" height="4.67" fill="#fff"/>' +
+      '<rect y="4.67" width="20" height="4.67" fill="#0039a6"/>' +
+      '<rect y="9.33" width="20" height="4.67" fill="#d52b1e"/>' +
+      '</svg>',
+  ),
+  zh: svgDataUri(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14">' +
+      '<rect width="20" height="14" fill="#de2910"/>' +
+      '<circle cx="4" cy="3.5" r="1.6" fill="#ffde00"/>' +
+      '<circle cx="7.6" cy="1.8" r="0.6" fill="#ffde00"/>' +
+      '<circle cx="8.6" cy="3.6" r="0.6" fill="#ffde00"/>' +
+      '<circle cx="8.2" cy="5.8" r="0.6" fill="#ffde00"/>' +
+      '<circle cx="6.6" cy="6.8" r="0.6" fill="#ffde00"/>' +
+      '</svg>',
+  ),
+  ko: svgDataUri(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14">' +
+      '<rect width="20" height="14" fill="#fff"/>' +
+      '<circle cx="10" cy="7" r="3.5" fill="#c60c30"/>' +
+      '<path d="M10 3.5a1.75 1.75 0 000 3.5 1.75 1.75 0 010 3.5 3.5 3.5 0 000-7z" fill="#003478"/>' +
+      '</svg>',
+  ),
+};
+
+// Americas/Asia/Europe are server clusters, not single countries, so region gets one
+// neutral globe icon rather than a flag that would misrepresent an entire continent.
+const REGION_ICON = svgDataUri(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">' +
+    '<circle cx="10" cy="10" r="8" fill="none" stroke="#a89f8c" stroke-width="1.4"/>' +
+    '<ellipse cx="10" cy="10" rx="3.2" ry="8" fill="none" stroke="#a89f8c" stroke-width="1.2"/>' +
+    '<line x1="2" y1="10" x2="18" y2="10" stroke="#a89f8c" stroke-width="1.2"/>' +
+    '<line x1="3.2" y1="5.5" x2="16.8" y2="5.5" stroke="#a89f8c" stroke-width="1"/>' +
+    '<line x1="3.2" y1="14.5" x2="16.8" y2="14.5" stroke="#a89f8c" stroke-width="1"/>' +
+    '</svg>',
+);
+
+// Colors the closed <select> box to match its current choice, not just the open dropdown -
+// most browsers render an <option>'s color/background only while the list is open, so
+// without this the city/quality colors would be invisible until the user clicks in.
+function syncSelectColor(selectEl, color) {
+  selectEl.style.color = color || '';
 }
 
 async function copyMarketAlias(button, text) {
@@ -254,21 +485,21 @@ function applyTwoHandedRule() {
 }
 
 function renderConfig() {
-  elements.regionSelect.innerHTML = '';
-  Object.entries(state.config.regions).forEach(([key, region]) => {
-    const option = document.createElement('option');
-    option.value = key;
-    option.textContent = region.label;
-    elements.regionSelect.append(option);
-  });
+  elements.regionSelect.setOptions(
+    Object.entries(state.config.regions).map(([key, region]) => ({
+      value: key,
+      label: region.label,
+      icon: REGION_ICON,
+    })),
+  );
 
-  elements.languageSelect.innerHTML = '';
-  state.config.languages.forEach(language => {
-    const option = document.createElement('option');
-    option.value = language;
-    option.textContent = language.toUpperCase();
-    elements.languageSelect.append(option);
-  });
+  elements.languageSelect.setOptions(
+    state.config.languages.map((language) => ({
+      value: language,
+      label: language.toUpperCase(),
+      icon: LANGUAGE_FLAG_ICONS[language],
+    })),
+  );
 
   renderMarketCityOptions();
   renderMinQualityOptions();
@@ -285,9 +516,12 @@ function renderMinQualityOptions() {
     const option = document.createElement('option');
     option.value = String(value);
     option.textContent = value === 1 ? label : `${label}`;
+    option.style.color = qualityColor(label);
     elements.minQualitySelect.append(option);
   });
   elements.minQualitySelect.value = String(state.minQuality);
+  const selectedQuality = state.config.qualities.find(({ value }) => value === state.minQuality);
+  syncSelectColor(elements.minQualitySelect, selectedQuality ? qualityColor(selectedQuality.label) : '');
 }
 
 function renderMarketCityOptions() {
@@ -304,6 +538,7 @@ function renderMarketCityOptions() {
       const option = document.createElement('option');
       option.value = city;
       option.textContent = city;
+      option.style.color = cityColor(city);
       elements.marketCitySelect.append(option);
     });
   }
@@ -312,6 +547,7 @@ function renderMarketCityOptions() {
     state.marketCity = 'all';
   }
   elements.marketCitySelect.value = state.marketCity;
+  syncSelectColor(elements.marketCitySelect, cityColor(state.marketCity));
 }
 
 function renderInventory() {
@@ -1402,11 +1638,14 @@ async function boot() {
 
   elements.marketCitySelect.addEventListener('change', event => {
     state.marketCity = event.target.value;
+    syncSelectColor(elements.marketCitySelect, cityColor(state.marketCity));
     markPricingDirty('Market city changed. Click Compare prices to refresh the market data.');
   });
 
   elements.minQualitySelect.addEventListener('change', event => {
     state.minQuality = Number(event.target.value) || 1;
+    const selectedQuality = state.config.qualities.find(({ value }) => value === state.minQuality);
+    syncSelectColor(elements.minQualitySelect, selectedQuality ? qualityColor(selectedQuality.label) : '');
     markPricingDirty('Minimum quality changed. Click Compare prices to refresh the market data.');
   });
 
