@@ -8,7 +8,7 @@
 // no dependencies.
 
 import { qualityLabel } from './constants.js';
-import { dedupe, joinEncoded, regionHost } from './urls.js';
+import { dedupe, joinEncoded, qualityRange, regionHost } from './urls.js';
 
 // The API rejects over-long URLs, so item lists are chunked to stay under this.
 const MAX_URL_LENGTH = 4096;
@@ -41,18 +41,6 @@ export function planBatches(uniqueNames) {
     batches.push(batch);
   }
   return batches;
-}
-
-// Qualities below the requested floor are dropped by the API itself rather than
-// fetched and filtered client-side - fewer rows over the wire, and the "cheapest per
-// city" fold below never even sees a quality it shouldn't consider.
-function qualityRange(minQuality) {
-  const floor = Math.min(Math.max(Math.trunc(minQuality) || 1, 1), 5);
-  const values = [];
-  for (let quality = floor; quality <= 5; quality += 1) {
-    values.push(quality);
-  }
-  return values.join(',');
 }
 
 function batchUrl(host, batch, cities, minQuality) {

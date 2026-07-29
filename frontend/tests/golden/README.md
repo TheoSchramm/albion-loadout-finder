@@ -88,3 +88,17 @@ alternative that exists and copy its market alias to check in-game, rather than 
 silently disappear. `total_cost` is unaffected - it only ever summed real prices. Only the
 shape of unpriced rows changed (present-with-nulls instead of absent); `cases` and
 `prices.fixture.json` are untouched.
+
+**`urls.json` and `optimize.json`** ("api link matches actual min quality" commit) -
+`priceQueryUrl()` always hardcoded `qualities=1` in the "inspect this query" link
+regardless of what was actually fetched, mirroring the Python original's link, which did
+the same. Misleading once a Minimum quality filter was in play: an item with no market
+data (`price: 0`) linked to a quality=1-only query even though the real request - and the
+reason nothing was found - used a higher floor. `priceQueryUrl()` now takes the actual
+`minQuality` that was used for that specific candidate (the caller's filter, or a fixed
+floor of 1 for food/potion candidates, which are queried at floor 1 regardless of the
+filter - see the `#3` fix above) and builds the matching `qualities=` range. All 4
+`optimize.json` cases and all 6 `urls.json` `price_query_url` entries were run at the
+default `minQuality=1`, so this is a uniform `qualities=1` -> `qualities=1,2,3,4,5`
+change throughout both files; `cases`, `item_image_url`, and `prices.fixture.json` are
+untouched.

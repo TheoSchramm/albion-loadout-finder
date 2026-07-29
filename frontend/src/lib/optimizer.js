@@ -109,6 +109,11 @@ export async function optimizeLoadoutWithCities({
     for (const candidate of equivalentVariants(variant)) {
       const cityPrices = priceMap.get(candidate.unique_name) || {};
       const best = cheapestCity(cityPrices);
+      // Matches whichever floor was actually used to fetch this candidate: food/potion
+      // candidates were queried at a fixed floor of 1 regardless of minQuality (see
+      // above), so their link must say so too rather than implying the user's filter
+      // applied to them.
+      const candidateMinQuality = qualityFreeNames.has(candidate.unique_name) ? 1 : minQuality;
 
       const payload = {
         ...serializeVariant(candidate, language),
@@ -117,7 +122,7 @@ export async function optimizeLoadoutWithCities({
         cheapest_quality: best ? best.data.quality : null,
         cheapest_quality_label: best ? qualityLabel(best.data.quality) : null,
         updated_at: best ? best.data.updated_at : '',
-        api_url: priceQueryUrl(candidate.unique_name, region, selectedCities),
+        api_url: priceQueryUrl(candidate.unique_name, region, selectedCities, candidateMinQuality),
       };
       candidatePayloads.push(payload);
       if (best && (cheapest === null || payload.cheapest_price < cheapest.cheapest_price)) {

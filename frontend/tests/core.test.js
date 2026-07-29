@@ -13,6 +13,7 @@ import { searchItems } from '../src/lib/search.js';
 import { fetchPrices } from '../src/lib/prices.js';
 import { optimizeLoadoutWithCities } from '../src/lib/optimizer.js';
 import { getConfig, getItem } from '../src/lib/api.js';
+import { priceQueryUrl } from '../src/lib/urls.js';
 import { catalogData } from './helpers.mjs';
 
 setCatalog(catalogData());
@@ -401,6 +402,43 @@ test('food/potion prices still resolve when the minimum quality filter excludes 
     fetchOptions: { fetchImpl, now: () => 1753000000000 },
   });
   assert.equal(result.slots[0].best.cheapest_price, 500);
+});
+
+test('priceQueryUrl reflects the actual minQuality floor requested, not a fixed value', () => {
+  // Regression: api_url used to always say "qualities=1" regardless of what was actually
+  // queried, which was especially misleading for an item with no market data (price=0) -
+  // the link implied only Normal quality was checked even when a higher filter excluded
+  // real listings that do exist.
+  assert.equal(
+    priceQueryUrl('T4_CAPE', 'americas', ['Caerleon']),
+    'https://west.albion-online-data.com/api/v2/stats/prices/T4_CAPE.json?locations=Caerleon&qualities=1,2,3,4,5',
+  );
+  assert.equal(
+    priceQueryUrl('T4_CAPE', 'americas', ['Caerleon'], 3),
+    'https://west.albion-online-data.com/api/v2/stats/prices/T4_CAPE.json?locations=Caerleon&qualities=3,4,5',
+  );
+});
+
+test('a standard item with no market data still links to the actual minQuality that was queried', async () => {
+  const fetchImpl = async () => ({ ok: true, json: async () => [] });
+  const result = await optimizeLoadoutWithCities({
+    loadout: [{ slot: 'main_hand', unique_name: 'T6_MAIN_SWORD@0' }],
+    minQuality: 3,
+    fetchOptions: { fetchImpl, now: () => 1753000000000 },
+  });
+  const { best } = result.slots[0];
+  assert.equal(best.cheapest_price, null, 'sanity check: no market data was found');
+  assert.match(best.api_url, /qualities=3,4,5$/, 'the link must reflect the actual filter, not a fixed quality=1');
+});
+
+test("a food/potion candidate's api_url still shows its own fixed floor of 1, unaffected by minQuality", async () => {
+  const fetchImpl = async () => ({ ok: true, json: async () => [] });
+  const result = await optimizeLoadoutWithCities({
+    loadout: [{ slot: 'food', unique_name: 'T8_MEAL_STEW' }],
+    minQuality: 4,
+    fetchOptions: { fetchImpl, now: () => 1753000000000 },
+  });
+  assert.match(result.slots[0].best.api_url, /qualities=1,2,3,4,5$/);
 });
 
 test('price requests send no headers, avoiding a CORS preflight per batch', async () => {
