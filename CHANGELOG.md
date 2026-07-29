@@ -18,6 +18,7 @@ Actions), so entries are grouped by date rather than by version number — there
   Equipment and Search columns.
 - When no slot is selected, the loaded loadout's description now shows under its own
   title, so it's clear which loadout that text belongs to instead of unlabeled text.
+- A silver coin icon next to the total loadout price.
 
 ### Changed
 
