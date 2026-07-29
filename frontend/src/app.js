@@ -766,22 +766,41 @@ function renderSearchPrompt(message) {
   elements.searchResults.innerHTML = `<div class="empty-state">${message}</div>`;
 }
 
-// When nothing is being searched, show the loaded preset's own description (if
-// any) instead of the generic hint - a quick reminder of what this build is for.
-function defaultSearchPrompt() {
-  return state.activePresetDescription || T('typeToSearch');
+// A loadout's description is free-text the user typed themselves, so it's built with
+// textContent rather than renderSearchPrompt()'s innerHTML - the same description that's
+// safe to display in a plain empty-state div would otherwise be interpreted as HTML.
+// Labeled with the loadout's own title so it's clear this text is that loadout's
+// description, not some other kind of status message.
+function renderLoadoutDescriptionPrompt(title, description) {
+  elements.searchResults.innerHTML = '';
+  const container = document.createElement('div');
+  container.className = 'empty-state';
+  if (title) {
+    const titleEl = document.createElement('p');
+    titleEl.className = 'empty-state-title';
+    titleEl.textContent = title;
+    container.append(titleEl);
+  }
+  const descriptionEl = document.createElement('p');
+  descriptionEl.textContent = description;
+  container.append(descriptionEl);
+  elements.searchResults.append(container);
 }
 
 // The "nothing typed yet" view: list every item available for the selected slot (an
 // empty query matches everything - see matchesQuery() in text.js) rather than making
 // the user type a letter just to see what's on offer. Falls back to the generic hint (or
-// a loaded loadout's own description) when no slot is selected - the default on boot and
-// after loading a loadout, and reachable any time via deselectSlot().
+// a loaded loadout's own description, titled with that loadout's name) when no slot is
+// selected - the default on boot and after loading a loadout, and reachable any time via
+// deselectSlot().
 function showIdleSearchView() {
   if (state.selectedSlot) {
     runSearch(state.selectedSlot, '');
+  } else if (state.activePresetDescription) {
+    const activeLoadout = state.savedLoadouts.find(entry => entry.id === state.activePresetId);
+    renderLoadoutDescriptionPrompt(activeLoadout ? activeLoadout.title : '', state.activePresetDescription);
   } else {
-    renderSearchPrompt(defaultSearchPrompt());
+    renderSearchPrompt(T('typeToSearch'));
   }
 }
 
