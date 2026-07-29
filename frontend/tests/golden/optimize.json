@@ -83,7 +83,7 @@
       "slots": [
         {
           "best": {
-            "api_url": "https://europe.albion-online-data.com/api/v2/stats/prices/T8_MEAL_STEW.json?locations=Caerleon&qualities=1",
+            "api_url": "https://europe.albion-online-data.com/api/v2/stats/prices/T8_MEAL_STEW.json?locations=Caerleon&qualities=1,2,3,4,5",
             "cheapest_city": "Caerleon",
             "cheapest_price": 2233,
             "cheapest_quality": 5,
@@ -106,7 +106,7 @@
           },
           "candidates": [
             {
-              "api_url": "https://europe.albion-online-data.com/api/v2/stats/prices/T8_MEAL_STEW.json?locations=Caerleon&qualities=1",
+              "api_url": "https://europe.albion-online-data.com/api/v2/stats/prices/T8_MEAL_STEW.json?locations=Caerleon&qualities=1,2,3,4,5",
               "cheapest_city": "Caerleon",
               "cheapest_price": 2233,
               "cheapest_quality": 5,
@@ -160,7 +160,7 @@
       "slots": [
         {
           "best": {
-            "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_MAIN_SWORD%402.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+            "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_MAIN_SWORD%402.json?locations=Caerleon,Martlock,Thetford&qualities=1,2,3,4,5",
             "cheapest_city": "Caerleon",
             "cheapest_price": 1274,
             "cheapest_quality": 3,
@@ -183,7 +183,7 @@
           },
           "candidates": [
             {
-              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_MAIN_SWORD%402.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_MAIN_SWORD%402.json?locations=Caerleon,Martlock,Thetford&qualities=1,2,3,4,5",
               "cheapest_city": "Caerleon",
               "cheapest_price": 1274,
               "cheapest_quality": 3,
@@ -205,7 +205,7 @@
               "updated_at": "2026-07-03T02:15:00"
             },
             {
-              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T5_MAIN_SWORD%401.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T5_MAIN_SWORD%401.json?locations=Caerleon,Martlock,Thetford&qualities=1,2,3,4,5",
               "cheapest_city": "Caerleon",
               "cheapest_price": 1685,
               "cheapest_quality": 1,
@@ -227,7 +227,7 @@
               "updated_at": "2026-07-06T05:15:00"
             },
             {
-              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T6_MAIN_SWORD.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T6_MAIN_SWORD.json?locations=Caerleon,Martlock,Thetford&qualities=1,2,3,4,5",
               "cheapest_city": "Caerleon",
               "cheapest_price": 2096,
               "cheapest_quality": 4,
@@ -268,7 +268,7 @@
         },
         {
           "best": {
-            "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_HEAD_LEATHER_SET2%402.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+            "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_HEAD_LEATHER_SET2%402.json?locations=Caerleon,Martlock,Thetford&qualities=1,2,3,4,5",
             "cheapest_city": "Caerleon",
             "cheapest_price": 1137,
             "cheapest_quality": 2,
@@ -291,7 +291,7 @@
           },
           "candidates": [
             {
-              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_HEAD_LEATHER_SET2%402.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_HEAD_LEATHER_SET2%402.json?locations=Caerleon,Martlock,Thetford&qualities=1,2,3,4,5",
               "cheapest_city": "Caerleon",
               "cheapest_price": 1137,
               "cheapest_quality": 2,
@@ -313,7 +313,7 @@
               "updated_at": "2026-07-02T01:15:00"
             },
             {
-              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T5_HEAD_LEATHER_SET2%401.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T5_HEAD_LEATHER_SET2%401.json?locations=Caerleon,Martlock,Thetford&qualities=1,2,3,4,5",
               "cheapest_city": "Caerleon",
               "cheapest_price": 1548,
               "cheapest_quality": 5,
@@ -335,7 +335,7 @@
               "updated_at": "2026-07-05T04:15:00"
             },
             {
-              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T6_HEAD_LEATHER_SET2.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T6_HEAD_LEATHER_SET2.json?locations=Caerleon,Martlock,Thetford&qualities=1,2,3,4,5",
               "cheapest_city": "Caerleon",
               "cheapest_price": 1959,
               "cheapest_quality": 3,
@@ -376,7 +376,7 @@
         },
         {
           "best": {
-            "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_CAPE%402.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+            "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_CAPE%402.json?locations=Caerleon,Martlock,Thetford&qualities=1,2,3,4,5",
             "cheapest_city": "Caerleon",
             "cheapest_price": 1000,
             "cheapest_quality": 1,
@@ -399,7 +399,7 @@
           },
           "candidates": [
             {
-              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_CAPE%402.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_CAPE%402.json?locations=Caerleon,Martlock,Thetford&qualities=1,2,3,4,5",
               "cheapest_city": "Caerleon",
               "cheapest_price": 1000,
               "cheapest_quality": 1,
@@ -421,7 +421,7 @@
               "updated_at": "2026-07-01T00:15:00"
             },
             {
-              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T5_CAPE%401.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T5_CAPE%401.json?locations=Caerleon,Martlock,Thetford&qualities=1,2,3,4,5",
               "cheapest_city": "Caerleon",
               "cheapest_price": 1411,
               "cheapest_quality": 4,
@@ -443,7 +443,7 @@
               "updated_at": "2026-07-04T03:15:00"
             },
             {
-              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T6_CAPE.json?locations=Caerleon,Martlock,Thetford&qualities=1",
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T6_CAPE.json?locations=Caerleon,Martlock,Thetford&qualities=1,2,3,4,5",
               "cheapest_city": null,
               "cheapest_price": null,
               "cheapest_quality": null,
@@ -496,7 +496,7 @@
       "slots": [
         {
           "best": {
-            "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_MAIN_SWORD%402.json?locations=Caerleon,Martlock&qualities=1",
+            "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_MAIN_SWORD%402.json?locations=Caerleon,Martlock&qualities=1,2,3,4,5",
             "cheapest_city": "Caerleon",
             "cheapest_price": 1274,
             "cheapest_quality": 3,
@@ -519,7 +519,7 @@
           },
           "candidates": [
             {
-              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_MAIN_SWORD%402.json?locations=Caerleon,Martlock&qualities=1",
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_MAIN_SWORD%402.json?locations=Caerleon,Martlock&qualities=1,2,3,4,5",
               "cheapest_city": "Caerleon",
               "cheapest_price": 1274,
               "cheapest_quality": 3,
@@ -541,7 +541,7 @@
               "updated_at": "2026-07-03T02:15:00"
             },
             {
-              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T5_MAIN_SWORD%401.json?locations=Caerleon,Martlock&qualities=1",
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T5_MAIN_SWORD%401.json?locations=Caerleon,Martlock&qualities=1,2,3,4,5",
               "cheapest_city": "Caerleon",
               "cheapest_price": 1685,
               "cheapest_quality": 1,
@@ -563,7 +563,7 @@
               "updated_at": "2026-07-06T05:15:00"
             },
             {
-              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T6_MAIN_SWORD.json?locations=Caerleon,Martlock&qualities=1",
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T6_MAIN_SWORD.json?locations=Caerleon,Martlock&qualities=1,2,3,4,5",
               "cheapest_city": "Caerleon",
               "cheapest_price": 2096,
               "cheapest_quality": 4,
@@ -615,7 +615,7 @@
       "slots": [
         {
           "best": {
-            "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_HEAD_LEATHER_SET2%402.json?locations=Caerleon&qualities=1",
+            "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_HEAD_LEATHER_SET2%402.json?locations=Caerleon&qualities=1,2,3,4,5",
             "cheapest_city": "Caerleon",
             "cheapest_price": 1137,
             "cheapest_quality": 2,
@@ -638,7 +638,7 @@
           },
           "candidates": [
             {
-              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_HEAD_LEATHER_SET2%402.json?locations=Caerleon&qualities=1",
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T4_HEAD_LEATHER_SET2%402.json?locations=Caerleon&qualities=1,2,3,4,5",
               "cheapest_city": "Caerleon",
               "cheapest_price": 1137,
               "cheapest_quality": 2,
@@ -660,7 +660,7 @@
               "updated_at": "2026-07-02T01:15:00"
             },
             {
-              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T5_HEAD_LEATHER_SET2%401.json?locations=Caerleon&qualities=1",
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T5_HEAD_LEATHER_SET2%401.json?locations=Caerleon&qualities=1,2,3,4,5",
               "cheapest_city": "Caerleon",
               "cheapest_price": 1548,
               "cheapest_quality": 5,
@@ -682,7 +682,7 @@
               "updated_at": "2026-07-05T04:15:00"
             },
             {
-              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T6_HEAD_LEATHER_SET2.json?locations=Caerleon&qualities=1",
+              "api_url": "https://west.albion-online-data.com/api/v2/stats/prices/T6_HEAD_LEATHER_SET2.json?locations=Caerleon&qualities=1,2,3,4,5",
               "cheapest_city": "Caerleon",
               "cheapest_price": 1959,
               "cheapest_quality": 3,
