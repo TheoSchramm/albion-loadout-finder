@@ -18,7 +18,10 @@ Actions), so entries are grouped by date rather than by version number — there
   matching how they're already shown throughout the results table. (#7)
 - A flag icon on the Language selector (Brazilian flag for Portuguese, since that's the
   only Portuguese Albion ships), and a neutral globe icon on the Region selector - regions
-  are server clusters, not single countries, so no one flag fits all three.
+  are server clusters, not single countries, so no one flag fits all three. Both selectors
+  are now a small custom dropdown rather than a native `<select>`, so the icon shows in
+  the open option list too, not just the closed control - no browser renders an image
+  inside a native `<option>`.
 
 ## 2026-07-24
 

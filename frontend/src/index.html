@@ -26,11 +26,25 @@
           <div class="config-controls">
             <label>
               Region
-              <select id="regionSelect" class="select-with-icon"></select>
+              <div class="icon-select" id="regionSelect">
+                <button type="button" class="icon-select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="icon-select-icon" aria-hidden="true" hidden></span>
+                  <span class="icon-select-label">Select region</span>
+                  <span class="material-symbols-rounded icon-select-caret" aria-hidden="true">expand_more</span>
+                </button>
+                <ul class="icon-select-list" role="listbox" aria-label="Region" hidden></ul>
+              </div>
             </label>
             <label>
               Language
-              <select id="languageSelect" class="select-with-icon"></select>
+              <div class="icon-select" id="languageSelect">
+                <button type="button" class="icon-select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="icon-select-icon" aria-hidden="true" hidden></span>
+                  <span class="icon-select-label">Select language</span>
+                  <span class="material-symbols-rounded icon-select-caret" aria-hidden="true">expand_more</span>
+                </button>
+                <ul class="icon-select-list" role="listbox" aria-label="Language" hidden></ul>
+              </div>
             </label>
             <label>
               Market city

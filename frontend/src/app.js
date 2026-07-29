@@ -8,6 +8,148 @@ import { getConfig, getItem, getItems, optimize } from './lib/api.js';
 // (https://user.github.io/<repo>/) as well as from a domain root.
 const CATALOG_URL = new URL('./data/items.catalog.json', import.meta.url);
 
+// A native <select>'s closed box can carry a background-image icon, but no browser lets
+// its open <option> list render one - so a per-option flag/globe icon (rather than just
+// on the closed control) needs its own widget instead of a real <select>. This is a
+// minimal listbox: a trigger button plus an absolutely-positioned option list, built from
+// plain elements so each row can hold an icon. It mimics just enough of <select>'s API
+// (`.value` get/set, `addEventListener('change', ...)` with `event.target.value`) that the
+// rest of app.js reads and writes it exactly like the native control it replaces.
+function createIconSelect(root) {
+  const trigger = root.querySelector('.icon-select-trigger');
+  const triggerIcon = root.querySelector('.icon-select-icon');
+  const triggerLabel = root.querySelector('.icon-select-label');
+  const list = root.querySelector('.icon-select-list');
+  const target = new EventTarget();
+  let options = [];
+  let value = '';
+
+  function onDocumentClick(event) {
+    if (!root.contains(event.target)) close();
+  }
+
+  function close() {
+    if (list.hidden) return;
+    list.hidden = true;
+    root.classList.remove('is-open');
+    trigger.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('click', onDocumentClick, true);
+  }
+
+  function open() {
+    if (trigger.disabled || !list.hidden) return;
+    list.hidden = false;
+    root.classList.add('is-open');
+    trigger.setAttribute('aria-expanded', 'true');
+    document.addEventListener('click', onDocumentClick, true);
+    const current = list.querySelector('[aria-selected="true"]') || list.firstElementChild;
+    current?.focus();
+  }
+
+  function applySelection(option) {
+    triggerIcon.hidden = !option.icon;
+    triggerIcon.style.backgroundImage = option.icon || 'none';
+    triggerLabel.textContent = option.label;
+    list.querySelectorAll('[role="option"]').forEach((node) => {
+      node.setAttribute('aria-selected', String(node.dataset.value === option.value));
+      node.classList.toggle('is-selected', node.dataset.value === option.value);
+    });
+  }
+
+  // Mirrors a real <select>: programmatic `.value =` never fires 'change', only picking
+  // an option (click or keyboard) does.
+  function choose(nextValue) {
+    const option = options.find((entry) => entry.value === nextValue);
+    if (!option) return;
+    const changed = value !== nextValue;
+    value = nextValue;
+    applySelection(option);
+    close();
+    if (changed) {
+      const event = new Event('change');
+      Object.defineProperty(event, 'target', { value: wrapper, configurable: true });
+      target.dispatchEvent(event);
+    }
+  }
+
+  trigger.addEventListener('click', () => (list.hidden ? open() : close()));
+  trigger.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      open();
+    }
+  });
+
+  list.addEventListener('keydown', (event) => {
+    const items = [...list.querySelectorAll('[role="option"]')];
+    const currentIndex = items.indexOf(document.activeElement);
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      (items[currentIndex + 1] || items[0])?.focus();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      (items[currentIndex - 1] || items[items.length - 1])?.focus();
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      const focused = document.activeElement;
+      if (focused?.dataset?.value !== undefined) {
+        choose(focused.dataset.value);
+        trigger.focus();
+      }
+    } else if (event.key === 'Escape') {
+      close();
+      trigger.focus();
+    } else if (event.key === 'Tab') {
+      close();
+    }
+  });
+
+  const wrapper = {
+    setOptions(nextOptions) {
+      options = nextOptions;
+      list.innerHTML = '';
+      options.forEach((option) => {
+        const item = document.createElement('li');
+        item.className = 'icon-select-option';
+        item.setAttribute('role', 'option');
+        item.setAttribute('aria-selected', 'false');
+        item.tabIndex = -1;
+        item.dataset.value = option.value;
+        if (option.icon) {
+          const icon = document.createElement('span');
+          icon.className = 'icon-select-option-icon';
+          icon.style.backgroundImage = option.icon;
+          item.append(icon);
+        }
+        const label = document.createElement('span');
+        label.textContent = option.label;
+        item.append(label);
+        item.addEventListener('click', () => {
+          choose(option.value);
+          trigger.focus();
+        });
+        list.append(item);
+      });
+    },
+    get value() {
+      return value;
+    },
+    set value(nextValue) {
+      const option = options.find((entry) => entry.value === nextValue);
+      if (option) {
+        value = nextValue;
+        applySelection(option);
+      }
+    },
+    set disabled(isDisabled) {
+      trigger.disabled = Boolean(isDisabled);
+    },
+    addEventListener: (type, listener) => target.addEventListener(type, listener),
+    removeEventListener: (type, listener) => target.removeEventListener(type, listener),
+  };
+  return wrapper;
+}
+
 const state = {
   config: null,
   region: 'americas',
@@ -29,8 +171,8 @@ const state = {
 };
 
 const elements = {
-  regionSelect: document.getElementById('regionSelect'),
-  languageSelect: document.getElementById('languageSelect'),
+  regionSelect: createIconSelect(document.getElementById('regionSelect')),
+  languageSelect: createIconSelect(document.getElementById('languageSelect')),
   marketCitySelect: document.getElementById('marketCitySelect'),
   minQualitySelect: document.getElementById('minQualitySelect'),
   refreshButton: document.getElementById('refreshButton'),
@@ -195,10 +337,6 @@ const REGION_ICON = svgDataUri(
     '</svg>',
 );
 
-function syncLanguageSelectIcon() {
-  elements.languageSelect.style.backgroundImage = LANGUAGE_FLAG_ICONS[state.language] || 'none';
-}
-
 // Colors the closed <select> box to match its current choice, not just the open dropdown -
 // most browsers render an <option>'s color/background only while the list is open, so
 // without this the city/quality colors would be invisible until the user clicks in.
@@ -347,22 +485,21 @@ function applyTwoHandedRule() {
 }
 
 function renderConfig() {
-  elements.regionSelect.innerHTML = '';
-  Object.entries(state.config.regions).forEach(([key, region]) => {
-    const option = document.createElement('option');
-    option.value = key;
-    option.textContent = region.label;
-    elements.regionSelect.append(option);
-  });
-  elements.regionSelect.style.backgroundImage = REGION_ICON;
+  elements.regionSelect.setOptions(
+    Object.entries(state.config.regions).map(([key, region]) => ({
+      value: key,
+      label: region.label,
+      icon: REGION_ICON,
+    })),
+  );
 
-  elements.languageSelect.innerHTML = '';
-  state.config.languages.forEach(language => {
-    const option = document.createElement('option');
-    option.value = language;
-    option.textContent = language.toUpperCase();
-    elements.languageSelect.append(option);
-  });
+  elements.languageSelect.setOptions(
+    state.config.languages.map((language) => ({
+      value: language,
+      label: language.toUpperCase(),
+      icon: LANGUAGE_FLAG_ICONS[language],
+    })),
+  );
 
   renderMarketCityOptions();
   renderMinQualityOptions();
@@ -371,7 +508,6 @@ function renderConfig() {
   elements.languageSelect.value = state.language;
   elements.marketCitySelect.value = state.marketCity;
   elements.minQualitySelect.value = String(state.minQuality);
-  syncLanguageSelectIcon();
 }
 
 function renderMinQualityOptions() {
@@ -1482,7 +1618,6 @@ async function boot() {
 
   elements.languageSelect.addEventListener('change', event => {
     state.language = event.target.value;
-    syncLanguageSelectIcon();
     // Language only changes display text, not prices/cities - unlike region/market city
     // changes, it must not clear the results table (markPricingDirty() would). Both the
     // loadout slots and any already-fetched results are relabeled in place instead.
