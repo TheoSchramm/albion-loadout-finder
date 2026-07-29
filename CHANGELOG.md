@@ -37,6 +37,9 @@ Actions), so entries are grouped by date rather than by version number — there
 - The saved-loadout dropdown now shows only the title. Its description (if any) shows as
   a separate line below the dropdown for whichever loadout is currently selected, instead
   of being appended into the option text ("Title — description"). (#6)
+- Picking a loadout from the saved-loadout dropdown now loads it immediately, instead of
+  requiring a separate click on "Load". The "Load" button stays, for re-loading the same
+  selection on demand (discarding unsaved gear changes) without reselecting it.
 
 ### Fixed
 
