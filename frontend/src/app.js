@@ -182,6 +182,7 @@ const elements = {
   searchInput: document.getElementById('searchInput'),
   searchResults: document.getElementById('searchResults'),
   savedLoadoutSelect: document.getElementById('savedLoadoutSelect'),
+  savedLoadoutDescriptionHint: document.getElementById('savedLoadoutDescriptionHint'),
   saveLoadoutButton: document.getElementById('saveLoadoutButton'),
   loadSavedLoadoutButton: document.getElementById('loadSavedLoadoutButton'),
   editSavedLoadoutButton: document.getElementById('editSavedLoadoutButton'),
@@ -755,6 +756,17 @@ function persistSavedLoadouts() {
   window.localStorage.setItem(SAVED_LOADOUTS_KEY, JSON.stringify(state.savedLoadouts));
 }
 
+// The dropdown shows the title alone - the primary identifier - and the description (if
+// any) of whichever loadout is currently selected surfaces separately underneath, rather
+// than being appended into the option text where a long description could crowd out the
+// title or make every entry a different length.
+function syncSavedLoadoutDescriptionHint() {
+  const entry = state.savedLoadouts.find(item => item.id === state.selectedSavedLoadoutId);
+  const description = entry ? entry.description : '';
+  elements.savedLoadoutDescriptionHint.textContent = description;
+  elements.savedLoadoutDescriptionHint.hidden = !description;
+}
+
 function renderSavedLoadoutOptions() {
   const currentSelection = state.selectedSavedLoadoutId;
   elements.savedLoadoutSelect.innerHTML = '';
@@ -769,6 +781,7 @@ function renderSavedLoadoutOptions() {
     elements.editSavedLoadoutButton.disabled = true;
     elements.deleteSavedLoadoutButton.disabled = true;
     state.selectedSavedLoadoutId = '';
+    syncSavedLoadoutDescriptionHint();
     return;
   }
 
@@ -788,13 +801,14 @@ function renderSavedLoadoutOptions() {
     .forEach(entry => {
       const option = document.createElement('option');
       option.value = entry.id;
-      option.textContent = entry.description ? `${entry.title} — ${entry.description}` : entry.title;
+      option.textContent = entry.title;
       elements.savedLoadoutSelect.append(option);
     });
 
   const hasSelection = Boolean(currentSelection) && state.savedLoadouts.some(entry => entry.id === currentSelection);
   state.selectedSavedLoadoutId = hasSelection ? currentSelection : '';
   elements.savedLoadoutSelect.value = state.selectedSavedLoadoutId;
+  syncSavedLoadoutDescriptionHint();
 
   elements.loadSavedLoadoutButton.disabled = !hasSelection;
   elements.editSavedLoadoutButton.disabled = !hasSelection;
@@ -1699,6 +1713,7 @@ async function boot() {
   elements.deleteSavedLoadoutButton.addEventListener('click', deleteSelectedSavedLoadout);
   elements.savedLoadoutSelect.addEventListener('change', event => {
     state.selectedSavedLoadoutId = event.target.value;
+    syncSavedLoadoutDescriptionHint();
     const hasSelection = Boolean(state.selectedSavedLoadoutId);
     elements.loadSavedLoadoutButton.disabled = !hasSelection;
     elements.editSavedLoadoutButton.disabled = !hasSelection;

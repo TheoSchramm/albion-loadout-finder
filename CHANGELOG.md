@@ -32,6 +32,9 @@ Actions), so entries are grouped by date rather than by version number — there
 - The Load/Save/Edit/Delete/Export/Import loadout buttons now each carry their own icon,
   and Save/Load/Delete each have a distinct accent color (brass/verdigris/red) instead of
   four of the six buttons all looking identical. (#8)
+- The saved-loadout dropdown now shows only the title. Its description (if any) shows as
+  a separate line below the dropdown for whichever loadout is currently selected, instead
+  of being appended into the option text ("Title — description"). (#6)
 
 ### Fixed
 
