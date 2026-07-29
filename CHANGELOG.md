@@ -26,6 +26,8 @@ Actions), so entries are grouped by date rather than by version number — there
   to open issues, suggest features, or follow development without hunting for the URL. (#9)
 - A disclaimer under the "Compare prices" button noting that prices are only a suggestion
   and may not be accurate, and to verify them in-game before acting on them.
+- A "Sort" control for saved loadouts, next to the loadout dropdown: "Recently updated"
+  (the previous, only, behavior) or "A–Z" by title. The choice persists across reloads. (#5)
 
 ### Changed
 

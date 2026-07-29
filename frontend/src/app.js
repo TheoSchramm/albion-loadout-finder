@@ -158,6 +158,7 @@ const state = {
   minQuality: 1,
   loadout: new Map(),
   savedLoadouts: [],
+  loadoutSortOrder: 'recent',
   selectedSavedLoadoutId: '',
   activePresetId: '',
   activePresetDescription: '',
@@ -183,6 +184,7 @@ const elements = {
   searchResults: document.getElementById('searchResults'),
   savedLoadoutSelect: document.getElementById('savedLoadoutSelect'),
   savedLoadoutDescriptionHint: document.getElementById('savedLoadoutDescriptionHint'),
+  savedLoadoutSortSelect: document.getElementById('savedLoadoutSortSelect'),
   saveLoadoutButton: document.getElementById('saveLoadoutButton'),
   loadSavedLoadoutButton: document.getElementById('loadSavedLoadoutButton'),
   editSavedLoadoutButton: document.getElementById('editSavedLoadoutButton'),
@@ -210,6 +212,11 @@ const elements = {
 };
 
 const SAVED_LOADOUTS_KEY = 'albion-helper.saved-loadouts';
+const LOADOUT_SORT_ORDER_KEY = 'albion-helper.loadout-sort-order';
+
+function loadLoadoutSortOrderFromStorage() {
+  return window.localStorage.getItem(LOADOUT_SORT_ORDER_KEY) === 'alpha' ? 'alpha' : 'recent';
+}
 
 function formatSilver(value) {
   if (value >= 1_000_000) {
@@ -767,9 +774,23 @@ function syncSavedLoadoutDescriptionHint() {
   elements.savedLoadoutDescriptionHint.hidden = !description;
 }
 
+// "recent" (the previous, only, behavior) surfaces whatever was just worked on; "alpha"
+// helps find one build by name in a long list instead of hunting through recency order.
+function sortSavedLoadouts(savedLoadouts, sortOrder) {
+  const sorted = savedLoadouts.slice();
+  if (sortOrder === 'alpha') {
+    sorted.sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: 'base' }));
+  } else {
+    sorted.sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime());
+  }
+  return sorted;
+}
+
 function renderSavedLoadoutOptions() {
   const currentSelection = state.selectedSavedLoadoutId;
   elements.savedLoadoutSelect.innerHTML = '';
+
+  elements.savedLoadoutSortSelect.disabled = state.savedLoadouts.length < 2;
 
   if (!state.savedLoadouts.length) {
     const option = document.createElement('option');
@@ -795,15 +816,12 @@ function renderSavedLoadoutOptions() {
   placeholder.textContent = 'Select a loadout...';
   elements.savedLoadoutSelect.append(placeholder);
 
-  state.savedLoadouts
-    .slice()
-    .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime())
-    .forEach(entry => {
-      const option = document.createElement('option');
-      option.value = entry.id;
-      option.textContent = entry.title;
-      elements.savedLoadoutSelect.append(option);
-    });
+  sortSavedLoadouts(state.savedLoadouts, state.loadoutSortOrder).forEach(entry => {
+    const option = document.createElement('option');
+    option.value = entry.id;
+    option.textContent = entry.title;
+    elements.savedLoadoutSelect.append(option);
+  });
 
   const hasSelection = Boolean(currentSelection) && state.savedLoadouts.some(entry => entry.id === currentSelection);
   state.selectedSavedLoadoutId = hasSelection ? currentSelection : '';
@@ -1614,6 +1632,8 @@ async function boot() {
   await loadCatalog(CATALOG_URL);
   state.config = getConfig();
   state.savedLoadouts = loadSavedLoadoutsFromStorage();
+  state.loadoutSortOrder = loadLoadoutSortOrderFromStorage();
+  elements.savedLoadoutSortSelect.value = state.loadoutSortOrder;
   state.selectedSavedLoadoutId = '';
   renderConfig();
   renderInventory();
@@ -1711,6 +1731,11 @@ async function boot() {
     });
   });
   elements.deleteSavedLoadoutButton.addEventListener('click', deleteSelectedSavedLoadout);
+  elements.savedLoadoutSortSelect.addEventListener('change', event => {
+    state.loadoutSortOrder = event.target.value === 'alpha' ? 'alpha' : 'recent';
+    window.localStorage.setItem(LOADOUT_SORT_ORDER_KEY, state.loadoutSortOrder);
+    renderSavedLoadoutOptions();
+  });
   elements.savedLoadoutSelect.addEventListener('change', event => {
     state.selectedSavedLoadoutId = event.target.value;
     syncSavedLoadoutDescriptionHint();
