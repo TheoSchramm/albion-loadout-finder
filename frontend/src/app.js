@@ -757,9 +757,6 @@ function normalizeSavedLoadout(entry) {
     description: typeof entry.description === 'string' ? entry.description.trim() : '',
     createdAt: typeof entry.createdAt === 'string' ? entry.createdAt : new Date().toISOString(),
     updatedAt: typeof entry.updatedAt === 'string' ? entry.updatedAt : new Date().toISOString(),
-    region: typeof entry.region === 'string' ? entry.region : state.region,
-    language: typeof entry.language === 'string' ? entry.language : state.language,
-    marketCity: typeof entry.marketCity === 'string' ? entry.marketCity : state.marketCity,
     slots,
   };
 }
@@ -955,9 +952,6 @@ function saveCurrentLoadout(event) {
     target.title = title;
     target.description = description;
     target.updatedAt = new Date().toISOString();
-    target.region = state.region;
-    target.language = state.language;
-    target.marketCity = state.marketCity;
     target.slots = getCurrentLoadoutSnapshot();
     state.selectedSavedLoadoutId = target.id;
     state.activePresetDescription = description;
@@ -977,9 +971,6 @@ function saveCurrentLoadout(event) {
     description,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    region: state.region,
-    language: state.language,
-    marketCity: state.marketCity,
     slots: getCurrentLoadoutSnapshot(),
   };
 
@@ -1017,11 +1008,9 @@ async function loadSelectedSavedLoadout() {
     return;
   }
 
-  state.region = savedLoadout.region || state.region;
-  state.language = savedLoadout.language || state.language;
-  state.marketCity = savedLoadout.marketCity || state.marketCity;
-  renderConfig();
-
+  // Region/Language/Market city are app-level filters, not part of the loadout itself -
+  // loading a loadout must leave them untouched so switching loadouts never surprises the
+  // user by changing what they were comparing prices against.
   state.loadout.clear();
   savedLoadout.slots.forEach(({ slot, item }) => {
     state.loadout.set(slot, item);
