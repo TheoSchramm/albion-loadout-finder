@@ -320,6 +320,37 @@ button {
   display: none;
 }
 
+/* Region continent artwork (176x240) and city crests (128x128) are both taller than the
+   wide flag-shaped aspect the shared box above is sized for - a bit bigger reads much
+   better for both, and matching sizes keeps the two dropdowns visually consistent. */
+#regionSelect .icon-select-icon,
+#regionSelect .icon-select-option-icon,
+#marketCitySelect .icon-select-icon,
+#marketCitySelect .icon-select-option-icon {
+  width: 1.3rem;
+  height: 1.7rem;
+}
+
+/* A glyph icon (e.g. Brecilien's shield, which has no dedicated crest artwork) shares the
+   same box as an image icon, but needs centering and its own font size instead of a
+   background image. */
+.icon-select-icon.material-symbols-rounded,
+.icon-select-option-icon.material-symbols-rounded {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  line-height: 1;
+  /* Matches the city crest icons, which are white line art. */
+  color: #fff;
+  font-variation-settings: 'FILL' 1;
+}
+
+#marketCitySelect .icon-select-icon.material-symbols-rounded,
+#marketCitySelect .icon-select-option-icon.material-symbols-rounded {
+  font-size: 1.3rem;
+}
+
 .icon-select-label {
   flex: 1;
   text-align: left;

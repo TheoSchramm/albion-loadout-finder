@@ -19,6 +19,13 @@ Actions), so entries are grouped by date rather than by version number — there
 - When no slot is selected, the loaded loadout's description now shows under its own
   title, so it's clear which loadout that text belongs to instead of unlabeled text.
 - A silver coin icon next to the total loadout price.
+- Each city in the "Market city" filter now shows its own in-game crest icon (Brecilien,
+  which has no crest artwork of its own, gets a filled white shield icon instead); Market
+  city is now a custom dropdown like Region/Language, since no browser can show an image
+  inside a native `<option>`.
+- The Region filter now shows a distinct continent icon per region (Americas/Asia/Europe)
+  instead of one shared globe icon.
+- New favicon.
 
 ### Changed
 

@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL@24,500,0"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL@24,500,0..1"
     />
     <link
       rel="stylesheet"
@@ -59,10 +59,29 @@
                 <ul class="icon-select-list" role="listbox" aria-label="Language" data-i18n-aria-label="languageLabel" hidden></ul>
               </div>
             </div>
-            <label>
-              <span data-i18n="marketCityLabel">Market city</span>
-              <select id="marketCitySelect"></select>
-            </label>
+            <div class="icon-select-field">
+              <label for="marketCitySelectTrigger" data-i18n="marketCityLabel">Market city</label>
+              <div class="icon-select" id="marketCitySelect">
+                <button
+                  type="button"
+                  id="marketCitySelectTrigger"
+                  class="icon-select-trigger"
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                >
+                  <span class="icon-select-icon" aria-hidden="true" hidden></span>
+                  <span class="icon-select-label" data-i18n="selectMarketCity">Select city</span>
+                  <span class="material-symbols-rounded icon-select-caret" aria-hidden="true">expand_more</span>
+                </button>
+                <ul
+                  class="icon-select-list"
+                  role="listbox"
+                  aria-label="Market city"
+                  data-i18n-aria-label="marketCityLabel"
+                  hidden
+                ></ul>
+              </div>
+            </div>
             <label>
               <span data-i18n="minQualityLabel">Minimum quality</span>
               <select id="minQualitySelect"></select>
