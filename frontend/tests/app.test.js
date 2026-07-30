@@ -692,6 +692,56 @@ test('importing a loadout code creates a new saved loadout instead of just repla
   assert.deepEqual(savedLoadoutTitles(dom), ['Imported loadout 2', 'Imported loadout 1']);
 });
 
+// ---------------------------------------------------------------------------- export-import-title-description
+
+test('exporting a saved loadout carries its title and description into the imported copy', async () => {
+  const sourceDom = await bootApp();
+
+  await equipFirstSearchResult(sourceDom, 'head', 'hood');
+  saveLoadoutAs(sourceDom, 'PvP Build');
+  click(sourceDom, 'editSavedLoadoutButton');
+  sourceDom.window.document.getElementById('saveLoadoutDescription').value = 'Fast mount, no armor.';
+  submitSaveDialog(sourceDom);
+
+  let exportedCode = null;
+  sourceDom.window.prompt = (_message, defaultValue) => {
+    exportedCode = defaultValue ?? null;
+    return null;
+  };
+  click(sourceDom, 'exportLoadoutButton');
+  assert.ok(exportedCode, 'expected the export prompt fallback to carry the loadout code');
+
+  // Import into a separate, fresh instance so there's no title collision to disambiguate.
+  const targetDom = await bootApp();
+  targetDom.window.prompt = () => exportedCode;
+  click(targetDom, 'importLoadoutButton');
+
+  assert.deepEqual(savedLoadoutTitles(targetDom), ['PvP Build']);
+  const description = targetDom.window.document.getElementById('saveLoadoutDescription');
+  click(targetDom, 'editSavedLoadoutButton');
+  assert.equal(description.value, 'Fast mount, no armor.');
+});
+
+test('importing a loadout code whose title collides with an existing one is disambiguated', async () => {
+  const dom = await bootApp();
+
+  await equipFirstSearchResult(dom, 'head', 'hood');
+  saveLoadoutAs(dom, 'PvP Build');
+
+  let exportedCode = null;
+  dom.window.prompt = (_message, defaultValue) => {
+    exportedCode = defaultValue ?? null;
+    return null;
+  };
+  click(dom, 'exportLoadoutButton');
+  assert.ok(exportedCode, 'expected the export prompt fallback to carry the loadout code');
+
+  dom.window.prompt = () => exportedCode;
+  click(dom, 'importLoadoutButton');
+
+  assert.deepEqual(savedLoadoutTitles(dom), ['PvP Build 2', 'PvP Build']);
+});
+
 // ---------------------------------------------------------------------------- export-copy-feedback
 
 test('Export shows a checkmark and "Copied!" label after a successful copy, then reverts', async () => {

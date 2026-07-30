@@ -872,39 +872,70 @@ function getCurrentLoadoutSnapshot() {
   }));
 }
 
-// A loadout code is just the [slot, unique_name, quantity?] tuples, base64-encoded -
-// not the full serialized item (display name, image URL, slot label...), since all of
-// that is re-derivable from unique_name via getItem() and would only bloat the string
-// someone has to paste. quantity is omitted entirely when it's 1, the common case.
-// unique_name/slot are always plain ASCII, so no unicode-safe encoding step is needed.
-const LOADOUT_CODE_PREFIX = 'ALB1:';
+// A loadout code is a {title, description, items} payload, base64-encoded - items are
+// just [slot, unique_name, quantity?] tuples, not the full serialized item (display
+// name, image URL, slot label...), since all of that is re-derivable from unique_name
+// via getItem() and would only bloat the string someone has to paste. quantity is
+// omitted entirely when it's 1, the common case. title/description are free text the
+// user typed, so - unlike unique_name/slot - they aren't guaranteed plain ASCII and go
+// through a unicode-safe base64 step (window.btoa/atob only handle Latin1).
+const LOADOUT_CODE_PREFIX = 'ALB2:';
+// ALB1 codes (no title/description, plain-ASCII JSON array of items) predate this
+// format; still decoded so codes shared before this change keep working.
+const LEGACY_LOADOUT_CODE_PREFIX = 'ALB1:';
+
+function unicodeToBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+  return window.btoa(binary);
+}
+
+function base64ToUnicode(base64) {
+  const binary = window.atob(base64);
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
 
 function encodeLoadoutCode() {
-  const entries = Array.from(state.loadout.entries()).map(([slot, item]) =>
+  const items = Array.from(state.loadout.entries()).map(([slot, item]) =>
     item.quantity > 1 ? [slot, item.unique_name, item.quantity] : [slot, item.unique_name],
   );
-  return LOADOUT_CODE_PREFIX + window.btoa(JSON.stringify(entries));
+  const activeLoadout = state.savedLoadouts.find(entry => entry.id === state.activePresetId);
+  const payload = {
+    title: activeLoadout ? activeLoadout.title : '',
+    description: state.activePresetDescription || '',
+    items,
+  };
+  return LOADOUT_CODE_PREFIX + unicodeToBase64(JSON.stringify(payload));
 }
 
 function decodeLoadoutCode(code) {
   const trimmed = code.trim();
-  if (!trimmed.startsWith(LOADOUT_CODE_PREFIX)) {
+  const isCurrentFormat = trimmed.startsWith(LOADOUT_CODE_PREFIX);
+  const isLegacyFormat = !isCurrentFormat && trimmed.startsWith(LEGACY_LOADOUT_CODE_PREFIX);
+  if (!isCurrentFormat && !isLegacyFormat) {
     throw new Error(T('notALoadoutCode'));
   }
-  let entries;
+  const prefixLength = (isCurrentFormat ? LOADOUT_CODE_PREFIX : LEGACY_LOADOUT_CODE_PREFIX).length;
+  let decoded;
   try {
-    entries = JSON.parse(window.atob(trimmed.slice(LOADOUT_CODE_PREFIX.length)));
+    decoded = JSON.parse(base64ToUnicode(trimmed.slice(prefixLength)));
   } catch {
     throw new Error(T('couldNotBeDecoded'));
   }
-  if (!Array.isArray(entries)) {
+  const rawItems = isCurrentFormat ? decoded.items : decoded;
+  if (!Array.isArray(rawItems)) {
     throw new Error(T('malformedLoadoutCode'));
   }
-  return entries.map(([slot, uniqueName, quantity]) => ({
+  const items = rawItems.map(([slot, uniqueName, quantity]) => ({
     slot,
     uniqueName,
     quantity: Number.isInteger(quantity) && quantity > 1 ? quantity : 1,
   }));
+  const title = isCurrentFormat && typeof decoded.title === 'string' ? decoded.title.trim() : '';
+  const description = isCurrentFormat && typeof decoded.description === 'string' ? decoded.description.trim() : '';
+  return { items, title, description };
 }
 
 function normalizeSavedLoadout(entry) {
@@ -1026,6 +1057,21 @@ function nextAvailableLoadoutTitle(prefix) {
     n += 1;
   }
   return `${prefix} ${n}`;
+}
+
+// Keeps an imported code's own title intact when it's not already taken, only falling
+// back to numbering (like nextAvailableLoadoutTitle) on an actual collision - unlike
+// that helper, the candidate itself is a full title, not a prefix to always number.
+function uniqueLoadoutTitle(candidate) {
+  const existingTitles = new Set(state.savedLoadouts.map(entry => entry.title.toLowerCase()));
+  if (!existingTitles.has(candidate.toLowerCase())) {
+    return candidate;
+  }
+  let n = 2;
+  while (existingTitles.has(`${candidate} ${n}`.toLowerCase())) {
+    n += 1;
+  }
+  return `${candidate} ${n}`;
 }
 
 function nextLoadoutPlaceholderTitle() {
@@ -1606,9 +1652,9 @@ function importLoadoutCode() {
     return;
   }
 
-  let entries;
+  let decoded;
   try {
-    entries = decodeLoadoutCode(input);
+    decoded = decodeLoadoutCode(input);
   } catch (error) {
     window.alert(T('couldNotReadLoadoutCode', { message: error.message }));
     return;
@@ -1621,7 +1667,7 @@ function importLoadoutCode() {
   const knownSlots = new Set(state.config.slots.map(entry => entry.key));
   const resolved = [];
   let skipped = 0;
-  entries.forEach(({ slot, uniqueName, quantity }) => {
+  decoded.items.forEach(({ slot, uniqueName, quantity }) => {
     const item = knownSlots.has(slot) ? getItem(uniqueName, { lang: state.language }) : null;
     if (item) {
       resolved.push([slot, { ...item, quantity }]);
@@ -1639,14 +1685,18 @@ function importLoadoutCode() {
   resolved.forEach(([slot, item]) => state.loadout.set(slot, item));
   applyTwoHandedRule();
 
-  // An imported code has no title of its own, so it becomes a new saved loadout right
-  // away instead of just replacing the unsaved working gear, where it would be lost the
-  // next time a different loadout is loaded.
-  const title = nextAvailableLoadoutTitle(T('importedLoadoutTitlePrefix'));
+  // An imported code becomes a new saved loadout right away instead of just replacing
+  // the unsaved working gear, where it would be lost the next time a different loadout
+  // is loaded. It carries over its own title/description when the code has them (i.e.
+  // it was exported from this app); an older ALB1 code, or a title that collides with
+  // one already saved, falls back to an auto-numbered "Imported loadout N" title.
+  const title = decoded.title
+    ? uniqueLoadoutTitle(decoded.title)
+    : nextAvailableLoadoutTitle(T('importedLoadoutTitlePrefix'));
   const snapshot = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     title,
-    description: '',
+    description: decoded.description || '',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     slots: getCurrentLoadoutSnapshot(),
@@ -1654,7 +1704,7 @@ function importLoadoutCode() {
   state.savedLoadouts.unshift(snapshot);
   state.selectedSavedLoadoutId = snapshot.id;
   state.activePresetId = snapshot.id;
-  state.activePresetDescription = '';
+  state.activePresetDescription = decoded.description || '';
   persistSavedLoadouts();
   renderSavedLoadoutOptions();
 

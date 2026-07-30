@@ -26,6 +26,11 @@ Actions), so entries are grouped by date rather than by version number — there
 - The Region filter now shows a distinct continent icon per region (Americas/Asia/Europe)
   instead of one shared globe icon.
 - New favicon.
+- Exported loadout codes now carry the loadout's title and description, so importing
+  one recreates it under its original name (falling back to the usual "Imported loadout
+  N" only when the code has no title, e.g. an older exported code, or when the title
+  collides with one already saved) instead of always landing as an untitled, description-
+  less "Imported loadout N".
 
 ### Changed
 
