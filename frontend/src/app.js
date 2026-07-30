@@ -350,6 +350,17 @@ function cityColor(city) {
   return CITY_COLORS[city] || '';
 }
 
+// The API's city identifiers are what CITY_COLORS/CITY_ICONS above are keyed by and what
+// must round-trip through state/localStorage/requests - only FortSterling's is missing
+// the space its in-game name actually has, so this restores it for on-screen text only.
+const CITY_DISPLAY_LABELS = {
+  FortSterling: 'Fort Sterling',
+};
+
+function cityDisplayLabel(city) {
+  return CITY_DISPLAY_LABELS[city] || city || '';
+}
+
 function qualityColor(qualityLabel) {
   return QUALITY_COLORS[qualityLabel] || '';
 }
@@ -666,7 +677,7 @@ function renderMarketCityOptions() {
     { value: 'all', label: T('allCitiesOption') },
     ...cities.map(city => ({
       value: city,
-      label: city,
+      label: cityDisplayLabel(city),
       icon: CITY_ICONS[city],
       iconGlyph: CITY_ICON_GLYPHS[city],
       color: cityColor(city),
@@ -1476,7 +1487,7 @@ function buildResultCardFragment(slotResult) {
   // No fallback to state.marketCity here: that's the user's *filter*, not where this
   // item is actually priced, and showing it next to a "no market data" price would
   // read as "this is priced in <city>" when it isn't priced anywhere.
-  city.textContent = slotResult.best.cheapest_city || '—';
+  city.textContent = cityDisplayLabel(slotResult.best.cheapest_city) || '—';
   city.style.color = cityColor(slotResult.best.cheapest_city);
   const hasRealPrice = syncUpdatedAt(updated, slotResult.best.updated_at);
   syncPriceValue(priceValue, slotResult.best.cheapest_price, hasRealPrice, slotQuantity(slotResult.selected.slot));
@@ -1527,7 +1538,7 @@ function buildResultCardFragment(slotResult) {
 
       const citySpan = document.createElement('span');
       citySpan.className = 'option-line-city';
-      citySpan.textContent = candidate.cheapest_city || '—';
+      citySpan.textContent = cityDisplayLabel(candidate.cheapest_city) || '—';
       citySpan.style.color = cityColor(candidate.cheapest_city);
 
       const qualitySpan = document.createElement('span');

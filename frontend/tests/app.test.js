@@ -204,6 +204,14 @@ test('Market city and Minimum quality options are colored (#7)', async () => {
   assert.notEqual(qualityOption.style.color, '', 'quality option should carry an inline color');
 });
 
+test('Fort Sterling shows a space in its display label, even though its API identifier has none', async () => {
+  const dom = await bootApp();
+  const { document } = dom.window;
+  const option = document.querySelector('#marketCitySelect [data-value="FortSterling"] span:last-child');
+  assert.ok(option, 'expected a FortSterling option for the default region');
+  assert.equal(option.textContent, 'Fort Sterling');
+});
+
 test('each region gets its own icon, not one shared icon', async () => {
   const dom = await bootApp();
   const { document, window } = { document: dom.window.document, window: dom.window };

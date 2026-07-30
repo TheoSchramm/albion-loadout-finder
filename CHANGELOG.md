@@ -41,6 +41,10 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ### Fixed
 
+- "Fort Sterling" now shows with a space wherever its city name appears on screen (the
+  Market city filter, and the city column in price results) - it previously showed as
+  the API's identifier, "FortSterling", the only city name where that differs from its
+  in-game spelling.
 - The price comparison table's item icon now renders at the quality that was actually
   found cheapest (e.g. an Excellent-quality gold border), instead of always the plain
   Normal-quality icon regardless of which quality the listing was actually found at.
