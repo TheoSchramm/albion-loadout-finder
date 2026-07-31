@@ -173,6 +173,7 @@ function createIconSelect(root) {
 
 const state = {
   config: null,
+  theme: 'dark',
   region: 'americas',
   language: 'en',
   marketCity: 'all',
@@ -258,11 +259,56 @@ const elements = {
   exportLoadoutButton: document.getElementById('exportLoadoutButton'),
   importLoadoutButton: document.getElementById('importLoadoutButton'),
   itemsFoundCounter: document.getElementById('itemsFoundCounter'),
+  searchResultsCounter: document.getElementById('searchResultsCounter'),
+  themeToggleButton: document.getElementById('themeToggleButton'),
 };
 
 const SAVED_LOADOUTS_KEY = 'albion-helper.saved-loadouts';
 const LOADOUT_SORT_ORDER_KEY = 'albion-helper.loadout-sort-order';
 const FILTERS_KEY = 'albion-helper.filters';
+const THEME_KEY = 'albion-helper.theme';
+
+// No stored preference means "follow the OS", not "dark" - only an explicit toggle click
+// (see boot()) pins state.theme and writes THEME_KEY, at which point it stops following
+// prefers-color-scheme changes for the rest of the session.
+function loadInitialTheme() {
+  const stored = window.localStorage.getItem(THEME_KEY);
+  if (stored === 'light' || stored === 'dark') {
+    return stored;
+  }
+  // jsdom (see tests/app.test.js) doesn't implement matchMedia at all, unlike every real
+  // browser this app ships to - fall back to the dark default rather than letting boot()
+  // throw under test.
+  if (typeof window.matchMedia !== 'function') {
+    return 'dark';
+  }
+  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+
+// Colors the closed <html> element, updates the toggle button's icon/label, and (unless
+// this is the initial boot call) redraws every already-rendered city/quality color, since
+// those are set once as inline styles at render time (see cityColor()/qualityColor() below)
+// rather than through a CSS variable.
+function applyTheme(theme) {
+  state.theme = theme;
+  document.documentElement.dataset.theme = theme;
+  const icon = elements.themeToggleButton.querySelector('.material-symbols-rounded');
+  icon.textContent = theme === 'light' ? 'light_mode' : 'dark_mode';
+  const label = T(theme === 'light' ? 'themeToggleToDark' : 'themeToggleToLight');
+  elements.themeToggleButton.title = label;
+  elements.themeToggleButton.setAttribute('aria-label', label);
+}
+
+// Re-renders every already-drawn city/quality color after a theme switch - they're set
+// once as inline styles (see cityColor()/qualityColor()), not through a CSS variable, so
+// switching the palette underneath them does nothing until these are rebuilt.
+function refreshThemedColors() {
+  renderMinQualityOptions();
+  renderMarketCityOptions();
+  if (state.lastResultsPayload) {
+    renderResults(state.lastResultsPayload);
+  }
+}
 
 function loadLoadoutSortOrderFromStorage() {
   return window.localStorage.getItem(LOADOUT_SORT_ORDER_KEY) === 'alpha' ? 'alpha' : 'recent';
@@ -338,6 +384,19 @@ const CITY_COLORS = {
   Brecilien: '#9E71D0',
 };
 
+// Same hues as CITY_COLORS above, darkened for contrast against the light theme's cream
+// paper instead of the dark theme's near-black one - the mirror image of why the dark set
+// was lightened off the in-game hex in the first place (see the comment above it).
+const CITY_COLORS_LIGHT = {
+  Martlock: '#087F91',
+  Thetford: '#811DA5',
+  FortSterling: '#4C7276',
+  Lymhurst: '#508613',
+  Bridgewatch: '#AE6613',
+  Caerleon: '#B13325',
+  Brecilien: '#622E9E',
+};
+
 const QUALITY_COLORS = {
   Normal: '#949390',
   Good: '#BDC3D5',
@@ -346,8 +405,18 @@ const QUALITY_COLORS = {
   Masterpiece: '#FFDD6F',
 };
 
+// Light-theme counterpart to QUALITY_COLORS, same treatment as CITY_COLORS_LIGHT above.
+const QUALITY_COLORS_LIGHT = {
+  Normal: '#6C6960',
+  Good: '#42548A',
+  Outstanding: '#BB661B',
+  Excellent: '#1F3333',
+  Masterpiece: '#AE8809',
+};
+
 function cityColor(city) {
-  return CITY_COLORS[city] || '';
+  const palette = state.theme === 'light' ? CITY_COLORS_LIGHT : CITY_COLORS;
+  return palette[city] || '';
 }
 
 // The API's city identifiers are what CITY_COLORS/CITY_ICONS above are keyed by and what
@@ -362,7 +431,8 @@ function cityDisplayLabel(city) {
 }
 
 function qualityColor(qualityLabel) {
-  return QUALITY_COLORS[qualityLabel] || '';
+  const palette = state.theme === 'light' ? QUALITY_COLORS_LIGHT : QUALITY_COLORS;
+  return palette[qualityLabel] || '';
 }
 
 // The English quality label (Normal/Good/Outstanding/Excellent/Masterpiece) is what the
@@ -379,6 +449,20 @@ const QUALITY_LABEL_KEYS = {
 
 function translatedQualityLabel(englishLabel) {
   const key = QUALITY_LABEL_KEYS[englishLabel];
+  return key ? T(key) : englishLabel || '';
+}
+
+// Same treatment as QUALITY_LABEL_KEYS above: getConfig()'s region.label is pinned in
+// English by parity.test.js (config payload matches Python), so this only translates it
+// for display in the region <select>, without touching the domain payload itself.
+const REGION_LABEL_KEYS = {
+  Americas: 'regionAmericas',
+  Asia: 'regionAsia',
+  Europe: 'regionEurope',
+};
+
+function translatedRegionLabel(englishLabel) {
+  const key = REGION_LABEL_KEYS[englishLabel];
   return key ? T(key) : englishLabel || '';
 }
 
@@ -629,14 +713,22 @@ function applyTwoHandedRule() {
   }
 }
 
-function renderConfig() {
+// Split out of renderConfig() so the language-change handler can also call it - unlike
+// market city/quality, region options weren't previously rebuilt on a language switch, so
+// switching to e.g. Portuguese left "Americas/Asia/Europe" stuck in English.
+function renderRegionOptions() {
   elements.regionSelect.setOptions(
     Object.entries(state.config.regions).map(([key, region]) => ({
       value: key,
-      label: region.label,
+      label: translatedRegionLabel(region.label),
       icon: REGION_ICONS[key],
     })),
   );
+  elements.regionSelect.value = state.region;
+}
+
+function renderConfig() {
+  renderRegionOptions();
 
   elements.languageSelect.setOptions(
     state.config.languages.map((language) => ({
@@ -649,7 +741,6 @@ function renderConfig() {
   renderMarketCityOptions();
   renderMinQualityOptions();
 
-  elements.regionSelect.value = state.region;
   elements.languageSelect.value = state.language;
   elements.marketCitySelect.value = state.marketCity;
   elements.minQualitySelect.value = String(state.minQuality);
@@ -806,6 +897,20 @@ function syncSlotRows() {
 
 function renderSearchPrompt(message) {
   elements.searchResults.innerHTML = `<div class="empty-state">${message}</div>`;
+  updateSearchResultsCounter(0);
+}
+
+// Shown below the search results list whenever it holds actual item rows - a typed
+// search, or the "browse everything for this slot" list an empty query shows - always
+// reflecting how many rows are on screen right now, not just while actively searching.
+function updateSearchResultsCounter(count) {
+  if (!count) {
+    elements.searchResultsCounter.hidden = true;
+    return;
+  }
+  elements.searchResultsCounter.hidden = false;
+  const itemWord = T(count === 1 ? 'itemWordSingular' : 'itemWordPlural');
+  elements.searchResultsCounter.textContent = T('searchResultsCount', { count, itemWord });
 }
 
 // A loadout's description is free-text the user typed themselves, so it's built with
@@ -815,6 +920,7 @@ function renderSearchPrompt(message) {
 // description, not some other kind of status message.
 function renderLoadoutDescriptionPrompt(title, description) {
   elements.searchResults.innerHTML = '';
+  updateSearchResultsCounter(0);
   const container = document.createElement('div');
   container.className = 'empty-state';
   if (title) {
@@ -1750,6 +1856,7 @@ function scheduleSearch(query) {
 // result limit) rather than requiring the user to type before seeing any options.
 async function runSearch(slot, query) {
   elements.searchResults.innerHTML = `<div class="empty-state">${T('searchingEllipsis')}</div>`;
+  updateSearchResultsCounter(0);
   try {
     const payload = getItems({ query, lang: state.language, slot });
     if (state.selectedSlot !== slot) {
@@ -1760,6 +1867,7 @@ async function runSearch(slot, query) {
       renderSearchPrompt(query.trim() ? T('noMatchesFound') : T('noItemsForSlot'));
       return;
     }
+    updateSearchResultsCounter(payload.items.length);
 
     payload.items.forEach(item => {
       const variants = sortVariants(Array.isArray(item.variants) && item.variants.length ? item.variants : [item]);
@@ -1917,7 +2025,50 @@ async function requestOptimization() {
   hideStatus();
 }
 
+// Rows/headers that lay text out side by side without wrapping - the ones actually at
+// risk of one piece of text visually overlapping another when there isn't enough width
+// for all of them (a squeezed sidebar at high browser zoom, an unusually long translated
+// string, etc.). The width-based breakpoints below (@media max-width: 980px/720px) catch
+// the common "viewport got narrower" case; this is the fallback for cases they don't -
+// browser zoom in particular resizes the *effective* viewport without necessarily
+// crossing a breakpoint at a size that still overflows one of these rows.
+const COLLISION_WATCH_SELECTORS = [
+  '.section-heading',
+  '.column-heading',
+  '.total-cost-row',
+  '.result-row',
+  '.result-card',
+  '.option-line',
+  '.icon-select-trigger',
+  '.config-controls label',
+  '.loadout-sort-control',
+  '.modal-header',
+];
+
+// scrollWidth > clientWidth means this row's content no longer fits on one line where it
+// was laid out to - the actual, measured sign of text overlapping/overrunning its
+// neighbor, rather than guessing from viewport width alone.
+function hasLayoutCollision() {
+  return COLLISION_WATCH_SELECTORS.some(selector =>
+    [...document.querySelectorAll(selector)].some(el => el.scrollWidth > el.clientWidth + 1),
+  );
+}
+
+let layoutCollisionTimer = null;
+
+// Debounced: resize fires continuously while dragging/zooming, and the MutationObserver
+// below fires on every re-render (search results, price results, language switch, ...) -
+// checking on every single one of those would mean measuring layout dozens of times a
+// second for no visible benefit.
+function scheduleLayoutCollisionCheck() {
+  clearTimeout(layoutCollisionTimer);
+  layoutCollisionTimer = setTimeout(() => {
+    document.documentElement.classList.toggle('layout-compact', hasLayoutCollision());
+  }, 120);
+}
+
 async function boot() {
+  applyTheme(loadInitialTheme());
   setStatus(T('loadingStatus'));
   // The catalog is a same-origin asset shipped by the same deploy as this file, so a
   // failure here means a broken deploy or an offline user - both worth showing plainly
@@ -1930,6 +2081,10 @@ async function boot() {
   elements.savedLoadoutSortSelect.value = state.loadoutSortOrder;
   state.selectedSavedLoadoutId = '';
   applyStaticTranslations();
+  // Re-applied now that applyStoredFilters() has resolved the real UI language - the call
+  // above (before the catalog loaded) only had the module's default 'en' to work with, so
+  // the toggle's title/aria-label could otherwise stay in the wrong language.
+  applyTheme(state.theme);
   renderConfig();
   renderInventory();
   renderSavedLoadoutOptions();
@@ -1953,7 +2108,9 @@ async function boot() {
     // changes, it must not clear the results table (markPricingDirty() would). Both the
     // loadout slots and any already-fetched results are relabeled in place instead.
     applyStaticTranslations();
+    applyTheme(state.theme);
     renderInventory();
+    renderRegionOptions();
     renderMarketCityOptions();
     renderMinQualityOptions();
     renderSavedLoadoutOptions();
@@ -2006,6 +2163,13 @@ async function boot() {
         state.pricingInFlight = false;
         elements.refreshButton.disabled = false;
       });
+  });
+
+  elements.themeToggleButton.addEventListener('click', () => {
+    const nextTheme = state.theme === 'light' ? 'dark' : 'light';
+    window.localStorage.setItem(THEME_KEY, nextTheme);
+    applyTheme(nextTheme);
+    refreshThemedColors();
   });
 
   elements.clearLoadoutButton.addEventListener('click', clearLoadout);
@@ -2063,6 +2227,18 @@ async function boot() {
       closeSaveLoadoutDialog();
     }
   });
+
+  // Browser zoom fires 'resize' the same as an actual window resize does, so this alone
+  // covers the zoom case; the MutationObserver covers content changing shape underneath a
+  // fixed viewport (a language switch producing longer strings, search/price results
+  // rendering in, ...) without needing every render function to remember to call this.
+  window.addEventListener('resize', scheduleLayoutCollisionCheck);
+  new window.MutationObserver(scheduleLayoutCollisionCheck).observe(document.body, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+  });
+  scheduleLayoutCollisionCheck();
 }
 
 boot()
