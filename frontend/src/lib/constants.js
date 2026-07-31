@@ -98,7 +98,7 @@ export const SLOT_LABELS = Object.freeze({
   "potion": "Potion"
 });
 
-// Only de/fr/es are genuinely translated; the rest intentionally alias the English
+// Only de/fr/es/pt are genuinely translated; the rest intentionally alias the English
 // labels, exactly as the Python source did.
 export const LOCALIZED_SLOT_LABELS = Object.freeze({
   en: SLOT_LABELS,
@@ -126,7 +126,18 @@ export const LOCALIZED_SLOT_LABELS = Object.freeze({
     "food": "Nourriture",
     "potion": "Potion"
   }),
-  pt: SLOT_LABELS,
+  pt: Object.freeze({
+    "head": "Cabeça",
+    "chest": "Peito",
+    "feet": "Pés",
+    "main_hand": "Mão Principal",
+    "off_hand": "Mão Secundária",
+    "cape": "Capa",
+    "bag": "Bolsa",
+    "mount": "Montaria",
+    "food": "Comida",
+    "potion": "Poção"
+  }),
   es: Object.freeze({
     "head": "Cabeza",
     "chest": "Pecho",
