@@ -1,409 +1,360 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Albion Loadout Optimizer</title>
-    <link rel="icon" type="image/png" href="./favicon.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL@24,500,0..1"
-    />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
-    />
-    <link rel="preconnect" href="https://render.albiononline.com" />
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <div id="bootStatus" class="boot-status" role="status" data-i18n="bootLoading">Loading item catalog</div>
-    <div class="app-shell">
-      <aside class="sidebar panel">
-        <div class="sidebar-section">
-          <p class="eyebrow" data-i18n="filtersEyebrow">Filters</p>
-          <div class="config-controls">
-            <div class="icon-select-field">
-              <label for="regionSelectTrigger" data-i18n="regionLabel">Region</label>
-              <div class="icon-select" id="regionSelect">
-                <button
-                  type="button"
-                  id="regionSelectTrigger"
-                  class="icon-select-trigger"
-                  aria-haspopup="listbox"
-                  aria-expanded="false"
-                >
-                  <span class="icon-select-icon" aria-hidden="true" hidden></span>
-                  <span class="icon-select-label" data-i18n="selectRegion">Select region</span>
-                  <span class="material-symbols-rounded icon-select-caret" aria-hidden="true">expand_more</span>
-                </button>
-                <ul class="icon-select-list" role="listbox" aria-label="Region" data-i18n-aria-label="regionLabel" hidden></ul>
-              </div>
-            </div>
-            <div class="icon-select-field">
-              <label for="languageSelectTrigger" data-i18n="languageLabel">Language</label>
-              <div class="icon-select" id="languageSelect">
-                <button
-                  type="button"
-                  id="languageSelectTrigger"
-                  class="icon-select-trigger"
-                  aria-haspopup="listbox"
-                  aria-expanded="false"
-                >
-                  <span class="icon-select-icon" aria-hidden="true" hidden></span>
-                  <span class="icon-select-label" data-i18n="selectLanguage">Select language</span>
-                  <span class="material-symbols-rounded icon-select-caret" aria-hidden="true">expand_more</span>
-                </button>
-                <ul class="icon-select-list" role="listbox" aria-label="Language" data-i18n-aria-label="languageLabel" hidden></ul>
-              </div>
-            </div>
-            <div class="icon-select-field">
-              <label for="marketCitySelectTrigger" data-i18n="marketCityLabel">Market city</label>
-              <div class="icon-select" id="marketCitySelect">
-                <button
-                  type="button"
-                  id="marketCitySelectTrigger"
-                  class="icon-select-trigger"
-                  aria-haspopup="listbox"
-                  aria-expanded="false"
-                >
-                  <span class="icon-select-icon" aria-hidden="true" hidden></span>
-                  <span class="icon-select-label" data-i18n="selectMarketCity">Select city</span>
-                  <span class="material-symbols-rounded icon-select-caret" aria-hidden="true">expand_more</span>
-                </button>
-                <ul
-                  class="icon-select-list"
-                  role="listbox"
-                  aria-label="Market city"
-                  data-i18n-aria-label="marketCityLabel"
-                  hidden
-                ></ul>
-              </div>
-            </div>
-            <label>
-              <span data-i18n="minQualityLabel">Minimum quality</span>
-              <select id="minQualitySelect"></select>
-            </label>
-          </div>
-        </div>
 
-        <div class="sidebar-section">
-          <p class="eyebrow" data-i18n="loadoutsEyebrow">Loadouts</p>
-          <div class="loadout-tools">
-            <label class="loadout-sort-control">
-              <span data-i18n="sortLabel">Sort</span>
-              <select id="savedLoadoutSortSelect" aria-label="Sort saved loadouts" data-i18n-aria-label="sortSavedLoadoutsAria">
-                <option value="recent" data-i18n="sortRecent">Recently updated</option>
-                <option value="alpha" data-i18n="sortAlpha">A&ndash;Z</option>
-              </select>
-            </label>
-            <select id="savedLoadoutSelect" aria-label="Saved loadouts" data-i18n-aria-label="savedLoadoutsAria"></select>
-            <div class="loadout-tools-buttons">
-              <button id="loadSavedLoadoutButton" class="small-button small-button-accent" type="button">
-                <span class="material-symbols-rounded" aria-hidden="true">folder_open</span>
-                <span data-i18n="loadButton">Load</span>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Albion Loadout Optimizer</title>
+  <link rel="icon" type="image/png" href="./favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL@24,500,0..1" />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" />
+  <link rel="preconnect" href="https://render.albiononline.com" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <div id="bootStatus" class="boot-status" role="status" data-i18n="bootLoading">Loading item catalog</div>
+  <div class="app-shell">
+    <aside class="sidebar panel">
+      <div class="sidebar-section">
+        <p class="eyebrow" data-i18n="preferencesEyebrow">Preferences</p>
+        <div class="config-controls">
+          <div class="icon-select-field">
+            <label for="languageSelectTrigger" data-i18n="languageLabel">Language</label>
+            <div class="icon-select" id="languageSelect">
+              <button type="button" id="languageSelectTrigger" class="icon-select-trigger" aria-haspopup="listbox"
+                aria-expanded="false">
+                <span class="icon-select-icon" aria-hidden="true" hidden></span>
+                <span class="icon-select-label" data-i18n="selectLanguage">Select language</span>
+                <span class="material-symbols-rounded icon-select-caret" aria-hidden="true">expand_more</span>
               </button>
-              <button id="saveLoadoutButton" class="small-button small-button-primary" type="button">
-                <span class="material-symbols-rounded" aria-hidden="true">save</span>
-                <span data-i18n="saveButton">Save</span>
-              </button>
-              <button id="editSavedLoadoutButton" class="small-button" type="button">
-                <span class="material-symbols-rounded" aria-hidden="true">edit</span>
-                <span data-i18n="editButton">Edit</span>
-              </button>
-              <button id="deleteSavedLoadoutButton" class="small-button small-button-danger" type="button">
-                <span class="material-symbols-rounded" aria-hidden="true">delete</span>
-                <span data-i18n="deleteButton">Delete</span>
-              </button>
-            </div>
-            <div class="loadout-tools-buttons">
-              <button
-                id="exportLoadoutButton"
-                class="small-button"
-                type="button"
-                title="Copy the current loadout as a code you can share"
-                data-i18n-title="exportTitle"
-              >
-                <span class="material-symbols-rounded" aria-hidden="true">ios_share</span>
-                <span data-i18n="exportButton">Export</span>
-              </button>
-              <button
-                id="importLoadoutButton"
-                class="small-button"
-                type="button"
-                title="Paste a loadout code to load it"
-                data-i18n-title="importTitle"
-              >
-                <span class="material-symbols-rounded" aria-hidden="true">content_paste</span>
-                <span data-i18n="importButton">Import</span>
-              </button>
+              <ul class="icon-select-list" role="listbox" aria-label="Language" data-i18n-aria-label="languageLabel"
+                hidden></ul>
             </div>
           </div>
-        </div>
-
-        <div class="sidebar-footer">
-          <a
-            class="github-link"
-            href="https://github.com/TheoSchramm/albion-loadout-finder"
-            target="_blank"
-            rel="noopener"
-            title="View the source, report bugs, or suggest features on GitHub"
-            data-i18n-title="githubLinkTitle"
-          >
-            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
-              <path
-                fill="currentColor"
-                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"
-              />
-            </svg>
-            <span data-i18n="githubLinkText">View on GitHub</span>
-          </a>
-        </div>
-      </aside>
-
-      <main class="content">
-        <section class="panel simulator-panel">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow" data-i18n="step1">Step 1</p>
-              <h2 data-i18n="simulatorHeading">Loadout Inventory Simulator</h2>
-            </div>
-            <span class="section-hint" data-i18n="clickSlotHint">Click a slot to search</span>
-          </div>
-
-          <div class="builder">
-            <div class="builder-column equipment-column">
-              <div class="column-heading">
-                <h3 data-i18n="equipmentHeading">Equipment</h3>
-                <button id="clearLoadoutButton" class="small-button small-button-danger" type="button">
-                  <span data-i18n="clearAllButton">Clear all</span>
-                </button>
-              </div>
-              <div id="slotList" class="slot-list"></div>
-            </div>
-
-            <div class="builder-column search-column">
-              <div class="column-heading">
-                <h3 id="searchTitle" data-i18n="selectSlotHeading">Select a slot</h3>
-              </div>
-              <input
-                id="searchInput"
-                type="search"
-                placeholder="Search item name..."
-                data-i18n-placeholder="searchPlaceholder"
-                autocomplete="off"
-                disabled
-              />
-              <hr class="search-input-separator" />
-              <div id="searchResults" class="search-results">
-                <div class="empty-state" data-i18n="pickSlotHint">Pick a slot on the left to start searching.</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel results-panel">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow" data-i18n="step2">Step 2</p>
-              <h2 data-i18n="resultsHeading">Fetch Prices &amp; Results</h2>
-            </div>
-            <div class="total-cost-block">
-              <span id="itemsFoundCounter" class="items-found-counter" hidden></span>
-              <span class="total-cost-label" data-i18n="totalLoadoutPriceLabel">Total loadout price</span>
-              <span class="total-cost-row">
-                <img class="total-cost-icon" src="./silver-icon.png" alt="" aria-hidden="true" />
-                <span id="totalCost" class="total-cost" data-i18n="noPricesYet">No prices yet</span>
-              </span>
-            </div>
-          </div>
-          <button id="refreshButton" class="primary-button compare-button">
-            <span class="material-symbols-rounded" aria-hidden="true">sync</span>
-            <span data-i18n="comparePricesButton">Compare prices</span>
-          </button>
-          <p class="price-disclaimer">
-            <span class="material-symbols-rounded" aria-hidden="true">info</span>
-            <span data-i18n="priceDisclaimer"
-              >Prices here are only a suggestion and may or may not be accurate. Verify them in-game before taking
-              any action.</span
-            >
-          </p>
-          <div id="resultsList" class="results-list">
-            <table id="resultsTable" class="results-table" hidden>
-              <thead>
-                <tr>
-                  <th></th>
-                  <th data-i18n="tableHeaderItem">Item</th>
-                  <th data-i18n="tableHeaderTier">Tier</th>
-                  <th data-i18n="tableHeaderCity">City</th>
-                  <th data-i18n="tableHeaderPrice">Price</th>
-                  <th></th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="resultsBody"></tbody>
-            </table>
-            <div id="resultsEmptyState" class="empty-state" data-i18n="fillLoadoutHint">Fill the loadout, then click Compare prices.</div>
-          </div>
-        </section>
-      </main>
-    </div>
-
-    <div id="saveLoadoutModal" class="modal-overlay" hidden aria-hidden="true">
-      <div class="panel modal">
-        <div class="modal-header">
-          <div>
-            <p class="eyebrow" data-i18n="saveLoadoutEyebrow">Save loadout</p>
-            <h2 id="saveLoadoutTitle">Save current loadout</h2>
-            <p id="saveLoadoutHint" class="modal-hint">Give it a title. Description is optional.</p>
-          </div>
-          <button id="saveLoadoutClose" class="icon-button" type="button" aria-label="Close save dialog" data-i18n-aria-label="closeSaveDialogAria">
-            <span class="material-symbols-rounded" aria-hidden="true">close</span>
-          </button>
-        </div>
-        <form id="saveLoadoutForm" class="modal-form">
-          <label>
-            <span data-i18n="titleLabel">Title</span>
-            <input
-              id="saveLoadoutName"
-              type="text"
-              maxlength="64"
-              required
-              placeholder="My PvP build"
-              data-i18n-placeholder="titlePlaceholder"
-            />
-          </label>
-          <label>
-            <span data-i18n="descriptionLabel">Description</span>
-            <textarea
-              id="saveLoadoutDescription"
-              rows="3"
-              placeholder="Optional note for this setup"
-              data-i18n-placeholder="descriptionPlaceholder"
-            ></textarea>
-          </label>
-          <div class="modal-actions">
-            <button id="saveLoadoutCancel" class="secondary-button" type="button">
-              <span data-i18n="cancelButton">Cancel</span>
+          <div class="preferences-links-row">
+            <button id="themeToggleButton" class="icon-button theme-toggle" type="button"
+              aria-label="Toggle color theme" title="Toggle color theme" data-i18n-aria-label="themeToggleAria"
+              data-i18n-title="themeToggleAria">
+              <span class="material-symbols-rounded" aria-hidden="true">dark_mode</span>
             </button>
-            <button id="saveLoadoutSubmit" class="primary-button" type="submit">Save loadout</button>
+            <a class="github-link" href="https://github.com/TheoSchramm/albion-loadout-finder" target="_blank"
+              rel="noopener" title="View the source, report bugs, or suggest features on GitHub"
+              data-i18n-title="githubLinkTitle">
+              <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
+                <path fill="currentColor"
+                  d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+              </svg>
+              <span data-i18n="githubLinkText">View on GitHub</span>
+            </a>
           </div>
-        </form>
+        </div>
       </div>
-    </div>
 
-    <template id="slotRowTemplate">
-      <article class="slot-row">
-        <button class="slot-row-main" type="button">
-          <span class="slot-row-icon">
-            <img class="slot-row-image" alt="" />
-            <span class="slot-row-placeholder material-symbols-rounded" aria-hidden="true">add</span>
-            <span class="slot-row-spinner" aria-hidden="true" hidden></span>
-          </span>
-          <span class="slot-row-label"></span>
+      <hr class="sidebar-separator" />
+
+      <div class="sidebar-section">
+        <p class="eyebrow" data-i18n="filtersEyebrow">Filters</p>
+        <div class="config-controls">
+          <div class="icon-select-field">
+            <label for="regionSelectTrigger" data-i18n="regionLabel">Region</label>
+            <div class="icon-select" id="regionSelect">
+              <button type="button" id="regionSelectTrigger" class="icon-select-trigger" aria-haspopup="listbox"
+                aria-expanded="false">
+                <span class="icon-select-icon" aria-hidden="true" hidden></span>
+                <span class="icon-select-label" data-i18n="selectRegion">Select region</span>
+                <span class="material-symbols-rounded icon-select-caret" aria-hidden="true">expand_more</span>
+              </button>
+              <ul class="icon-select-list" role="listbox" aria-label="Region" data-i18n-aria-label="regionLabel" hidden>
+              </ul>
+            </div>
+          </div>
+          <div class="icon-select-field">
+            <label for="marketCitySelectTrigger" data-i18n="marketCityLabel">Market city</label>
+            <div class="icon-select" id="marketCitySelect">
+              <button type="button" id="marketCitySelectTrigger" class="icon-select-trigger" aria-haspopup="listbox"
+                aria-expanded="false">
+                <span class="icon-select-icon" aria-hidden="true" hidden></span>
+                <span class="icon-select-label" data-i18n="selectMarketCity">Select city</span>
+                <span class="material-symbols-rounded icon-select-caret" aria-hidden="true">expand_more</span>
+              </button>
+              <ul class="icon-select-list" role="listbox" aria-label="Market city"
+                data-i18n-aria-label="marketCityLabel" hidden></ul>
+            </div>
+          </div>
+          <label>
+            <span data-i18n="minQualityLabel">Minimum quality</span>
+            <select id="minQualitySelect"></select>
+          </label>
+        </div>
+      </div>
+
+      <hr class="sidebar-separator" />
+
+      <div class="sidebar-section">
+        <p class="eyebrow" data-i18n="loadoutsEyebrow">Loadouts</p>
+        <div class="loadout-tools">
+          <label class="loadout-sort-control">
+            <span data-i18n="sortLabel">Sort</span>
+            <select id="savedLoadoutSortSelect" aria-label="Sort saved loadouts"
+              data-i18n-aria-label="sortSavedLoadoutsAria">
+              <option value="recent" data-i18n="sortRecent">Recently updated</option>
+              <option value="alpha" data-i18n="sortAlpha">A&ndash;Z</option>
+            </select>
+          </label>
+          <select id="savedLoadoutSelect" aria-label="Saved loadouts" data-i18n-aria-label="savedLoadoutsAria"></select>
+          <div class="loadout-tools-buttons">
+            <button id="loadSavedLoadoutButton" class="small-button small-button-accent" type="button">
+              <span class="material-symbols-rounded" aria-hidden="true">folder_open</span>
+              <span data-i18n="loadButton">Load</span>
+            </button>
+            <button id="saveLoadoutButton" class="small-button small-button-primary" type="button">
+              <span class="material-symbols-rounded" aria-hidden="true">save</span>
+              <span data-i18n="saveButton">Save</span>
+            </button>
+            <button id="editSavedLoadoutButton" class="small-button" type="button">
+              <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+              <span data-i18n="editButton">Edit</span>
+            </button>
+            <button id="deleteSavedLoadoutButton" class="small-button small-button-danger" type="button">
+              <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+              <span data-i18n="deleteButton">Delete</span>
+            </button>
+          </div>
+          <div class="loadout-tools-buttons">
+            <button id="exportLoadoutButton" class="small-button" type="button"
+              title="Copy the current loadout as a code you can share" data-i18n-title="exportTitle">
+              <span class="material-symbols-rounded" aria-hidden="true">ios_share</span>
+              <span data-i18n="exportButton">Export</span>
+            </button>
+            <button id="importLoadoutButton" class="small-button" type="button" title="Paste a loadout code to load it"
+              data-i18n-title="importTitle">
+              <span class="material-symbols-rounded" aria-hidden="true">content_paste</span>
+              <span data-i18n="importButton">Import</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <section class="panel simulator-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" data-i18n="step1">Step 1</p>
+            <h2 data-i18n="simulatorHeading">Loadout Inventory Simulator</h2>
+          </div>
+          <span class="section-hint" data-i18n="clickSlotHint">Click a slot to search</span>
+        </div>
+
+        <div class="builder">
+          <div class="builder-column equipment-column">
+            <div class="column-heading">
+              <h3 data-i18n="equipmentHeading">Equipment</h3>
+              <button id="clearLoadoutButton" class="small-button small-button-danger" type="button">
+                <span data-i18n="clearAllButton">Clear all</span>
+              </button>
+            </div>
+            <div id="slotList" class="slot-list"></div>
+          </div>
+
+          <div class="builder-column search-column">
+            <div class="column-heading">
+              <h3 id="searchTitle" data-i18n="selectSlotHeading">Select a slot</h3>
+            </div>
+            <input id="searchInput" type="search" placeholder="Search item name..."
+              data-i18n-placeholder="searchPlaceholder" autocomplete="off" disabled />
+            <hr class="search-input-separator" />
+            <div id="searchResults" class="search-results">
+              <div class="empty-state" data-i18n="pickSlotHint">Pick a slot on the left to start searching.</div>
+            </div>
+            <div id="searchResultsCounter" class="search-results-counter" hidden></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel results-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" data-i18n="step2">Step 2</p>
+            <h2 data-i18n="resultsHeading">Fetch Prices &amp; Results</h2>
+          </div>
+          <div class="total-cost-block">
+            <span id="itemsFoundCounter" class="items-found-counter" hidden></span>
+            <span class="total-cost-label" data-i18n="totalLoadoutPriceLabel">Total loadout price</span>
+            <span class="total-cost-row">
+              <img class="total-cost-icon" src="./silver-icon.png" alt="" aria-hidden="true" />
+              <span id="totalCost" class="total-cost" data-i18n="noPricesYet">No prices yet</span>
+            </span>
+          </div>
+        </div>
+        <button id="refreshButton" class="primary-button compare-button">
+          <span class="material-symbols-rounded" aria-hidden="true">sync</span>
+          <span data-i18n="comparePricesButton">Compare prices</span>
         </button>
-        <button class="slot-row-clear" type="button" aria-label="Clear slot" data-i18n-aria-label="clearSlotAria">
+        <div id="resultsList" class="results-list">
+          <table id="resultsTable" class="results-table" hidden>
+            <thead>
+              <tr>
+                <th></th>
+                <th data-i18n="tableHeaderItem">Item</th>
+                <th data-i18n="tableHeaderTier">Tier</th>
+                <th data-i18n="tableHeaderCity">City</th>
+                <th data-i18n="tableHeaderPrice">Price</th>
+                <th></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody"></tbody>
+          </table>
+          <hr class="search-input-separator" />
+          <div id="resultsEmptyState" class="empty-state" data-i18n="fillLoadoutHint">Fill the loadout, then click
+            Compare prices.</div>
+        </div>
+        <p class="price-disclaimer">
+          <span class="material-symbols-rounded" aria-hidden="true">info</span>
+          <span data-i18n="priceDisclaimer">Prices here are only a suggestion and may or may not be accurate. Verify
+            them in-game before taking
+            any action.</span>
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <div id="saveLoadoutModal" class="modal-overlay" hidden aria-hidden="true">
+    <div class="panel modal">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow" data-i18n="saveLoadoutEyebrow">Save loadout</p>
+          <h2 id="saveLoadoutTitle">Save current loadout</h2>
+          <p id="saveLoadoutHint" class="modal-hint">Give it a title. Description is optional.</p>
+        </div>
+        <button id="saveLoadoutClose" class="icon-button" type="button" aria-label="Close save dialog"
+          data-i18n-aria-label="closeSaveDialogAria">
           <span class="material-symbols-rounded" aria-hidden="true">close</span>
         </button>
-        <span class="slot-row-quantity-badge" hidden></span>
-      </article>
-    </template>
-
-    <template id="resultRowTemplate">
-      <article class="result-row">
-        <span class="result-row-icon">
-          <img class="result-row-image" alt="" />
-          <span class="material-symbols-rounded result-row-fallback" aria-hidden="true" hidden>image</span>
-          <span class="result-row-spinner" aria-hidden="true" hidden></span>
-        </span>
-        <span class="result-row-copy">
-          <strong class="result-row-name"></strong>
-          <span class="result-row-meta"></span>
-        </span>
-        <label class="result-row-field">
-          <span data-i18n="tierFieldLabel">Tier</span>
-          <select class="result-row-tier"></select>
+      </div>
+      <form id="saveLoadoutForm" class="modal-form">
+        <label>
+          <span data-i18n="titleLabel">Title</span>
+          <input id="saveLoadoutName" type="text" maxlength="64" required placeholder="My PvP build"
+            data-i18n-placeholder="titlePlaceholder" />
         </label>
-        <label class="result-row-field">
-          <span data-i18n="enchFieldLabel">Ench</span>
-          <select class="result-row-enchant"></select>
+        <label>
+          <span data-i18n="descriptionLabel">Description</span>
+          <textarea id="saveLoadoutDescription" rows="3" placeholder="Optional note for this setup"
+            data-i18n-placeholder="descriptionPlaceholder"></textarea>
         </label>
-        <label class="result-row-field result-row-quantity-field" hidden>
-          <span data-i18n="qtyFieldLabel">Qty</span>
-          <select class="result-row-quantity"></select>
-        </label>
-        <button class="result-row-use primary-button" type="button">
-          <span data-i18n="useButton">Use</span>
-        </button>
-      </article>
-    </template>
-
-    <template id="resultCardTemplate">
-      <tr class="result-card">
-        <td>
-          <span class="result-card-icon">
-            <img class="result-card-image" alt="" />
-            <span class="material-symbols-rounded result-card-fallback" aria-hidden="true" hidden>image</span>
-            <span class="result-card-spinner" aria-hidden="true" hidden></span>
-          </span>
-        </td>
-        <td class="result-card-copy">
-          <span class="result-card-name-row">
-            <strong class="result-card-name"></strong>
-            <button
-              class="result-card-copy-button"
-              type="button"
-              title="Copy the in-game market search text for this item"
-              data-i18n-title="copyMarketAliasTitle"
-            >
-              <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>
-            </button>
-          </span>
-          <span class="result-card-slot"></span>
-        </td>
-        <td class="result-card-tier">
-          <strong class="result-card-tier-value"></strong>
-          <span class="result-card-quality"></span>
-        </td>
-        <td class="result-card-city"></td>
-        <td class="result-card-price">
-          <strong class="result-card-price-value"></strong>
-          <span class="result-card-updated"></span>
-        </td>
-        <td>
-          <button
-            class="result-card-toggle"
-            type="button"
-            hidden
-            aria-label="Show equivalent tier options"
-            data-i18n-aria-label="showEquivalentOptionsAria"
-          >
-            <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        <div class="modal-actions">
+          <button id="saveLoadoutCancel" class="secondary-button" type="button">
+            <span data-i18n="cancelButton">Cancel</span>
           </button>
-        </td>
-        <td>
-          <a
-            class="result-card-api-link"
-            href="#"
-            target="_blank"
-            rel="noopener"
-            title="Open the market data API query for this item"
-            data-i18n-title="openApiQueryTitle"
-          >
-            <span class="material-symbols-rounded" aria-hidden="true">data_object</span>
-          </a>
-        </td>
-      </tr>
-      <tr class="result-card-options-row" hidden>
-        <td></td>
-        <td colspan="6">
-          <div class="result-card-options"></div>
-        </td>
-      </tr>
-    </template>
+          <button id="saveLoadoutSubmit" class="primary-button" type="submit">Save loadout</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-    <script type="module" src="./app.js"></script>
-  </body>
+  <template id="slotRowTemplate">
+    <article class="slot-row">
+      <button class="slot-row-main" type="button">
+        <span class="slot-row-icon">
+          <img class="slot-row-image item-icon-image" alt="" />
+          <span class="slot-row-placeholder material-symbols-rounded" aria-hidden="true">add</span>
+          <span class="slot-row-spinner" aria-hidden="true" hidden></span>
+        </span>
+        <span class="slot-row-label"></span>
+      </button>
+      <button class="slot-row-clear" type="button" aria-label="Clear slot" data-i18n-aria-label="clearSlotAria">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+      <span class="slot-row-quantity-badge" hidden></span>
+    </article>
+  </template>
+
+  <template id="resultRowTemplate">
+    <article class="result-row">
+      <span class="result-row-icon">
+        <img class="result-row-image item-icon-image" alt="" />
+        <span class="material-symbols-rounded result-row-fallback" aria-hidden="true" hidden>image</span>
+        <span class="result-row-spinner" aria-hidden="true" hidden></span>
+      </span>
+      <span class="result-row-copy">
+        <strong class="result-row-name"></strong>
+        <span class="result-row-meta"></span>
+      </span>
+      <label class="result-row-field">
+        <span data-i18n="tierFieldLabel">Tier</span>
+        <select class="result-row-tier"></select>
+      </label>
+      <label class="result-row-field">
+        <span data-i18n="enchFieldLabel">Ench</span>
+        <select class="result-row-enchant"></select>
+      </label>
+      <label class="result-row-field result-row-quantity-field" hidden>
+        <span data-i18n="qtyFieldLabel">Qty</span>
+        <select class="result-row-quantity"></select>
+      </label>
+      <button class="result-row-use primary-button" type="button">
+        <span data-i18n="useButton">Use</span>
+      </button>
+    </article>
+  </template>
+
+  <template id="resultCardTemplate">
+    <tr class="result-card">
+      <td>
+        <span class="result-card-icon">
+          <img class="result-card-image item-icon-image" alt="" />
+          <span class="material-symbols-rounded result-card-fallback" aria-hidden="true" hidden>image</span>
+          <span class="result-card-spinner" aria-hidden="true" hidden></span>
+        </span>
+      </td>
+      <td class="result-card-copy">
+        <span class="result-card-name-row">
+          <strong class="result-card-name"></strong>
+          <button class="result-card-copy-button" type="button"
+            title="Copy the in-game market search text for this item" data-i18n-title="copyMarketAliasTitle">
+            <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>
+          </button>
+        </span>
+        <span class="result-card-slot"></span>
+      </td>
+      <td class="result-card-tier">
+        <strong class="result-card-tier-value"></strong>
+        <span class="result-card-quality"></span>
+      </td>
+      <td class="result-card-city"></td>
+      <td class="result-card-price">
+        <strong class="result-card-price-value"></strong>
+        <span class="result-card-updated"></span>
+      </td>
+      <td>
+        <button class="result-card-toggle" type="button" hidden aria-label="Show equivalent tier options"
+          data-i18n-aria-label="showEquivalentOptionsAria">
+          <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+        </button>
+      </td>
+      <td>
+        <a class="result-card-api-link" href="#" target="_blank" rel="noopener"
+          title="Open the market data API query for this item" data-i18n-title="openApiQueryTitle">
+          <span class="material-symbols-rounded" aria-hidden="true">data_object</span>
+        </a>
+      </td>
+    </tr>
+    <tr class="result-card-options-row" hidden>
+      <td></td>
+      <td colspan="6">
+        <div class="result-card-options"></div>
+      </td>
+    </tr>
+  </template>
+
+  <script type="module" src="./app.js"></script>
+</body>
+
 </html>
