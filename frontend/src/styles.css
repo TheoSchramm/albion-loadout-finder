@@ -54,9 +54,57 @@
   --shadow-card: 4px 4px 0 hsl(var(--shadow) / 0.4);
   --shadow-card-sm: 2px 2px 0 hsl(var(--shadow) / 0.45);
   --shadow-card-press: 1px 1px 0 hsl(var(--shadow) / 0.5);
+  --shadow-card-hover: 3px 3px 0 hsl(var(--shadow) / 0.5);
+  --shadow-card-modal: 6px 6px 0 hsl(var(--shadow) / 0.5);
 
   --transition-fast: 140ms ease;
   --transition-standard: 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Light "ledger paper" variant of the same theme: warm cream paper, dark ink, and the
+   accent hues darkened (hue preserved) so they still clear contrast against a light
+   background instead of the near-white lightness tuned for the dark paper above. Applied
+   via a `data-theme` attribute on <html> (see applyTheme() in app.js) rather than
+   `prefers-color-scheme` alone, since the toggle has to be able to override the OS setting
+   and persist that choice. */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* Muted warm gray, not a bright cream - closer to unbleached ledger paper under office
+     light than a stark white UI. Desk/paper/paper-dim keep the same two-tone relationship
+     as the dark theme (paper-dim a touch darker, for recessed form controls) but push the
+     whole range down out of "bright" territory. */
+  --desk: 36 10% 84%;
+  --paper: 36 14% 91%;
+  --paper-dim: 34 10% 87%;
+
+  /* Softer than a full near-black ink - less saturated and a touch lighter, so body text
+     reads as a calm dark gray rather than the harsh, high-contrast black the first pass
+     had against this paper. */
+  --ink: 26 14% 24%;
+  --ink-soft: 27 10% 38%;
+  --ink-faint: 28 7% 50%;
+
+  --rule: 32 9% 76%;
+  --rule-strong: 32 10% 60%;
+
+  /* Same hues as the dark theme's accents but desaturated further, so nothing reads as a
+     bright, saturated pop against the light paper - the accent should still read clearly
+     without feeling loud. */
+  --brass: 36 38% 38%;
+  --brass-deep: 34 40% 31%;
+  --brass-ink: 40 16% 96%;
+  --seal: 5 32% 45%;
+  --verdigris: 168 22% 34%;
+
+  /* The dark theme's hard-edge shadows read as heavy black borders on a light background
+     instead of the subtle "cut paper" lift they give on dark paper - same offsets, much
+     lower opacity, so panels/buttons/modals still pop slightly without looking bruised. */
+  --shadow-card: 4px 4px 0 hsl(var(--shadow) / 0.1);
+  --shadow-card-sm: 2px 2px 0 hsl(var(--shadow) / 0.12);
+  --shadow-card-press: 1px 1px 0 hsl(var(--shadow) / 0.14);
+  --shadow-card-hover: 3px 3px 0 hsl(var(--shadow) / 0.14);
+  --shadow-card-modal: 6px 6px 0 hsl(var(--shadow) / 0.16);
 }
 
 * {
@@ -108,6 +156,17 @@ button {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Shared by every in-game item icon <img> - loadout tile, search result, results table -
+   wherever a rendered item icon appears. The source art's transparent padding is baked in
+   unevenly per item, so this is one shared crop/nudge to retune for all of them at once
+   instead of three separate copies. Each icon's own class (.slot-row-image etc.) still sets
+   its own width/height, since the zoom differs by context (the loadout tile crops in
+   further than the compact list/table icons do). */
+.item-icon-image {
+  object-fit: cover;
+  transform: translate(1.8%, 1.8%);
+}
+
 /* ---- one orchestrated load: sidebar, then each panel, rise in staggered ---- */
 
 @keyframes rise-in {
@@ -155,7 +214,7 @@ button {
 .boot-status {
   position: relative;
   z-index: 2;
-  width: min(1500px, calc(100% - 1.5rem));
+  width: calc(100% - 1.5rem);
   margin: var(--space-4) auto 0;
   padding: var(--space-3) var(--space-4);
   border: 1px solid hsl(var(--rule-strong));
@@ -174,7 +233,7 @@ button {
 .app-shell {
   position: relative;
   z-index: 1;
-  width: min(1500px, calc(100% - 1.5rem));
+  width: calc(100% - 1.5rem);
   margin: 0 auto;
   padding: var(--space-4) 0 var(--space-8);
   display: grid;
@@ -205,10 +264,27 @@ button {
   gap: var(--space-2);
 }
 
-.sidebar-footer {
-  margin-top: auto;
-  padding-top: var(--space-3);
+.sidebar-separator {
+  border: none;
   border-top: 1px solid hsl(var(--rule));
+  margin: 0;
+}
+
+.preferences-links-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.theme-toggle {
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+}
+
+.theme-toggle .material-symbols-rounded {
+  font-size: 1.1rem;
 }
 
 .github-link {
@@ -320,15 +396,27 @@ button {
   display: none;
 }
 
-/* Region continent artwork (176x240) and city crests (128x128) are both taller than the
-   wide flag-shaped aspect the shared box above is sized for - a bit bigger reads much
-   better for both, and matching sizes keeps the two dropdowns visually consistent. */
+/* Region continent artwork (176x240) is taller than the wide flag-shaped aspect the
+   shared box above is sized for - a bit bigger reads much better. */
 #regionSelect .icon-select-icon,
-#regionSelect .icon-select-option-icon,
-#marketCitySelect .icon-select-icon,
-#marketCitySelect .icon-select-option-icon {
+#regionSelect .icon-select-option-icon {
   width: 1.3rem;
   height: 1.7rem;
+}
+
+/* City crests are 128x128 (square), so - unlike the region select above - this gets an
+   equal width/height box: a true circle once border-radius: 50% is applied below, rather
+   than the squashed ellipse a taller box would give every city the same misaligned look
+   the Brecilien glyph had before its own fix. Some crests (Fort Sterling's especially -
+   it's a pale, snow/silver design) are themselves near-white line art, same as the
+   Brecilien glyph further down, so they all get the same dark backdrop to stay legible,
+   independent of theme. */
+#marketCitySelect .icon-select-icon,
+#marketCitySelect .icon-select-option-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+  background-color: hsl(var(--shadow) / 0.55);
+  border-radius: 50%;
 }
 
 /* A glyph icon (e.g. Brecilien's shield, which has no dedicated crest artwork) shares the
@@ -341,14 +429,20 @@ button {
   justify-content: center;
   font-size: 0.85rem;
   line-height: 1;
-  /* Matches the city crest icons, which are white line art. */
+  /* Matches the city crest icons, which are white line art - so it needs a backdrop dark
+     enough to read the glyph against, independent of theme (--shadow stays near-black in
+     both the dark and light palettes above, unlike the surface colors it sits on here). */
   color: #fff;
+  background: hsl(var(--shadow) / 0.55);
+  border-radius: 50%;
   font-variation-settings: 'FILL' 1;
 }
 
 #marketCitySelect .icon-select-icon.material-symbols-rounded,
 #marketCitySelect .icon-select-option-icon.material-symbols-rounded {
-  font-size: 1.3rem;
+  /* Box itself already matches every other city icon (set above) - just a smaller glyph
+     so it doesn't touch the circle's edge. */
+  font-size: 1.15rem;
 }
 
 .icon-select-label {
@@ -469,7 +563,7 @@ button:disabled {
 
 .primary-button:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 hsl(var(--shadow) / 0.5);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .primary-button:active {
@@ -639,7 +733,11 @@ button:disabled {
 
 .builder {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 1fr);
+  /* min(320px, 100%), not a bare 320px floor - a hard floor never shrinks below itself, so
+     at high browser zoom or just before the 980px stacked layout kicks in, search-column
+     had a width it refused to go under and overflowed .builder instead of shrinking with
+     it like equipment-column already does. */
+  grid-template-columns: minmax(0, 1fr) minmax(min(320px, 100%), 1fr);
   gap: var(--space-3);
 }
 
@@ -682,7 +780,11 @@ button:disabled {
 .slot-list {
   --slot-tile-size: 6.75rem;
   display: grid;
-  grid-template-columns: repeat(3, var(--slot-tile-size));
+  /* minmax(0, ...), not a bare fixed length - a plain length track never shrinks below its
+     size, so at high browser zoom or a narrow sidebar the 3-tile-wide grid (and every tile
+     in it, since .slot-row fills its own cell below) would overflow .equipment-column
+     instead of scaling down with the space actually available. */
+  grid-template-columns: repeat(3, minmax(0, var(--slot-tile-size)));
   gap: 0.6rem;
   justify-content: center;
 }
@@ -739,8 +841,12 @@ button:disabled {
 
 .slot-row {
   position: relative;
-  width: var(--slot-tile-size, 6.75rem);
-  height: var(--slot-tile-size, 6.75rem);
+  /* Fills its grid cell (which can now shrink below --slot-tile-size - see .slot-list
+     above) instead of a fixed size that ignored the cell and overflowed it. aspect-ratio
+     keeps it square as that cell scales down, the same way the fixed width/height pair
+     used to. */
+  width: 100%;
+  aspect-ratio: 1;
   border-radius: var(--radius-md);
   border: 1px solid hsl(var(--rule-strong));
   background: hsl(var(--paper-dim));
@@ -787,12 +893,12 @@ button:disabled {
   height: 100%;
   display: grid;
   place-items: center;
+  overflow: hidden;
 }
 
 .slot-row-image {
   width: 100%;
   height: 100%;
-  object-fit: contain;
   opacity: 0;
 }
 
@@ -845,22 +951,31 @@ button:disabled {
   display: none;
 }
 
+/* Quiet by default (muted ink, half-opacity scrim) and only picks up the app's actual
+   danger accent (--seal, same as small-button-danger/delete elsewhere) on its own hover -
+   matches the understated default-then-accent-on-hover treatment already used by the
+   result row/card's own small circular icon buttons (copy, toggle, api-link), rather than
+   the previously always-opaque backdrop and one-off hardcoded red. */
 .slot-row-clear {
   position: absolute;
   top: 0.3rem;
   right: 0.3rem;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.4rem;
+  height: 1.4rem;
   border-radius: 50%;
-  background: hsl(var(--shadow) / 0.72);
-  color: hsl(5 78% 76%);
+  background: hsl(var(--shadow) / 0.5);
+  color: hsl(var(--ink) / 0.75);
   display: none;
   align-items: center;
   justify-content: center;
 }
 
+.slot-row-clear:hover {
+  color: hsl(var(--seal));
+}
+
 .slot-row-clear .material-symbols-rounded {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .slot-row.is-filled:hover .slot-row-clear,
@@ -868,13 +983,15 @@ button:disabled {
   display: flex;
 }
 
+/* radius-sm (not the pill shape used before) to match every other small tag/chip in the
+   UI instead of being the one rounded-pill shape in the app. */
 .slot-row-quantity-badge {
   position: absolute;
   bottom: 0.3rem;
   right: 0.3rem;
   padding: 0.05rem 0.35rem;
-  border-radius: var(--radius-pill);
-  background: hsl(var(--shadow) / 0.72);
+  border-radius: var(--radius-sm);
+  background: hsl(var(--shadow) / 0.55);
   color: hsl(var(--brass));
   font-family: var(--font-mono);
   font-size: 0.62rem;
@@ -926,9 +1043,26 @@ button:disabled {
   padding-right: 0.2rem;
 }
 
+.search-results-counter {
+  flex: 0 0 auto;
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid hsl(var(--rule));
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: right;
+  color: hsl(var(--ink-faint));
+}
+
 .result-row {
   display: grid;
-  grid-template-columns: 56px minmax(0, 1fr) auto auto auto;
+  /* One "auto" track per optional field column: icon, name, tier, ench, qty (consumables
+     only - hidden and so absent from layout otherwise), use button. Consumable rows render
+     one more real grid item than others, so without this last "auto" the grid used to fall
+     back to an unstyled implicit track for the Use button, misaligning it versus every
+     other item's row. */
+  grid-template-columns: 56px minmax(0, 1fr) auto auto auto auto;
   gap: var(--space-3);
   align-items: center;
   width: 100%;
@@ -950,9 +1084,8 @@ button:disabled {
 }
 
 .result-row-image {
-  width: 84%;
-  height: 84%;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
 }
 
 .result-row-fallback {
@@ -1208,9 +1341,8 @@ button:disabled {
 }
 
 .result-card-image {
-  width: 84%;
-  height: 84%;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
 }
 
 .result-card-fallback {
@@ -1509,7 +1641,7 @@ button:disabled {
   padding: var(--space-4);
   display: grid;
   gap: var(--space-4);
-  box-shadow: 6px 6px 0 hsl(var(--shadow) / 0.5);
+  box-shadow: var(--shadow-card-modal);
 }
 
 .modal-header {
@@ -1591,4 +1723,50 @@ button:disabled {
   .result-row-icon {
     display: none;
   }
+}
+
+/* Same vertical/mobile-like layout as the two breakpoints above, applied by class instead
+   of viewport width - toggled at runtime by hasLayoutCollision() in app.js when it
+   actually measures text overlapping its row rather than waiting for the viewport to
+   cross 980px/720px (browser zoom in particular can overflow a row well before either
+   breakpoint would trigger). */
+html.layout-compact .app-shell {
+  grid-template-columns: 1fr;
+}
+
+html.layout-compact .sidebar {
+  position: static;
+}
+
+html.layout-compact .builder {
+  grid-template-columns: 1fr;
+}
+
+html.layout-compact .search-column {
+  height: 24rem;
+  padding-left: 0;
+  padding-top: var(--space-4);
+  border-left: none;
+  border-top: 1px solid hsl(var(--rule));
+}
+
+html.layout-compact .section-heading {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+html.layout-compact .compare-button {
+  width: 100%;
+}
+
+html.layout-compact .slot-list {
+  --slot-tile-size: 5.5rem;
+}
+
+html.layout-compact .result-row {
+  grid-template-columns: 1fr;
+}
+
+html.layout-compact .result-row-icon {
+  display: none;
 }
