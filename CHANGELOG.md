@@ -7,6 +7,48 @@ deploys continuously (every push to `main` rebuilds and redeploys automatically 
 Actions), so entries are grouped by date rather than by version number — there's no separate
 "release" step to hang a version on.
 
+## 2026-07-31
+
+### Added
+
+- A dark/light theme toggle, in a new "Preferences" sidebar section alongside Language and
+  the GitHub link. Defaults to your OS color-scheme preference and remembers your choice
+  across visits.
+- A counter under the search results list showing how many items are currently displayed,
+  whether you're searching or just browsing everything available for the selected slot.
+- The app now detects when text is actually overflowing its row (most likely at a high
+  browser zoom level) and switches to the same compact, vertical, mobile-like layout the
+  narrow-window view already uses, instead of relying on window width alone.
+
+### Changed
+
+- Reorganized the sidebar into three sections - Preferences (Language, theme, GitHub link),
+  Filters (Region, Market city, Minimum quality), and Loadouts - separated by hairline
+  rules.
+- In-game item icons (loadout slots, search results, results table) now fill their frame
+  edge-to-edge instead of leaving a visible margin from the source art's own transparent
+  padding.
+- The loadout slot's quantity badge and clear button are more understated: lighter
+  backdrops, and the clear button now uses the app's actual danger-red accent instead of a
+  one-off hardcoded color.
+- The app now expands to fill more of the window when the browser is zoomed out, instead of
+  stopping at a fixed maximum width.
+
+### Fixed
+
+- Region names (Americas/Asia/Europe) and loadout slot names (Head, Chest, Main Hand, etc.)
+  now translate correctly in Portuguese - both previously fell back to English.
+- City icons that are themselves pale, near-white artwork (Fort Sterling's crest
+  especially) now get a dark backdrop so they stay legible in light mode, matching the
+  treatment Brecilien's placeholder shield icon already had.
+- Brecilien's shield icon backdrop is now the same circular size/shape as every other
+  city's icon, instead of a squashed ellipse.
+- Consumable items (potions, food) in the search results list now line up the same way
+  every other item does - their extra "Qty" column was missing from the row's layout,
+  which had been misaligning the "Use" button.
+- The loadout slot grid and the search column no longer overflow their containers at high
+  browser zoom or narrow window widths.
+
 ## [Unreleased]
 
 ### Added

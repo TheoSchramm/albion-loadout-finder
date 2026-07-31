@@ -193,5 +193,21 @@ else and say so explicitly.
   setting `display` (e.g. `.modal-overlay { display: grid; }`) has the same specificity as the browser's
   built-in `[hidden]` rule and can silently win, leaving an element visible despite `element.hidden = true`.
   Keep relying on that rule rather than toggling `display` directly.
-- Visual conventions the design deliberately follows: dark theme only, no gradients anywhere, no emoji, and
-  city/quality colors derived from the in-game palette (adjusted only for contrast, preserving hue).
+- Visual conventions the design deliberately follows: no gradients anywhere, no emoji, and city/quality colors
+  derived from the in-game palette (adjusted only for contrast, preserving hue).
+- **Dark/light theme**: `styles.css` defines the dark palette on `:root` and a full light-mode override on
+  `:root[data-theme="light"]` (same custom properties, hue-preserved but re-tuned for contrast/brightness against
+  the light paper - do not just lighten the dark values). `applyTheme()` in `app.js` sets `data-theme` on
+  `<html>`, and the choice persists to `localStorage` under `THEME_KEY`, falling back to
+  `prefers-color-scheme` only when nothing is stored. City/quality colors (`CITY_COLORS`/`QUALITY_COLORS` in
+  `app.js`) are hardcoded hex, not CSS variables, so each has a `_LIGHT` counterpart selected by `state.theme` in
+  `cityColor()`/`qualityColor()` - add both when adding a new color, not just one.
+- In-game item icon `<img>`s (loadout slot, search result, results table) all share one `.item-icon-image` CSS
+  class controlling `object-fit` and a crop-offset `transform` - the source art's transparent padding is uneven
+  per item, so this is one place to retune the crop for every icon at once rather than three copies.
+- **Responsive fallback beyond the width breakpoints**: `hasLayoutCollision()` in `app.js` measures whether any
+  text-bearing row (`COLLISION_WATCH_SELECTORS`) actually overflows (`scrollWidth > clientWidth`) and toggles a
+  `layout-compact` class on `<html>` when it does - a fallback for cases the `@media (max-width: ...)` rules
+  don't catch (browser zoom in particular changes the effective viewport without necessarily crossing a
+  breakpoint at a size that still overflows a row). The `html.layout-compact` rules in `styles.css` mirror the
+  breakpoints' rules exactly; keep both in sync if the compact layout changes.
