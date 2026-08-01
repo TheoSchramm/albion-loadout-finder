@@ -1326,7 +1326,6 @@ button:disabled {
 }
 
 .results-table thead th:nth-child(3),
-.results-table thead th:nth-child(4),
 .results-table thead th:nth-child(5) {
   text-align: right;
 }
@@ -1421,14 +1420,13 @@ button:disabled {
 }
 
 .result-card-city {
-  display: block;
   min-width: 0;
   font-size: 0.95rem;
   color: hsl(var(--ink-soft));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: right;
+  text-align: left;
 }
 
 .result-card-quality {

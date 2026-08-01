@@ -38,6 +38,18 @@ Actions), so entries are grouped by date rather than by version number — there
   every time results loaded. Price result rows are excluded from that check now; the
   underlying overflow itself is also fixed - long city names truncate with an ellipsis
   instead of overflowing their column.
+- The result table's City column had two rendering bugs on top of yesterday's overflow
+  fix: the text sat visibly higher than every other column in the row, and long names
+  were silently cut off with no ellipsis. Cause of the first: the cell was styled
+  `display: block`, which knocks a `<td>` out of the table's cell layout and forces the
+  browser to wrap it in an anonymous table-cell that doesn't inherit the row's
+  `vertical-align: middle`, so it fell back to baseline alignment while its siblings
+  stayed centered. Cause of the second: the column was right-aligned like the numeric
+  Tier/Price columns next to it, but `text-overflow: ellipsis` only draws the "…" at a
+  box's trailing (right) edge - with the text right-aligned, overflow spilled off the
+  *left* edge instead, so the ellipsis never appeared. City is text, not a number, so
+  it's now left-aligned like the Item column (matching how the equivalent-options
+  dropdown already treats city) and no longer forced to `display: block`.
 
 ## 2026-07-31
 
