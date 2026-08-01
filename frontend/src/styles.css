@@ -163,7 +163,8 @@ button {
    its own width/height, since the zoom differs by context (the loadout tile crops in
    further than the compact list/table icons do). */
 .item-icon-image {
-  object-fit: cover;
+  object-fit: cover
+  ;
   transform: translate(1.8%, 1.8%);
 }
 
