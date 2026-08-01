@@ -7,6 +7,14 @@ deploys continuously (every push to `main` rebuilds and redeploys automatically 
 Actions), so entries are grouped by date rather than by version number — there's no separate
 "release" step to hang a version on.
 
+## 2026-08-01
+
+### Added
+
+- A subtle "Updated <date>" line in the sidebar's Preferences section, stamped with the
+  actual deploy date at build time - so it's easy to tell when the live site was last
+  redeployed. Shows "Updated dev" when running the app locally via `npm run dev`.
+
 ## 2026-07-31
 
 ### Added

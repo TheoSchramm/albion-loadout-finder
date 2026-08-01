@@ -307,6 +307,16 @@ button {
   flex-shrink: 0;
 }
 
+/* Stamped by build.mjs at deploy time (see BUILD_DATE_PLACEHOLDER there) - shows "dev" as
+   committed, so a local `npm run dev` reads honestly as not a real deployed build rather
+   than a stale or fake-looking date. */
+.app-version {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: hsl(var(--ink-faint));
+}
+
 .eyebrow {
   font-family: var(--font-mono);
   font-size: 0.66rem;

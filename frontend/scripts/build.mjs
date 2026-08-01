@@ -83,8 +83,23 @@ async function assertCatalogBudget(files) {
   return [];
 }
 
+/**
+ * Stamps the deploy date into the "Updated" line in the sidebar, so visitors can tell
+ * when the site was last redeployed without checking GitHub. src/index.html ships with
+ * the placeholder committed as "dev" - `npm run dev` serves that file directly, so a local
+ * dev server honestly shows "not a real deployed build" rather than a stale or fake date.
+ */
+async function stampBuildDate(distDir) {
+  const indexPath = path.join(distDir, 'index.html');
+  const html = await readFile(indexPath, 'utf8');
+  const buildDate = new Date().toISOString().slice(0, 10);
+  const stamped = html.replace('<span id="appBuildDate">dev</span>', `<span id="appBuildDate">${buildDate}</span>`);
+  await writeFile(indexPath, stamped);
+}
+
 await rm(distDir, { recursive: true, force: true });
 await copyRecursive(srcDir, distDir);
+await stampBuildDate(distDir);
 
 // Tells GitHub Pages to serve the tree as-is. Without it Jekyll processes the site and
 // silently drops anything whose path starts with an underscore.
