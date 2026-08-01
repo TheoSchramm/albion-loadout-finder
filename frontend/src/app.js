@@ -1777,10 +1777,6 @@ function importLoadoutCode() {
     return;
   }
 
-  if (state.loadout.size && !window.confirm(T('replaceCurrentLoadoutConfirm'))) {
-    return;
-  }
-
   const knownSlots = new Set(state.config.slots.map(entry => entry.key));
   const resolved = [];
   let skipped = 0;
@@ -1798,27 +1794,45 @@ function importLoadoutCode() {
     return;
   }
 
-  state.loadout.clear();
-  resolved.forEach(([slot, item]) => state.loadout.set(slot, item));
-  applyTwoHandedRule();
-
-  // An imported code becomes a new saved loadout right away instead of just replacing
-  // the unsaved working gear, where it would be lost the next time a different loadout
-  // is loaded. It carries over its own title/description when the code has them (i.e.
-  // it was exported from this app); an older ALB1 code, or a title that collides with
-  // one already saved, falls back to an auto-numbered "Imported loadout N" title.
+  // Importing always saves a new loadout - it never touches an existing one, so there is
+  // nothing to confirm about that part. The only potentially lossy step is *also* loading
+  // it into the builder right away, which would discard whatever's currently equipped
+  // there but not yet saved - that's the one thing this asks about, and declining it still
+  // saves the import; it just isn't switched into view.
   const title = decoded.title
     ? uniqueLoadoutTitle(decoded.title)
     : nextAvailableLoadoutTitle(T('importedLoadoutTitlePrefix'));
+  const loadIntoBuilder = !state.loadout.size || window.confirm(T('loadImportedLoadoutConfirm', { title }));
+
   const snapshot = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     title,
     description: decoded.description || '',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    slots: getCurrentLoadoutSnapshot(),
+    slots: resolved.map(([slot, item]) => ({ slot, item })),
   };
   state.savedLoadouts.unshift(snapshot);
+
+  const itemWord = T(resolved.length === 1 ? 'itemWordSingular' : 'itemWordPlural');
+  const skippedNote = skipped ? T('notRecognizedNote', { count: skipped }) : '';
+
+  if (!loadIntoBuilder) {
+    // Not loaded into the builder - whatever's currently equipped there stays exactly as
+    // it was, so this can't go through markPricingDirty()/renderResultsPrompt() (that
+    // would wrongly clear already-fetched prices for gear that never actually changed).
+    // state.selectedSavedLoadoutId is deliberately left untouched too, so the dropdown
+    // keeps showing whatever was already selected rather than jumping to an entry that
+    // isn't actually loaded.
+    persistSavedLoadouts();
+    renderSavedLoadoutOptions();
+    window.alert(T('importedLoadoutSavedStatus', { title, count: resolved.length, itemWord, skippedNote }));
+    return;
+  }
+
+  state.loadout.clear();
+  resolved.forEach(([slot, item]) => state.loadout.set(slot, item));
+  applyTwoHandedRule();
   state.selectedSavedLoadoutId = snapshot.id;
   state.activePresetId = snapshot.id;
   state.activePresetDescription = decoded.description || '';
@@ -1829,8 +1843,6 @@ function importLoadoutCode() {
     showIdleSearchView();
   }
 
-  const itemWord = T(resolved.length === 1 ? 'itemWordSingular' : 'itemWordPlural');
-  const skippedNote = skipped ? T('notRecognizedNote', { count: skipped }) : '';
   markPricingDirty(T('importedLoadoutStatus', { title, count: resolved.length, itemWord, skippedNote }));
 }
 

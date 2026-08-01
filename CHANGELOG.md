@@ -15,6 +15,16 @@ Actions), so entries are grouped by date rather than by version number — there
   actual deploy date at build time - so it's easy to tell when the live site was last
   redeployed. Shows "Updated dev" when running the app locally via `npm run dev`.
 
+### Changed
+
+- Importing a loadout code now always saves it as a new entry in the Loadouts list,
+  whether or not you already have unsaved gear equipped in the builder. Previously,
+  declining the "replace your currently equipped items?" prompt cancelled the entire
+  import - so if you had anything equipped, clicking Cancel meant the code you pasted
+  wasn't saved anywhere at all. The prompt itself is also clearer now about what it's
+  actually asking: only whether to *also* load the import into the builder right away
+  (which replaces your unsaved equipped items), not whether to save it at all.
+
 ### Fixed
 
 - The loadout slot's quantity badge and clear ("x") button were hard to read in light
