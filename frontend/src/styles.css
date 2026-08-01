@@ -1414,9 +1414,13 @@ button:disabled {
 }
 
 .result-card-city {
+  display: block;
+  min-width: 0;
   font-size: 0.95rem;
   color: hsl(var(--ink-soft));
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-align: right;
 }
 

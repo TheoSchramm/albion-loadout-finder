@@ -15,6 +15,16 @@ Actions), so entries are grouped by date rather than by version number — there
   actual deploy date at build time - so it's easy to tell when the live site was last
   redeployed. Shows "Updated dev" when running the app locally via `npm run dev`.
 
+### Fixed
+
+- Fetching prices no longer force-switches the page into the compact, mobile-like layout.
+  Individual price result rows were included in the layout-collision fallback added
+  yesterday, so any one row's city name not quite fitting its fixed-width column (a real
+  but minor, purely cosmetic overflow) was enough to trigger the whole-page layout switch
+  every time results loaded. Price result rows are excluded from that check now; the
+  underlying overflow itself is also fixed - long city names truncate with an ellipsis
+  instead of overflowing their column.
+
 ## 2026-07-31
 
 ### Added

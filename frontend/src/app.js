@@ -2025,20 +2025,25 @@ async function requestOptimization() {
   hideStatus();
 }
 
-// Rows/headers that lay text out side by side without wrapping - the ones actually at
-// risk of one piece of text visually overlapping another when there isn't enough width
-// for all of them (a squeezed sidebar at high browser zoom, an unusually long translated
-// string, etc.). The width-based breakpoints below (@media max-width: 980px/720px) catch
-// the common "viewport got narrower" case; this is the fallback for cases they don't -
-// browser zoom in particular resizes the *effective* viewport without necessarily
-// crossing a breakpoint at a size that still overflows one of these rows.
+// Structural chrome that lays text out side by side without wrapping - headers and
+// toolbars that appear once per view, the ones actually at risk of one piece of text
+// visually overlapping another when there isn't enough width for all of them (a squeezed
+// sidebar at high browser zoom, an unusually long translated string, etc.). The
+// width-based breakpoints below (@media max-width: 980px/720px) catch the common
+// "viewport got narrower" case; this is the fallback for cases they don't - browser zoom
+// in particular resizes the *effective* viewport without necessarily crossing a breakpoint
+// at a size that still overflows one of these rows.
+//
+// Deliberately excludes per-item repeating rows (.result-row, .result-card, .option-line):
+// those are numerous, dynamically populated (search results, price results), and one row's
+// long item/city name not fitting its own column is a normal, localized truncation case
+// (see .result-card-city's own overflow/ellipsis handling), not a sign the whole page needs
+// to go vertical - including them here made every price fetch force mobile layout as soon
+// as any one row's city name was a little long for its fixed column.
 const COLLISION_WATCH_SELECTORS = [
   '.section-heading',
   '.column-heading',
   '.total-cost-row',
-  '.result-row',
-  '.result-card',
-  '.option-line',
   '.icon-select-trigger',
   '.config-controls label',
   '.loadout-sort-control',
