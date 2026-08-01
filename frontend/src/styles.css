@@ -967,6 +967,11 @@ button:disabled {
    matches the understated default-then-accent-on-hover treatment already used by the
    result row/card's own small circular icon buttons (copy, toggle, api-link), rather than
    the previously always-opaque backdrop and one-off hardcoded red. */
+/* This backdrop is always dark (--shadow stays black in both themes, by design - see the
+   icon-select glyph backdrop's own comment above), so its icon color must be fixed too,
+   not one of the theme-swapped ink/seal variables - those get *darkened* for light mode
+   specifically to read against light paper, which made the icon nearly as dark as the
+   badge it sits on instead of contrasting with it. */
 .slot-row-clear {
   position: absolute;
   top: 0.3rem;
@@ -974,15 +979,15 @@ button:disabled {
   width: 1.4rem;
   height: 1.4rem;
   border-radius: 50%;
-  background: hsl(var(--shadow) / 0.5);
-  color: hsl(var(--ink) / 0.75);
+  background: hsl(var(--shadow) / 0.55);
+  color: hsl(0 0% 92% / 0.85);
   display: none;
   align-items: center;
   justify-content: center;
 }
 
 .slot-row-clear:hover {
-  color: hsl(var(--seal));
+  color: hsl(5 70% 64%);
 }
 
 .slot-row-clear .material-symbols-rounded {
@@ -995,15 +1000,17 @@ button:disabled {
 }
 
 /* radius-sm (not the pill shape used before) to match every other small tag/chip in the
-   UI instead of being the one rounded-pill shape in the app. */
+   UI instead of being the one rounded-pill shape in the app. Text color is fixed (not
+   --brass), same reasoning as .slot-row-clear above - this backdrop stays dark regardless
+   of theme, so light-mode's darkened --brass read as barely-legible dark-on-dark. */
 .slot-row-quantity-badge {
   position: absolute;
   bottom: 0.3rem;
   right: 0.3rem;
   padding: 0.05rem 0.35rem;
   border-radius: var(--radius-sm);
-  background: hsl(var(--shadow) / 0.55);
-  color: hsl(var(--brass));
+  background: hsl(var(--shadow) / 0.62);
+  color: hsl(40 75% 60%);
   font-family: var(--font-mono);
   font-size: 0.62rem;
   font-weight: 600;

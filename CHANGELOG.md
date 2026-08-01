@@ -17,6 +17,10 @@ Actions), so entries are grouped by date rather than by version number — there
 
 ### Fixed
 
+- The loadout slot's quantity badge and clear ("x") button were hard to read in light
+  mode - both sit on a backdrop that's always dark regardless of theme, but their text/icon
+  color was one of the theme-swapped colors that gets *darkened* for light mode, making it
+  nearly as dark as the badge itself. Both now use a fixed color instead.
 - Fetching prices no longer force-switches the page into the compact, mobile-like layout.
   Individual price result rows were included in the layout-collision fallback added
   yesterday, so any one row's city name not quite fitting its fixed-width column (a real
